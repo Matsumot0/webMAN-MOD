@@ -646,9 +646,11 @@ pasv_again:
 
 							}
 							//else ssend(conn_s_ftp, FTP_ERROR_550);
-							}
-							else
+						}
+						else
+						{
 							ssend(conn_s_ftp, FTP_ERROR_501);
+						}
 					}
 					else
 					{

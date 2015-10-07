@@ -5,10 +5,10 @@
 	<View id="seg_webman_links">
 		<Attributes>
 			<Table key="links">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/tools.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/multiman.png</String></Pair>
 				<Pair key="icon_notation"><String>WNT_XmbItemBrowser</String></Pair>
 				<Pair key="title"><String>webMAN</String></Pair>
-				<Pair key="info"><String>快速链接 webMAN 功能</String></Pair>
+				<Pair key="info"><String>快速链接到 webMAN 功能</String></Pair>
 				<Pair key="child"><String>segment</String></Pair>
 			</Table>
 		</Attributes>
@@ -38,6 +38,7 @@
 			<Query class="type:x-xmb/folder-pixmap" key="webman_webman_unload" src="#seg_webman_unload"/>
 
 			<Query class="type:x-xmb/folder-pixmap" key="webman_webman_restart" src="#seg_webman_restart"/>
+			<Query class="type:x-xmb/folder-pixmap" key="webman_webman_shutdown" src="#seg_webman_shutdown"/>
 			<Query class="type:x-xmb/folder-pixmap" key="webman_prepare_ntfs" src="xcb://localhost/query?limit=1&cond=Ae+Game:Game.titleId BLES80616"/>
 		</Items>
 	</View>
@@ -124,6 +125,7 @@
 		</Items>
 	</View>
 
+
 	<View id="seg_webman_nethost_links_items_net0">
 		<Items>
 			<Query class="type:x-xmb/folder-pixmap" key="webman_nethost0_link1" src="#seg_webman_nethost0"/>
@@ -164,7 +166,7 @@
 	<View id="seg_webman_refresh_xml">
 		<Attributes>
 			<Table key="webman_refresh_xml">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/refreshxml.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>刷新我的游戏</String></Pair>
 				<Pair key="info"><String>游戏列表将在下次 XMB 被加载后显示</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -178,7 +180,7 @@
 	<View id="seg_webman_refresh_html">
 		<Attributes>
 			<Table key="webman_refresh_html">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/refreshhtml.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>刷新网页游戏列表</String></Pair>
 				<Pair key="info"><String>将会更新用于浏览器模式的 HTML 游戏列表</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -192,7 +194,7 @@
 	<View id="seg_webman_cpursx">
 		<Attributes>
 			<Table key="webman_cpursx">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/sysinfo.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/multiman.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [温度]</String></Pair>
 				<Pair key="info"><String>在网页浏览器中监视 PS3 温度</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -206,7 +208,7 @@
 	<View id="seg_webman_games">
 		<Attributes>
 			<Table key="webman_games">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamesbrowser.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/multiman.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [游戏]</String></Pair>
 				<Pair key="info"><String>在网页浏览器中列出我的游戏</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -220,7 +222,7 @@
 	<View id="seg_webman_files">
 		<Attributes>
 			<Table key="webman_files">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/filemanager.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [文件]</String></Pair>
 				<Pair key="info"><String>在网页浏览器中列出我的文件</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -234,7 +236,7 @@
 	<View id="seg_webman_cache">
 		<Attributes>
 			<Table key="seg_webman_cache">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/cachefiles.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [缓存]</String></Pair>
 				<Pair key="info"><String>删除 /dev_hdd0/tmp/wmtmp 文件</String></Pair>
 				<Pair key="child"><String>segment</String></Pair>
@@ -571,7 +573,7 @@
 	<View id="seg_webman_unmount">
 		<Attributes>
 			<Table key="webman_unmount">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/unmount.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/homebrew.png</String></Pair>
 				<Pair key="title"><String>卸载光盘</String></Pair>
 				<Pair key="info"><String></String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -585,7 +587,7 @@
 	<View id="seg_webman_insert">
 		<Attributes>
 			<Table key="webman_insert">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/insert.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/bd.png</String></Pair>
 				<Pair key="title"><String>插入光盘</String></Pair>
 				<Pair key="info"><String></String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -599,7 +601,7 @@
 	<View id="seg_webman_unload">
 		<Attributes>
 			<Table key="webman_unload">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/unload.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/devflash.png</String></Pair>
 				<Pair key="title"><String>卸载 webMAN</String></Pair>
 				<Pair key="info"><String>从内存中卸载 webMAN [R2+L3+R3]</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -613,7 +615,7 @@
 	<View id="seg_webman_restart">
 		<Attributes>
 			<Table key="webman_restart">
-				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/restartps3.png</String></Pair>
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>重启 PS3</String></Pair>
 				<Pair key="info"><String></String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
@@ -621,6 +623,20 @@
 			</Table>
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_restart" attr="webman_restart"/></Items>
+	</View>
+
+	<!-- Main > webMAN > Shutdown PS3 -->
+	<View id="seg_webman_shutdown">
+		<Attributes>
+			<Table key="webman_shutdown">
+				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
+				<Pair key="title"><String>关闭 PS3</String></Pair>
+				<Pair key="info"><String></String></Pair>
+				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_action"><String>http://localhost/shutdown.ps3</String></Pair>
+			</Table>
+		</Attributes>
+		<Items><Item class="type:x-xmb/module-action" key="webman_shutdown" attr="webman_shutdown"/></Items>
 	</View>
 
 <!-- ...... more homebrew .......... -->

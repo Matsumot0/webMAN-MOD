@@ -108,9 +108,34 @@ bool is_mamba(void)
 	return false;
 }
 
-bool is_cobra(void)
+bool is_disabled(char *filename, char *filename2)
 {
 	sysFSStat stat;
+
+    if(sysLv2FsStat("/dev_blind", &stat) != SUCCESS)
+       sys_fs_mount("CELL_FS_IOS:BUILTIN_FLSH1", "CELL_FS_FAT", "/dev_blind", 0);
+
+    if(sysLv2FsStat(filename, &stat) == SUCCESS)
+    {
+        sysLv2FsRename(filename, filename2); // re-enable stage2.bin
+
+        return true;
+    }
+
+    return false;
+}
+
+bool is_cobra(void)
+{
+	sysFSStat stat; bool ret = false;
+
+	if(is_disabled("/dev_blind/habib/cobra/stage2_disabled.cex", "/dev_blind/habib/cobra/stage2.cex")) return true;
+	if(is_disabled("/dev_blind/sys/stage2_disabled.bin", "/dev_blind/sys/stage2.bin")) return true;
+	if(is_disabled("/dev_blind/sys/stage2.bin.bak", "/dev_blind/sys/stage2.bin")) return true;
+
+	if(is_disabled("/dev_blind/rebug/cobra/stage2.cex.bak", "/dev_blind/rebug/cobra/stage2.cex")) ret = true;
+	if(is_disabled("/dev_blind/rebug/cobra/stage2.dex.bak", "/dev_blind/rebug/cobra/stage2.dex")) ret = true;
+
 	if(sysLv2FsStat("/dev_flash/sys/stage2.bin", &stat) == SUCCESS) return true;
 	if(sysLv2FsStat("/dev_hdd0/boot_plugins.txt", &stat) == SUCCESS) return true;
 	if(sysLv2FsStat("/dev_flash/rebug/cobra", &stat) == SUCCESS) return true;
@@ -121,7 +146,7 @@ bool is_cobra(void)
 	if (sys_get_version(&version) < 0) return false;
 	if (version != 0x99999999)         return true;
 
-	return false;
+	return ret;
 }
 
 #define SYSCALL8_OPCODE_PS3MAPI			 		0x7777
@@ -686,9 +711,6 @@ exit:
 	//{lv2syscall4(379,0x200,0,0,0); return_to_user_prog(int);}
 	//{lv2syscall4(379,0x1200,0,0,0); return_to_user_prog(int);}
 	{lv2syscall3(SC_SYS_POWER, SYS_REBOOT, 0, 0); return_to_user_prog(int);}
-
-	//{lv2syscall3(SC_SYS_POWER, SYS_REBOOT, 0, 0);}
-
 
 	return 0;
 }

@@ -652,90 +652,14 @@ static void ps3mapi_setidps(char *buffer, char *templn, char *param)
 	strcat(buffer, templn);
 }
 
-static void ps3mapi_vshplugin(char *buffer, char *templn, char *param)
+static void add_plugins_list(char *buffer, char *templn)
 {
-	bool is_ps3mapi_home = (param[0] == ' ');
-
-	if(strstr(param, "vshplugin.ps3mapi?"))
-	{
-		char *pos;
-		unsigned int uslot = 99;
-		pos=strstr(param, "unload_slot=");
-		if(pos)
-		{
-			char uslot_str[3];
-			get_value(uslot_str, pos + 12, 2);
-			uslot = val(uslot_str);
-			if ( uslot ) {{system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_UNLOAD_VSH_PLUGIN, (u64)uslot);}}
-		}
-		else
-		{
-			pos=strstr(param, "load_slot=");
-			if(pos)
-			{
-				char uslot_str[3];
-				get_value(uslot_str, pos + 10, 2);
-				uslot = val(uslot_str);
-			}
-			else goto loadvshplug_err_arg;
-			pos=strstr(param, "prx=");
-			if(pos)
-			{
-				char prx_path[256];
-				get_value(prx_path, pos + 4, 256);
-				if ( uslot ) {{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, (u64)uslot, (u64)(u32)prx_path, NULL, 0);}}
-			}
-		}
-	}
-
-loadvshplug_err_arg:
-
-	sprintf(templn, "<b>%s%s </b>"
-					"<hr color=\"#0099FF\"/><br>"
-					"<table border=\"0\" cellspacing=\"2\" cellpadding=\"0\">"
-					"<tr><td width=\"75\" style=\"text-align:left; float:left;\">%s</td>"
-					"<td width=\"100\" style=\"text-align:left; float:left;\">%s</td>"
-					"<td width=\"500\" style=\"text-align:left; float:left;\">%s</td>"
-					"<td width=\"125\" style=\"text-align:right; float:right;\"> </td></tr>",
-					is_ps3mapi_home ? "" : "PS3MAPI --> ", "VSH Plugins", "Slot", "Name", "File name");
-
-	strcat(buffer, templn);
-	char tmp_name[30];
-	char tmp_filename[256];
-	for (unsigned int slot = 0; slot < 7; slot++)
-	{
-		memset(tmp_name, 0, sizeof(tmp_name));
-		memset(tmp_filename, 0, sizeof(tmp_filename));
-		{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
-		if(strlen(tmp_filename) > 0)
-		{
-			sprintf(templn, "<tr><td width=\"75\" style=\"text-align:left; float:left;\">%i</td>"
-							"<td width=\"100\" style=\"text-align:left; float:left;\">%s</td>"
-							"<td width=\"500\" style=\"text-align:left; float:left;\">%s</td>"
-							"<td width=\"100\" style=\"text-align:right; float:right;\">"
-							"<form action=\"/vshplugin.ps3mapi\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
-							"<input name=\"unload_slot\" type=\"hidden\" value=\"%i\"><input type=\"submit\" %s/></form></td></tr>",
-							slot, tmp_name, tmp_filename, slot, (slot) ? "value=\" Unload \"" : "value=\" Reserved \" disabled=\"disabled\"" );
-		}
-		else
- 		{
-			sprintf(templn, "<tr><td width=\"75\" style=\"text-align:left; float:left;\">%i</td>"
-							"<td width=\"100\" style=\"text-align:left; float:left;\">%s</td>"
-							"<form action=\"/vshplugin.ps3mapi\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\"><td width=\"500\" style=\"text-align:left; float:left;\">"
-							HTML_INPUT("prx\" list=\"plugins", "/dev_hdd0/tmp/my_plugin_%i.sprx", "128", "75") "<input name=\"load_slot\" type=\"hidden\" value=\"%i\"></td>"
-							"<td width=\"100\" style=\"text-align:right; float:right;\"><input type=\"submit\" %s/></td></form></tr>",
-							slot, "NULL", slot, slot, (slot) ? "value=\" Load \"" : "value=\" Reserved \" disabled=\"disabled\"" );
-		}
-			strcat(buffer, templn);
-	}
-
-
-	//add plugins list
+	if(!strstr(buffer, "<datalist id=\"plugins\">"))
 	{
 		strcat(buffer, "<datalist id=\"plugins\">");
-		int fd, cnt = 0; char paths[6][32] = {"/dev_hdd0", "/dev_hdd0/plugins", "/dev_usb000", "/dev_usb001", "/dev_hdd0/game/UPDWEBMOD/USRDIR", "/dev_hdd0/tmp"};
+		int fd, cnt = 0; char paths[8][32] = {"/dev_hdd0", "/dev_hdd0/plugins", "/dev_hdd0/plugins/ps3xpad", "/dev_hdd0/plugins/ps3_menu", "/dev_usb000", "/dev_usb001", "/dev_hdd0/game/UPDWEBMOD/USRDIR", "/dev_hdd0/tmp"};
 
-		for(u8 i = 0; i < 6; i++)
+		for(u8 i = 0; i < 8; i++)
 		if(cellFsOpendir(paths[i], &fd) == CELL_FS_SUCCEEDED)
 		{
 			CellFsDirent dir; u64 read = sizeof(CellFsDirent);
@@ -753,6 +677,132 @@ loadvshplug_err_arg:
 
 		strcat(buffer, "</datalist>");
 	}
+}
+
+static void ps3mapi_vshplugin(char *buffer, char *templn, char *param)
+{
+	bool is_ps3mapi_home = (param[0] == ' ');
+
+	char tmp_name[30];
+	char tmp_filename[256];
+
+	if(strstr(param, "vshplugin.ps3mapi?"))
+	{
+		char *pos;
+		unsigned int uslot = 99;
+
+		pos=strstr(param, "?s=");
+		if(pos)
+		{
+			pos+=3;
+			switch (pos[0])
+			{
+				case '1': sprintf(tmp_filename, "/dev_hdd0/mamba_plugins.txt"); break;
+				case '2': sprintf(tmp_filename, "/dev_hdd0/prx_plugins.txt");   break;
+				case '3': sprintf(tmp_filename, "/dev_hdd0/game/PRXLOADER/USRDIR/plugins.txt"); break;
+				default : sprintf(tmp_filename, "/dev_hdd0/boot_plugins.txt");
+			}
+
+			u64 written; int fdwm=0;
+			if(cellFsOpen(tmp_filename, CELL_FS_O_CREAT|CELL_FS_O_WRONLY|CELL_FS_O_TRUNC, &fdwm, NULL, 0) == CELL_FS_SUCCEEDED)
+			{
+				sprintf(templn, "<p><a href=\"%s\" style=\"padding:8px;background:#900;border-radius:8px;\">%s</a><p>", tmp_filename, tmp_filename); strcat(buffer, templn);
+
+				for (unsigned int slot = 1; slot < 7; slot++)
+				{
+					memset(tmp_name, 0, sizeof(tmp_name));
+					memset(tmp_filename, 0, sizeof(tmp_filename));
+					{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
+					if(strlen(tmp_filename) > 0)
+					{
+						sprintf(templn, "%s\n", tmp_filename);
+						cellFsWrite(fdwm, (void *)templn, strlen(templn), &written);
+					}
+				}
+				cellFsClose(fdwm);
+			}
+		}
+		else
+		{
+			pos=strstr(param, "unload_slot=");
+			if(pos)
+			{
+				char uslot_str[3];
+				get_value(uslot_str, pos + 12, 2);
+				uslot = val(uslot_str);
+				if ( uslot ) {{system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_UNLOAD_VSH_PLUGIN, (u64)uslot);}}
+			}
+			else
+			{
+				pos=strstr(param, "load_slot=");
+				if(pos)
+				{
+					char uslot_str[3];
+					get_value(uslot_str, pos + 10, 2);
+					uslot = val(uslot_str);
+				}
+				else goto loadvshplug_err_arg;
+				pos=strstr(param, "prx=");
+				if(pos)
+				{
+					char prx_path[256];
+					get_value(prx_path, pos + 4, 256);
+					if ( uslot ) {{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, (u64)uslot, (u64)(u32)prx_path, NULL, 0);}}
+				}
+			}
+		}
+	}
+
+loadvshplug_err_arg:
+
+	sprintf(templn, "<b>%s%s</b>"
+					"<hr color=\"#0099FF\"/><br>"
+					"<table border=\"0\" cellspacing=\"2\" cellpadding=\"0\">"
+					"<tr><td width=\"75\" style=\"text-align:left; float:left;\">%s</td>"
+					"<td width=\"120\" style=\"text-align:left; float:left;\">%s</td>"
+					"<td width=\"500\" style=\"text-align:left; float:left;\">%s</td>"
+					"<td width=\"125\" style=\"text-align:right; float:right;\"> </td></tr>",
+					is_ps3mapi_home ? "" : "PS3MAPI --> ", "VSH Plugins", "Slot", "Name", "File name");
+
+	strcat(buffer, templn);
+	for (unsigned int slot = 0; slot < 7; slot++)
+	{
+		memset(tmp_name, 0, sizeof(tmp_name));
+		memset(tmp_filename, 0, sizeof(tmp_filename));
+		{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
+		if(strlen(tmp_filename) > 0)
+		{
+			sprintf(templn, "<tr><td width=\"75\" style=\"text-align:left; float:left;\">%i</td>"
+							"<td width=\"120\" style=\"text-align:left; float:left;\">%s</td>"
+							"<td width=\"500\" style=\"text-align:left; float:left;\">%s</td>"
+							"<td width=\"100\" style=\"text-align:right; float:right;\">"
+							"<form action=\"/vshplugin.ps3mapi\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
+							"<input name=\"unload_slot\" type=\"hidden\" value=\"%i\"><input type=\"submit\" %s/></form></td></tr>",
+							slot, tmp_name, tmp_filename, slot, (slot) ? "value=\" Unload \"" : "value=\" Reserved \" disabled=\"disabled\"" );
+		}
+		else
+ 		{
+			sprintf(templn, "<tr><td width=\"75\" style=\"text-align:left; float:left;\">%i</td>"
+							"<td width=\"120\" style=\"text-align:left; float:left;\">%s</td>"
+							"<form action=\"/vshplugin.ps3mapi\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
+							"<td width=\"500\" style=\"text-align:left; float:left;\">"
+							HTML_INPUT("prx\" list=\"plugins", "", "128", "75") "<input name=\"load_slot\" type=\"hidden\" value=\"%i\"></td>"
+							"<td width=\"100\" style=\"text-align:right; float:right;\"><input type=\"submit\" %s/></td></form></tr>",
+							slot, "NULL", slot, (slot) ? "value=\" Load \"" : "value=\" Reserved \" disabled=\"disabled\"" );
+		}
+			strcat(buffer, templn);
+	}
+
+	sprintf(templn, "<tr><td colspan=4><p>%s > "	HTML_BUTTON_FMT
+													HTML_BUTTON_FMT
+													HTML_BUTTON_FMT
+													HTML_BUTTON_FMT "</td></tr>", STR_SAVE,
+		HTML_BUTTON, "boot_plugins.txt" , HTML_ONCLICK, "/vshplugin.ps3mapi?s=0",
+		HTML_BUTTON, "mamba_plugins.txt", HTML_ONCLICK, "/vshplugin.ps3mapi?s=1",
+		HTML_BUTTON, "prx_plugins.txt"  , HTML_ONCLICK, "/vshplugin.ps3mapi?s=2",
+		HTML_BUTTON, "plugins.txt"      , HTML_ONCLICK, "/vshplugin.ps3mapi?s=3"); strcat(buffer, templn);
+
+	add_plugins_list(buffer, templn);
 
 	sprintf(templn, "%s", "</table><br>");
 	if(!is_ps3mapi_home) strcat(templn, "<hr color=\"#FF0000\"/>");
@@ -902,7 +952,7 @@ loadgameplug_err_arg:
 			else
 			{
 				sprintf(tmp_name, "NULL");
-				sprintf(tmp_filename, "/dev_hdd0/tmp/my_plugin_%i.sprx", slot);
+				//sprintf(tmp_filename, "/dev_hdd0/tmp/my_plugin_%i.sprx", slot);
 				sprintf(templn,
 						"<tr>"
 						  "<td width=\"75\" style=\"text-align:left; float:left;\">%i</td>"
@@ -911,17 +961,19 @@ loadgameplug_err_arg:
 						    "<form action=\"/gameplugin.ps3mapi\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
 						      "<td width=\"500\" style=\"text-align:left; float:left\">"
 						        "<input name=\"proc\" type=\"hidden\" value=\"%u\">"
-						        HTML_INPUT("prx\" list=\"plugins", "%s", "128", "75")
+						        HTML_INPUT("prx\" list=\"plugins", "", "128", "75")
 						        "<input name=\"load_slot\" type=\"hidden\" value=\"%i\">"
 						        "<input type=\"submit\" value=\" Load \">"
 						      "</td>"
 						    "</form>"
 						  "</td>>"
 						"</tr>",
-						slot, tmp_name, pid, tmp_filename, slot);
+						slot, tmp_name, pid, slot);
 			}
 			strcat(buffer, templn);
 		}
+
+		add_plugins_list(buffer, templn);
 	}
 
 	sprintf(templn, "%s", "</table><br>");

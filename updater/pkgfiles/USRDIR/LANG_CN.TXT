@@ -71,8 +71,8 @@ STR_PREVGAME		[上个游戏]
 STR_NEXTGAME		[下个游戏]
 STR_SHUTDOWN2		[关机]
 STR_RESTART2		[重启]
-STR_DELCFWSYS2  	[清除 CFW syscalls]
-STR_UNLOADWM		[禁用 webMAN]
+STR_DELCFWSYS2  	[清除 CFW SYSCALLS]
+STR_UNLOADWM		[卸载 webMAN]
 STR_FANCTRL2		[风扇目标温度]
 STR_FANCTRL4		[自动控制风扇]
 STR_FANCTRL5		[最低风扇转速]
@@ -81,27 +81,28 @@ STR_LFRG			[←/→]
 STR_SAVE			[保存]
 STR_SETTINGSUPD		[设置已更新。<br><br>点击 <a href=/restart.ps3>此处</a> 重新启动 PLAYSTATION®3 系统。]
 STR_ERROR			[错误!]
-
-STR_MYGAMES			[我的游戏]
+                	
+STR_MYGAMES			[webMAN 游戏]
 STR_LOADGAMES		[使用 webMAN 加载游戏]
 STR_FIXING		[Fixing]
 
 STR_WMSETUP			[webMAN 设置]
 STR_WMSETUP2		[设置 webMAN 选项]
-
+                	
 STR_EJECTDISC		[弹出光盘]
 STR_UNMOUNTGAME		[卸载当前游戏]
-
+                	
 STR_WMSTART			[webMAN 已载入!]
 STR_WMUNL			[webMAN 已卸载!]
 STR_CFWSYSALRD		[CFW syscalls已禁用]
 STR_CFWSYSRIP		[正在删除历史文件与 CFW syscalls...]
 STR_RMVCFWSYS		[历史文件与 CFW syscalls删除完毕！]
 STR_RMVCFWSYSF		[清除 CFW syscalls失败]
+                	
+STR_RMVWMCFG		[正在重置 webMAN 配置...]
+STR_RMVWMCFGOK		[完成! 将在 3 秒内重新启动]
 
-STR_RMVWMCFG		[正在复位 webMAN 配置...]
-STR_RMVWMCFGOK		[已完成！将在3秒钟内重启]
-
+STR_PS3FORMAT		[PS3 格式游戏]
 STR_PS2FORMAT		[PS2 格式游戏]
 STR_PS1FORMAT		[PSOne 格式游戏]
 STR_PSPFORMAT		[PSP™ 格式游戏]

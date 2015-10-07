@@ -96,7 +96,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.05 MOD"						// webMAN version
+#define WM_VERSION			"1.43.06 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -493,7 +493,8 @@ static void http_response(int conn_s, char *header, char *param, int code, char 
 
 	sprintf(header, "HTTP/1.1 %i OK\r\n"
 					"X-PS3-Info: [%s]\r\n"
-					"Content-Type: text/html\r\n"
+					"Content-Type: text/html;charset=UTF-8\r\n"
+					"Cache-Control: no-cache\r\n"
 					"Content-Length: %i\r\n\r\n"
 					"<body bgcolor=\"#101010\" text=\"#c0c0c0\">"
 					"<font face=\"Courier New\">"
@@ -512,8 +513,8 @@ static void prepare_html(char *buffer, char *templn, char *param, u8 is_ps3_http
 	strcpy(buffer,  "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
 					"<html xmlns=\"http://www.w3.org/1999/xhtml\">"
 					"<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">"
-					"<meta http-equiv=\"cache-control\" content=\"no-cache\">"
-					"<meta content='target-densitydpi=device-dpi; width=device-width; initial-scale=0.6; maximum-scale=1.0;' name='viewport'>");
+					"<meta http-equiv=\"Cache-Control\" content=\"no-cache\">"
+					"<meta name=\"viewport\" content=\"width=device-width,initial-scale=0.6,maximum-scale=1.0\">");
 
 	if(is_cpursx) strcat(buffer, "<meta http-equiv=\"refresh\" content=\"6;URL=/cpursx.ps3\">");
 	if(mount_ps3) {	strcat(buffer, "<body bgcolor=\"#101010\">"); return;}
@@ -1236,6 +1237,20 @@ html_response:
 #ifdef COPY_PS3
 					if(((strstr(param, "/dev_") && strlen(param)>12 && !strstr(param,"?")) || strstr(param, "/dev_bdvd")) && !strstr(param,".ps3/") && !strstr(param,".ps3?"))
 					{sprintf(templn, "%s%s\" onclick='window.location.href=\"/copy.ps3%s\";'\">", HTML_BUTTON, STR_COPY, param); strcat(buffer, templn);}
+#ifndef LITE_EDITION
+					if((strstr(param, "/dev_") && !strstr(param,"?")) && !strstr(param,"/dev_flash") && !strstr(param,".ps3/") && !strstr(param,".ps3?"))
+					{sprintf(templn,"<script type=\"text/javascript\">"
+									"function toggle(){"
+									"btnDel.value=(btnDel.value=='%s')?'%s %s':'%s';"
+									"var i,p,l=document.querySelectorAll('.d,.w');"
+									"for(i=1;i<l.length;i++)"
+									"{p=l[i].href.indexOf('/delete.ps3');"
+									"if(p>0){l[i].href=l[i].href.substring(p+11,l[i].href.length);l[i].style.color='#ccc';}"
+									"else{p=l[i].href.indexOf('/', 8);l[i].href='/delete.ps3'+l[i].href.substring(p,l[i].href.length);l[i].style.color='red';}}}"
+									"</script>", STR_DELETE, STR_DELETE, STR_ENABLED, STR_DELETE); strcat(buffer, templn);
+					 sprintf(templn, "%s%s\" id='btnDel' onclick='toggle();'>", HTML_BUTTON, STR_DELETE); strcat(buffer, templn);
+					}
+#endif
 #endif
 					sprintf(templn,  "%s%s XML%s\" %s'%s';\"> "
 									 "%s%s HTML%s\" %s'%s';\">"
@@ -1456,7 +1471,10 @@ bgm_status:
 						if(is_reset || strstr(param, "?wmtmp")) strcpy(param, "/delete_ps3/dev_hdd0/tmp/wmtmp\0");
 
 						if(strstr(param, "?history"))
-							{delete_history(true); sprintf(templn, "%s : history", STR_DELETE);}
+						{
+							delete_history(true);
+							sprintf(templn, "%s : history", STR_DELETE);
+						}
 						else if(strstr(param, "?uninstall"))
 						{
 							if(cellFsStat((char*)"/dev_hdd0/boot_plugins.txt", &buf)==CELL_FS_SUCCEEDED && buf.st_size<40) cellFsUnlink((char*)"/dev_hdd0/boot_plugins.txt");
@@ -1471,10 +1489,15 @@ bgm_status:
 							goto restart;
 						}
 						else if(del(param+11, (strstr(param, "/delete.ps3")!=NULL)))
-							sprintf(templn, "%s %s : <a href=\"%s\">%s</a><br>", STR_DELETE, STR_ERROR, param+11, param+11);
+						{
+							sprintf(tempstr, "%s", param+11); if(strchr(tempstr, '/')) tempstr[strrchr(tempstr, '/')-tempstr]=0;
+							sprintf(templn, "%s %s : <a href=\"%s\">%s</a><a href=\"%s\">%s</a><br>", STR_DELETE, STR_ERROR, tempstr, tempstr, param+11+strlen(tempstr), param+11+strlen(tempstr));
+						}
 						else
-							sprintf(templn, "%s : <a href=\"%s\">%s</a><br>", STR_DELETE, param+11, param+11);
-
+						{
+							sprintf(tempstr, "%s", param+11); if(strchr(tempstr, '/')) tempstr[strrchr(tempstr, '/')-tempstr]=0;
+							sprintf(templn, "%s : <a href=\"%s\">%s</a>%s<br>", STR_DELETE, tempstr, tempstr, param+11+strlen(tempstr));
+						}
 						strcat(buffer, templn);
 					}
 #endif
