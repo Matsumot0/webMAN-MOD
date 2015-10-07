@@ -823,9 +823,9 @@ int cobra_disc_auth(void)
 
 	if (real_disctype == DEVICE_TYPE_PS3_BD || real_disctype == DEVICE_TYPE_PS3_DVD)
 	{
-		static uint8_t buf[KB];
+		static uint8_t buf[1024];
 
-		memset(buf, 0, 0124);
+		memset(buf, 0, 1024);
 
 		sys_ss_disc_auth(0x5007, (uint64_t)(uint32_t)buf);
 	}
