@@ -172,7 +172,10 @@ static int folder_copy(char *path1, char *path2)
 			sprintf(target, "%s/%s", path2, dir.d_name);
 
 			if(isDir(source))
+			{
+				if(!strcmp(source, "/dev_bdvd/PS3_UPDATE")) continue;
 				folder_copy(source, target);
+			}
 			else
 				filecopy(source, target, COPY_WHOLE_FILE);
 		}
