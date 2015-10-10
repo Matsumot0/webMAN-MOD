@@ -114,8 +114,8 @@ typedef struct game_plugin_interface_t
 
 game_plugin_interface * game_interface;
 
-int (*View_Find)(const char *) = 0;
-int (*plugin_GetInterface)(int,int) = 0;
-int (*vsh_sprintf)( char*, const char*,...) = 0;
+//int (*View_Find)(const char *) = 0;
+//int (*plugin_GetInterface)(int,int) = 0;
+//int (*vsh_sprintf)( char*, const char*,...) = 0;
 
 #endif // __GAME_PLUGIN_H__

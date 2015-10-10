@@ -1,6 +1,6 @@
 #include "png_dec.h"
 #include "mem.h"
-#include "inc/vsh_exports.h"
+#include "../vsh/vsh_exports.h"
 
 #include "network.h"               // debug
 

@@ -4,6 +4,9 @@ static void show_msg(char* msg);
 
 //int (*_cellGcmIoOffsetToAddress)(uint32_t, void**) = NULL;
 int (*vshtask_notify)(int, const char *) = NULL;
+int (*View_Find)(const char *) = NULL;
+int (*plugin_GetInterface)(int,int) = NULL;
+int (*vsh_sprintf)( char*, const char*,...) = NULL;
 
 #ifdef SYS_BGM
 uint32_t (*BgmPlaybackDisable)(int, void *) = NULL;

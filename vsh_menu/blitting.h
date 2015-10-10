@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "inc/vsh_exports.h"
+#include "../vsh/vsh_exports.h"
 
 
 // font constants
