@@ -96,7 +96,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.06 MOD"						// webMAN version
+#define WM_VERSION			"1.43.07 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -232,6 +232,7 @@ static sys_ppu_thread_t thread_id		=-1;
 
 #define START_DAEMON		(0xC0FEBABE)
 #define REFRESH_CONTENT		(0xC0FEBAB0)
+#define WM_FILE_REQUEST		(0xC0FEBEB0)
 
 typedef struct {
 	uint32_t total;
@@ -714,19 +715,28 @@ static void handleclient(u64 conn_s_p)
 	//while((init_running/* || loading_html>3*/) && working) sys_timer_usleep(10000);
 
 	sys_net_sockinfo_t conn_info_main;
-	sys_net_get_sockinfo(conn_s, &conn_info_main, 1);
 
-	char ip_address[16];
-	sprintf(ip_address, "%s", inet_ntoa(conn_info_main.remote_adr));
-	if( webman_config->bind && ((conn_info_main.local_adr.s_addr!=conn_info_main.remote_adr.s_addr) && strncmp(ip_address, webman_config->allow_ip, strlen(webman_config->allow_ip))!=0))
+
+#ifdef WM_REQUEST
+	u8 wm_request=(cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &buf) == CELL_FS_SUCCEEDED);
+
+	if(wm_request)
+#endif
 	{
-		sclose(&conn_s);
-		loading_html--;
-		sys_ppu_thread_exit(0);
-	}
+		sys_net_get_sockinfo(conn_s, &conn_info_main, 1);
 
-	if(!webman_config->netd0 && !webman_config->neth0[0]) strcpy(webman_config->neth0, ip_address);
-	if(!webman_config->bind) strcpy(webman_config->allow_ip, ip_address);
+		char ip_address[16];
+		sprintf(ip_address, "%s", inet_ntoa(conn_info_main.remote_adr));
+		if( webman_config->bind && ((conn_info_main.local_adr.s_addr!=conn_info_main.remote_adr.s_addr) && strncmp(ip_address, webman_config->allow_ip, strlen(webman_config->allow_ip))!=0))
+		{
+			sclose(&conn_s);
+			loading_html--;
+			sys_ppu_thread_exit(0);
+		}
+
+		if(!webman_config->netd0 && !webman_config->neth0[0]) strcpy(webman_config->neth0, ip_address);
+		if(!webman_config->bind) strcpy(webman_config->allow_ip, ip_address);
+	}
 
 	set_buffer_sizes(webman_config->foot);
 
@@ -758,10 +768,15 @@ again3:
 	u8 is_cpursx=0;
 	u8 is_popup=0;
 
-	struct timeval tv;
-	tv.tv_usec = 0;
-	tv.tv_sec = 3;
-	setsockopt(conn_s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+#ifdef WM_REQUEST
+	if(!wm_request)
+#endif
+	{
+		struct timeval tv;
+		tv.tv_usec = 0;
+		tv.tv_sec = 3;
+		setsockopt(conn_s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+	}
 
 	while(!served && working)
 	{
@@ -771,7 +786,20 @@ again3:
 #ifdef USE_DEBUG
 	ssend(debug_s, "ACC - ");
 #endif
-		if(recv(conn_s, header, HTML_RECV_SIZE, 0) > 0 && header[0]=='G' && header[4]=='/') // serve only GET /xxx requests
+
+#ifdef WM_REQUEST
+		if(wm_request)
+		{
+			if(buf.st_size > 5 && buf.st_size < HTML_RECV_SIZE && cellFsOpen((char*)"/dev_hdd0/tmp/wm_request", CELL_FS_O_RDONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+			{
+				cellFsRead(fd, (void *)header, buf.st_size, NULL);
+				cellFsClose(fd); for(size_t n = buf.st_size; n > 4; n--) if(header[n]==' ') header[n]=9;
+			}
+			cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");
+		}
+#endif
+
+		if(((header[0]=='G') || recv(conn_s, header, HTML_RECV_SIZE, 0) > 0) && header[0]=='G' && header[4]=='/') // serve only GET /xxx requests
 		{
 			if(strstr(header, "Mozilla/5.0 (PLAYSTATION 3;")) is_ps3_http=1; else
 			if(strstr(header, "Gecko/36")) is_ps3_http=2; else is_ps3_http=0;
@@ -781,6 +809,10 @@ again3:
 
 			ssplit(header, cmd, 15, header, (HTML_RECV_SIZE-1));
 			ssplit(header, param, (HTML_RECV_SIZE-1), cmd, 15);
+
+#ifdef WM_REQUEST
+			if(wm_request) { for(size_t n = strlen(param); n > 0; n--) {if(param[n]==9) param[n]=' ';} } wm_request = 0;
+#endif
 
 			bool allow_retry_response=true, small_alloc = true, mobile_mode = false;
 
@@ -1796,10 +1828,9 @@ relisten:
 	if(working) list_s = slisten(WWWPORT, 4);
 	else goto end;
 
-	if((list_s<0) && working)
+	if(list_s<0)
 	{
-		sys_timer_sleep(2);
-		if(working) goto relisten;
+		if(working) {sys_timer_sleep(2); goto relisten;}
 		else goto end;
 	}
 
@@ -1823,7 +1854,7 @@ relisten:
 			int conn_s;
 			if(!working) goto end;
 			else
-			if(working && (conn_s = accept(list_s, NULL, NULL)) > 0)
+			if((conn_s = accept(list_s, NULL, NULL)) > 0)
 			{
 				loading_html++;
 				#ifdef USE_DEBUG

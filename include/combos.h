@@ -264,6 +264,26 @@
 							else
 #endif
 							{
+								/////////////////////////////
+#ifdef COPY_PS3
+								if(copy_in_progress)
+								{
+									sprintf((char*) msg, "%s %s (%i %s)", STR_COPYING, current_file, copied_count, STR_FILES);
+									show_msg((char*) msg);
+									sys_timer_sleep(2);
+									if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_L2) ) break;
+								}
+								else
+								if(fix_in_progress)
+								{
+									sprintf((char*) msg, "%s %s", STR_FIXING, current_file);
+									show_msg((char*) msg);
+									sys_timer_sleep(2);
+									if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_L2) ) break;
+								}
+#endif
+								/////////////////////////////
+
 								CellRtcTick pTick; u32 dd, hh, mm, ss; char tmp[200];
 show_popup:
 								cellRtcGetCurrentTick(&pTick);
@@ -333,12 +353,14 @@ show_popup:
 #else
 								sprintf(cfw_info, "%s", dex_mode ? "DEX" : "CEX");
 #endif
+								char smax[16]; if(max_temp) sprintf(smax, "   MAX: %i°C", max_temp); else sprintf(smax, "");
+
 								sprintf((char*)tmp, "CPU: %i°C  RSX: %i°C  FAN: %i%%   \r\n"
-													"%s: %id %02d:%02d:%02d\r\n"
+													"%s: %id %02d:%02d:%02d%s\r\n"
 													"Firmware : %i.%02i %s\r\n"
 													"IP: %s  %s",
 													t1>>24, t2>>24, (int)(((int)speed*100)/255),
-													bb?"Play":"Startup", dd, hh, mm, ss,
+													bb?"Play":"Startup", dd, hh, mm, ss, smax,
 													(int)c_firmware, ((u32)(c_firmware * 1000.0f) % 1000) / 10, cfw_info, ip, net_type);
 
 								sprintf((char*)msg, "%s\r\n%s: %'i %s\r\n"
@@ -357,24 +379,6 @@ show_popup:
 
 								show_msg((char*) msg);
 								sys_timer_sleep(2);
-
-								/////////////////////////////
-#ifdef COPY_PS3
-								if(copy_in_progress)
-								{
-									sprintf((char*) msg, "<hr>%s %s (%i %s)", STR_COPYING, current_file, copied_count, STR_FILES);
-									show_msg((char*) msg);
-									sys_timer_sleep(2);
-								}
-								else
-								if(fix_in_progress)
-								{
-									sprintf((char*) msg, "%s %s", STR_FIXING, current_file);
-									show_msg((char*) msg);
-									sys_timer_sleep(2);
-								}
-#endif
-								/////////////////////////////
 							}
 						}
 						else

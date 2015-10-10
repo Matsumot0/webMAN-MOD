@@ -84,7 +84,7 @@ static void ps3mapi_home(char *buffer, char *templn)
 	if(syscall8_state>=0) {system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_CORE_VERSION); version = (int)(p1);}
 	int versionfw = 0;
 	if(syscall8_state>=0) {system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_FW_VERSION); versionfw = (int)(p1);}
-	char fwtype[32];
+	char fwtype[32]; memset(fwtype, 32, 0);
 	if(syscall8_state>=0) {system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_FW_TYPE, (u64)(u32)fwtype);}
 
 	//---------------------------------------------
@@ -657,9 +657,9 @@ static void add_plugins_list(char *buffer, char *templn)
 	if(!strstr(buffer, "<datalist id=\"plugins\">"))
 	{
 		strcat(buffer, "<datalist id=\"plugins\">");
-		int fd, cnt = 0; char paths[8][32] = {"/dev_hdd0", "/dev_hdd0/plugins", "/dev_hdd0/plugins/ps3xpad", "/dev_hdd0/plugins/ps3_menu", "/dev_usb000", "/dev_usb001", "/dev_hdd0/game/UPDWEBMOD/USRDIR", "/dev_hdd0/tmp"};
+		int fd, cnt = 0; char paths[10][48] = {"/dev_hdd0", "/dev_hdd0/plugins", "/dev_hdd0/plugins/ps3xpad", "/dev_hdd0/plugins/ps3_menu", "/dev_usb000", "/dev_usb001", "/dev_hdd0/game/UPDWEBMOD/USRDIR", "/dev_hdd0/game/UPDWEBMOD/USRDIR/official", "/dev_hdd0/tmp"};
 
-		for(u8 i = 0; i < 8; i++)
+		for(u8 i = 0; i < 9; i++)
 		if(cellFsOpendir(paths[i], &fd) == CELL_FS_SUCCEEDED)
 		{
 			CellFsDirent dir; u64 read = sizeof(CellFsDirent);

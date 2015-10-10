@@ -12,7 +12,17 @@
 #define SC_SYS_POWER 					(379)
 #define SYS_REBOOT				 		0x8201
 
+#define BUTTON_SQUARE     128
+#define BUTTON_CROSS      64
+#define BUTTON_CIRCLE     32
+#define BUTTON_TRIANGLE   16
+#define BUTTON_R1         8
+#define BUTTON_L1         4
+#define BUTTON_R2         2
+#define BUTTON_L2         1
+
 bool lite=false;
+bool vsh_menu=false;
 
 int sys_fs_mount(char const* deviceName, char const* deviceFileSystem, char const* devicePath, int writeProt)
 {
@@ -258,6 +268,9 @@ int add_mygame()
 
 int main()
 {
+	FILE* f=NULL;
+	sysFSStat stat;
+
 //--- hold CROSS
 
     unsigned button = 0;
@@ -284,10 +297,9 @@ int main()
     }
     ioPadEnd();
 
-	if(button) lite=true;
+	if(button & 0x60) lite=true;
+	if(button & 0x0F) vsh_menu=true; else vsh_menu = (sysLv2FsStat("/dev_hdd0/plugins/wm_vsh_menu.sprx", &stat) == SUCCESS);
 //---
-
-	sysFSStat stat;
 
 	sysLv2FsMkdir("/dev_hdd0/tmp", 0777);
 	sysLv2FsMkdir("/dev_hdd0/tmp/wm_lang", 0777);
@@ -350,33 +362,33 @@ int main()
 	sysLv2FsUnlink("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_webchat.sprx");
 
 	// update languages
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_EN.TXT","/dev_hdd0/tmp/wm_lang/LANG_EN.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_AR.TXT","/dev_hdd0/tmp/wm_lang/LANG_AR.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_CN.TXT","/dev_hdd0/tmp/wm_lang/LANG_CN.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_DE.TXT","/dev_hdd0/tmp/wm_lang/LANG_DE.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_ES.TXT","/dev_hdd0/tmp/wm_lang/LANG_ES.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_FR.TXT","/dev_hdd0/tmp/wm_lang/LANG_FR.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_GR.TXT","/dev_hdd0/tmp/wm_lang/LANG_GR.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_DK.TXT","/dev_hdd0/tmp/wm_lang/LANG_DK.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_HU.TXT","/dev_hdd0/tmp/wm_lang/LANG_HU.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_HR.TXT","/dev_hdd0/tmp/wm_lang/LANG_HR.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_BG.TXT","/dev_hdd0/tmp/wm_lang/LANG_BG.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_CZ.TXT","/dev_hdd0/tmp/wm_lang/LANG_CZ.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_SK.TXT","/dev_hdd0/tmp/wm_lang/LANG_SK.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_IN.TXT","/dev_hdd0/tmp/wm_lang/LANG_IN.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_IT.TXT","/dev_hdd0/tmp/wm_lang/LANG_IT.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_JP.TXT","/dev_hdd0/tmp/wm_lang/LANG_JP.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_KR.TXT","/dev_hdd0/tmp/wm_lang/LANG_KR.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_NL.TXT","/dev_hdd0/tmp/wm_lang/LANG_NL.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_PL.TXT","/dev_hdd0/tmp/wm_lang/LANG_PL.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_PT.TXT","/dev_hdd0/tmp/wm_lang/LANG_PT.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_RU.TXT","/dev_hdd0/tmp/wm_lang/LANG_RU.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_TR.TXT","/dev_hdd0/tmp/wm_lang/LANG_TR.TXT");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_ZH.TXT","/dev_hdd0/tmp/wm_lang/LANG_ZH.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_EN.TXT", "/dev_hdd0/tmp/wm_lang/LANG_EN.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_AR.TXT", "/dev_hdd0/tmp/wm_lang/LANG_AR.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_CN.TXT", "/dev_hdd0/tmp/wm_lang/LANG_CN.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_DE.TXT", "/dev_hdd0/tmp/wm_lang/LANG_DE.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_ES.TXT", "/dev_hdd0/tmp/wm_lang/LANG_ES.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_FR.TXT", "/dev_hdd0/tmp/wm_lang/LANG_FR.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_GR.TXT", "/dev_hdd0/tmp/wm_lang/LANG_GR.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_DK.TXT", "/dev_hdd0/tmp/wm_lang/LANG_DK.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_HU.TXT", "/dev_hdd0/tmp/wm_lang/LANG_HU.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_HR.TXT", "/dev_hdd0/tmp/wm_lang/LANG_HR.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_BG.TXT", "/dev_hdd0/tmp/wm_lang/LANG_BG.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_CZ.TXT", "/dev_hdd0/tmp/wm_lang/LANG_CZ.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_SK.TXT", "/dev_hdd0/tmp/wm_lang/LANG_SK.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_IN.TXT", "/dev_hdd0/tmp/wm_lang/LANG_IN.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_IT.TXT", "/dev_hdd0/tmp/wm_lang/LANG_IT.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_JP.TXT", "/dev_hdd0/tmp/wm_lang/LANG_JP.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_KR.TXT", "/dev_hdd0/tmp/wm_lang/LANG_KR.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_NL.TXT", "/dev_hdd0/tmp/wm_lang/LANG_NL.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_PL.TXT", "/dev_hdd0/tmp/wm_lang/LANG_PL.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_PT.TXT", "/dev_hdd0/tmp/wm_lang/LANG_PT.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_RU.TXT", "/dev_hdd0/tmp/wm_lang/LANG_RU.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_TR.TXT", "/dev_hdd0/tmp/wm_lang/LANG_TR.TXT");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_ZH.TXT", "/dev_hdd0/tmp/wm_lang/LANG_ZH.TXT");
 
 	sysLv2FsMkdir("/dev_hdd0/xmlhost/game_plugin", 0777);
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/mobile.html","/dev_hdd0/xmlhost/game_plugin/mobile.html");
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/background.gif","/dev_hdd0/xmlhost/game_plugin/background.gif");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/mobile.html", "/dev_hdd0/xmlhost/game_plugin/mobile.html");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/background.gif", "/dev_hdd0/xmlhost/game_plugin/background.gif");
 
 	sysLv2FsMkdir("/dev_hdd0/tmp/wm_icons", 0777);
 
@@ -445,11 +457,61 @@ int main()
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/unload.png"  		,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/unload.png");
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webman.png"  		,"/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/webman.png");
 
+	sysLv2FsMkdir("/dev_hdd0/plugins", 0777);
+
+	// install vsh menu
+	if(vsh_menu && sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS)
+	{
+		sysLv2FsMkdir("/dev_hdd0/plugins/images", 0777);
+
+		// don't update images if they already exist
+		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu.png",   &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu.png",   "/dev_hdd0/plugins/images/wm_vsh_menu.png");
+		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_1.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_1.png", "/dev_hdd0/plugins/images/wm_vsh_menu_1.png");
+		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_2.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_2.png", "/dev_hdd0/plugins/images/wm_vsh_menu_2.png");
+		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_3.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_3.png", "/dev_hdd0/plugins/images/wm_vsh_menu_3.png");
+		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_4.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_4.png", "/dev_hdd0/plugins/images/wm_vsh_menu_4.png");
+		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_5.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_5.png", "/dev_hdd0/plugins/images/wm_vsh_menu_5.png");
+
+		// append path if installing for first time
+		if(sysLv2FsStat("/dev_hdd0/plugins/wm_vsh_menu.sprx", &stat) != SUCCESS)
+		{
+			if(is_cobra())
+			{
+				// append line to boot_plugins.txt
+				if(sysLv2FsStat("/dev_hdd0/boot_plugins.txt", &stat) == SUCCESS)
+					f=fopen("/dev_hdd0/boot_plugins.txt", "a");
+				else
+					f=fopen("/dev_hdd0/boot_plugins.txt", "w");
+					fputs("\r\n/dev_hdd0/plugins/wm_vsh_menu.sprx", f);
+					fclose(f);
+			}
+			if(is_mamba())
+			{
+				// append line to mamba_plugins.txt
+				if(sysLv2FsStat("/dev_hdd0/mamba_plugins.txt", &stat) == SUCCESS)
+					f=fopen("/dev_hdd0/mamba_plugins.txt", "a");
+				else
+					f=fopen("/dev_hdd0/mamba_plugins.txt", "w");
+					fputs("\r\n/dev_hdd0/plugins/wm_vsh_menu.sprx", f);
+					fclose(f);
+			}
+			if(sysLv2FsStat("/dev_hdd0/prx_plugins.txt", &stat) == SUCCESS)
+			{
+				// append line to prx_plugins.txt
+					f=fopen("/dev_hdd0/prx_plugins.txt", "a");
+					fputs("\r\n/dev_hdd0/plugins/wm_vsh_menu.sprx", f);
+					fclose(f);
+			}
+		}
+
+		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/wm_vsh_menu.sprx", "/dev_hdd0/plugins/wm_vsh_menu.sprx");
+	}
+
 	// skip update custom language
 	if(sysLv2FsStat("/dev_hdd0/tmp/wm_lang/LANG_XX.TXT", &stat))
-		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_XX.TXT","/dev_hdd0/tmp/wm_lang/LANG_XX.TXT");
+		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_XX.TXT", "/dev_hdd0/tmp/wm_lang/LANG_XX.TXT");
 
-	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/libfs.sprx","/dev_hdd0/tmp/libfs.sprx");
+	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/libfs.sprx", "/dev_hdd0/tmp/libfs.sprx");
 
 	// copy raw_iso.sprx to dev_flash
 	if(sysLv2FsStat("/dev_flash/vsh/module/raw_iso.sprx", &stat) != SUCCESS)
@@ -458,21 +520,24 @@ int main()
 			sys_fs_mount("CELL_FS_IOS:BUILTIN_FLSH1", "CELL_FS_FAT", "/dev_blind", 0);
 
 		if(sysLv2FsStat("/dev_blind", &stat) == SUCCESS)
-			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/raw_iso.sprx","/dev_blind/vsh/module/raw_iso.sprx");
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/raw_iso.sprx", "/dev_blind/vsh/module/raw_iso.sprx");
 	}
 
 	// copy raw_iso.sprx to dev_hdd (if failed to copy it to dev_flash)
 	if(sysLv2FsStat("/dev_flash/vsh/module/raw_iso.sprx", &stat) != SUCCESS)
 	{
 		if(sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS)
-			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/raw_iso.sprx","/dev_hdd0/plugins/raw_iso.sprx");
+		{
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/raw_iso.sprx", "/dev_hdd0/plugins/raw_iso.sprx");
+            if(sysLv2FsStat("/dev_hdd0/plugins/raw_iso.sprx", &stat) == SUCCESS) sysLv2FsUnlink("/dev_hdd0/raw_iso.sprx");
+		}
 		else
-			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/raw_iso.sprx","/dev_hdd0/raw_iso.sprx");
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/raw_iso.sprx", "/dev_hdd0/raw_iso.sprx");
 	}
 
 	// copy standalone video recorder plugin (video_rec.sprx) to /plugins folder
 	if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
-		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/video_rec.sprx","/dev_hdd0/plugins/video_rec.sprx");
+		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/video_rec.sprx", "/dev_hdd0/plugins/video_rec.sprx");
 
 	// update PRX+Mamba Loader
 	if((sysLv2FsStat("/dev_hdd0/game/IRISMAN01/USRDIR/webftp_server.sprx", &stat) == SUCCESS))
@@ -503,7 +568,6 @@ int main()
 	}
 
 	char ligne[255];
-	FILE* f=NULL;
 
 	// update PRX Loader
 	if(sysLv2FsStat("/dev_hdd0/game/PRXLOADER/USRDIR/plugins.txt", &stat) == SUCCESS)
@@ -528,7 +592,7 @@ int main()
 		sysLv2FsChmod("/dev_hdd0/game/PRXLOADER/USRDIR/webftp_server_noncobra.sprx", 0777);
 		sysLv2FsUnlink("/dev_hdd0/game/PRXLOADER/USRDIR/webftp_server_noncobra.sprx");
 
-		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_noncobra.sprx","/dev_hdd0/game/PRXLOADER/USRDIR/webftp_server_noncobra.sprx");
+		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_noncobra.sprx", "/dev_hdd0/game/PRXLOADER/USRDIR/webftp_server_noncobra.sprx");
 	}
 
 cont:
@@ -589,7 +653,8 @@ cont:
 
 	// update boot_plugins.txt
 	if(lite || is_cobra())
-	   {
+	{
+		// parse boot_plugins.txt (update existing path)
 		if(sysLv2FsStat("/dev_hdd0/boot_plugins.txt", &stat) == SUCCESS)
 		{
 			f=fopen("/dev_hdd0/boot_plugins.txt", "r");
@@ -602,7 +667,7 @@ cont:
 					sysLv2FsChmod(ligne, 0777);
 					sysLv2FsUnlink(ligne);
 					if(lite)
-						CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_lite.sprx",ligne);
+						CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_lite.sprx", ligne);
 					else
 					{
 						if(is_ps3mapi())
@@ -616,34 +681,78 @@ cont:
 			fclose(f);
 		}
 
+		// append line to boot_plugins.txt
 		f=fopen("/dev_hdd0/boot_plugins.txt", "a");
-		if(is_ps3mapi())
+		if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
+		{
+			if(is_ps3mapi() && !lite)
+				fputs("\r\n/dev_hdd0/plugins/webftp_server_ps3mapi.sprx", f);
+			else
+				fputs("\r\n/dev_hdd0/plugins/webftp_server.sprx", f);
+		}
+		else
+		{
+			if(is_ps3mapi() && !lite)
 				fputs("\r\n/dev_hdd0/webftp_server_ps3mapi.sprx", f);
 			else
 				fputs("\r\n/dev_hdd0/webftp_server.sprx", f);
+		}
 		fclose(f);
 
+		// delete old sprx
 		sysLv2FsChmod("/dev_hdd0/webftp_server.sprx", 0777);
 		sysLv2FsUnlink("/dev_hdd0/webftp_server.sprx");
 
-		if(lite)
-			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_lite.sprx", "/dev_hdd0/webftp_server.sprx");
+		sysLv2FsChmod("/dev_hdd0/plugins/webftp_server.sprx", 0777);
+		sysLv2FsUnlink("/dev_hdd0/plugins/webftp_server.sprx");
+
+		sysLv2FsChmod("/dev_hdd0/webftp_server_ps3mapi.sprx", 0777);
+		sysLv2FsUnlink("/dev_hdd0/webftp_server_ps3mapi.sprx");
+
+		sysLv2FsChmod("/dev_hdd0/plugins/webftp_server_ps3mapi.sprx", 0777);
+		sysLv2FsUnlink("/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+
+		// copy ps3mapi/cobra/rebug/lite sprx
+		if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
+		{
+			if(lite)
+				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_lite.sprx", "/dev_hdd0/plugins/webftp_server.sprx");
+			else
+			{
+				if(is_ps3mapi())
+				{
+					if((sysLv2FsStat("/dev_flash/rebug", &stat) == SUCCESS))
+						CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_rebug_cobra_ps3mapi.sprx", "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+					else
+						CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_ps3mapi.sprx", "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+				}
+				else
+					CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server.sprx", "/dev_hdd0/plugins/webftp_server.sprx");
+			}
+		}
 		else
 		{
-			if(is_ps3mapi())
-			{
-				if((sysLv2FsStat("/dev_flash/rebug", &stat) == SUCCESS))
-					CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_rebug_cobra_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
-				else
-					CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
-			}
+			if(lite)
+				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_lite.sprx", "/dev_hdd0/webftp_server.sprx");
 			else
-				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server.sprx", "/dev_hdd0/webftp_server.sprx");
+			{
+				if(is_ps3mapi())
+				{
+					if((sysLv2FsStat("/dev_flash/rebug", &stat) == SUCCESS))
+						CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_rebug_cobra_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
+					else
+						CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
+				}
+				else
+					CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server.sprx", "/dev_hdd0/webftp_server.sprx");
+			}
 		}
 	}
+
 	// update mamba_plugins.txt
 	if(is_mamba())
 	{
+		// parse mamba_plugins.txt (update existing path)
 		if(sysLv2FsStat("/dev_hdd0/mamba_plugins.txt", &stat) == SUCCESS)
 		{
 			f=fopen("/dev_hdd0/mamba_plugins.txt", "r");
@@ -662,21 +771,42 @@ cont:
 			fclose(f);
 		}
 
+		// append line to mamba_plugins.txt (Mamba/PRX Loader - PS3MAPI)
 		f=fopen("/dev_hdd0/mamba_plugins.txt", "a");
-		fputs("\r\n/dev_hdd0/webftp_server_ps3mapi.sprx", f);
+		if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
+			fputs("\r\n/dev_hdd0/plugins/webftp_server_ps3mapi.sprx", f);
+		else
+			fputs("\r\n/dev_hdd0/webftp_server_ps3mapi.sprx", f);
 		fclose(f);
 
+		// delete old sprx
 		sysLv2FsChmod("/dev_hdd0/webftp_server_ps3mapi.sprx", 0777);
 		sysLv2FsUnlink("/dev_hdd0/webftp_server_ps3mapi.sprx");
 
+		sysLv2FsChmod("/dev_hdd0/plugins/webftp_server_ps3mapi.sprx", 0777);
+		sysLv2FsUnlink("/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+
+		// copy ps3mapi sprx
+		if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
+		{
 			if((sysLv2FsStat("/dev_flash/rebug", &stat) == SUCCESS))
-					CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_rebug_cobra_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
-				else
-					CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
+				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_rebug_cobra_ps3mapi.sprx", "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+			else
+				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_ps3mapi.sprx", "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+		}
+		else
+		{
+			if((sysLv2FsStat("/dev_flash/rebug", &stat) == SUCCESS))
+				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_rebug_cobra_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
+			else
+				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_ps3mapi.sprx", "/dev_hdd0/webftp_server_ps3mapi.sprx");
+		}
 	}
-	// update prx_plugins.txt
+
+	// update prx_plugins.txt (PRX LOADER)
 	if(sysLv2FsStat("/dev_hdd0/prx_plugins.txt", &stat) == SUCCESS)
 	{
+		// parse prx_plugins.txt (update existing path)
 		f=fopen("/dev_hdd0/prx_plugins.txt", "r");
 		while(fgets(ligne, 255, f) != NULL)
 		{
@@ -686,18 +816,31 @@ cont:
 				strtok(ligne, "\r\n");
 				sysLv2FsUnlink(ligne);
 				CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_noncobra.sprx",ligne);
-				goto cont;
+				goto exit;
 			}
 		}
 		fclose(f);
+
+		// append line to prx_plugins.txt
 		f=fopen("/dev_hdd0/prx_plugins.txt", "a");
-		fputs("\r\n/dev_hdd0/webftp_server_noncobra.sprx", f);
+		if(sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS)
+			fputs("\r\n/dev_hdd0/plugins/webftp_server_noncobra.sprx", f);
+		else
+			fputs("\r\n/dev_hdd0/webftp_server_noncobra.sprx", f);
 		fclose(f);
 
+		// delete old sprx
 		sysLv2FsChmod("/dev_hdd0/webftp_server_noncobra.sprx", 0777);
 		sysLv2FsUnlink("/dev_hdd0/webftp_server_noncobra.sprx");
 
-		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_noncobra.sprx","/dev_hdd0/webftp_server_noncobra.sprx");
+		sysLv2FsChmod("/dev_hdd0/plugins/webftp_server_noncobra.sprx", 0777);
+		sysLv2FsUnlink("/dev_hdd0/plugins/webftp_server_noncobra.sprx");
+
+		// copy non cobra sprx
+		if(sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS)
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_noncobra.sprx", "/dev_hdd0/plugins/webftp_server_noncobra.sprx");
+		else
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/webftp_server_noncobra.sprx", "/dev_hdd0/webftp_server_noncobra.sprx");
 	}
 	// exit
 exit:

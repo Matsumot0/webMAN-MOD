@@ -124,4 +124,4 @@ del /q objs\*.o>nul
 rd objs>nul
 
 ren webftp_server_cobra.sprx webftp_server.sprx
-copy .\flags\flags_cobra.h .\flags.h >nul
+copy .\flags\flags_custom.h .\flags.h >nul

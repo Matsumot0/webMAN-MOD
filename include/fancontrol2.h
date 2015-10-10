@@ -59,6 +59,10 @@ static void poll_thread(uint64_t poll)
 	int delta=0;
 	uint8_t msg[200];
 
+#ifdef WM_REQUEST
+	CellFsStat stat;
+#endif
+
 	old_fan=0;
 	while(working)
 	{
@@ -208,6 +212,16 @@ static void poll_thread(uint64_t poll)
 			sec=0;
 		}
 		sec+=step;
+
+#ifdef WM_REQUEST
+		// Poll requests via local file
+		if(cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &stat)==CELL_FS_SUCCEEDED)
+		{
+			loading_html++;
+			sys_ppu_thread_t id;
+			if(working) sys_ppu_thread_create(&id, handleclient, WM_FILE_REQUEST, -0x1d8, 0x20000, 0, "wwwd");
+		}
+#endif
 	}
 
 	sys_ppu_thread_exit(0);
