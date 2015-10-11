@@ -762,7 +762,7 @@ static void draw_frame(void)
   else
     sprintf(ipaddr, "%s", ip);
 
-  sprintf(netstr, "Network connexion :  %s\r\nIP address (local) :  %s", netdevice, ipaddr);
+  sprintf(netstr, "Network connection :  %s\r\nIP address (local) :  %s", netdevice, ipaddr);
 
   print_text(352, 30 + (LINE_HEIGHT * 2.5), netstr);
 

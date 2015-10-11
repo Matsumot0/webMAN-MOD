@@ -8,7 +8,7 @@ CRT_HEAD += $(shell ppu-lv2-gcc -print-file-name'='crtbegin.o)
 CRT_TAIL += $(shell ppu-lv2-gcc -print-file-name'='crtend.o)
 CRT_HEAD += $(shell ppu-lv2-gcc -print-file-name'='ecrtn.o)
  
-PPU_SRCS = network.c mem.c misc.c png_dec.c blitting.c main.c libc.c
+PPU_SRCS = network.c mem.c misc.c png_dec.c blitting.c main.c ../libc.c
 PPU_INCDIRS	= -I ../vsh
 PPU_PRX_TARGET = wm_vsh_menu.prx
 PPU_PRX_LDFLAGS = -L ../lib -Wl, --strip-unused-data
