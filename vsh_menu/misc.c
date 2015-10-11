@@ -1,6 +1,6 @@
-#include "misc.h"
+#include "include/misc.h"
 #include "../vsh/vsh_exports.h"
-#include "network.h"            // debug
+#include "include/network.h"	// debug
 
 
 

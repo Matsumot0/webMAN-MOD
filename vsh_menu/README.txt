@@ -43,9 +43,20 @@ Features:
   - Shutdown PS3
   - Reboot PS3 (soft* & hard methods). *lpar reboot
 
+  Rebug menu:
+  - Toggle Rebug Mode
+  - Toggle XMB Mode
+  - Toggle Debug Menu
+  - Disable Cobra
+  - Disable webMAN MOD
+  - Recovery Mode
+
 
 Changelog:
 ---------
+v0.6:
+	Added options from Rebug VSH Menu made by Orion
+
 v0.5:
 	Renamed to VSH Menu for webMAN
 	Integrated with webMAN MOD 1.43.07

@@ -1,10 +1,10 @@
-#include "blitting.h"
-#include "png_dec.h"
-#include "misc.h"
-#include "mem.h"
+#include "include/blitting.h"
+#include "include/png_dec.h"
+#include "include/misc.h"
+#include "include/mem.h"
 
 #include <cell/rtc.h>
-#include "network.h"               // debug
+#include "include/network.h"	// debug
 
 
 

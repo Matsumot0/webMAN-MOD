@@ -1,9 +1,8 @@
-#include "png_dec.h"
-#include "mem.h"
+#include "include/png_dec.h"
+#include "include/mem.h"
 #include "../vsh/vsh_exports.h"
 
-#include "network.h"               // debug
-
+#include "include/network.h"	// debug
 
 static int32_t png_w = 0, png_h = 0;
 

@@ -11,7 +11,7 @@
 #include <netdb.h>
 
 #include "../vsh/vsh_exports.h"
-#include "network.h"
+#include "include/network.h"
 
 
 

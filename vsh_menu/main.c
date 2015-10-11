@@ -23,10 +23,10 @@
 
 #include "../vsh/vsh_exports.h"
 
-#include "network.h"
-#include "misc.h"
-#include "mem.h"
-#include "blitting.h"
+#include "include/network.h"
+#include "include/misc.h"
+#include "include/mem.h"
+#include "include/blitting.h"
 
 SYS_MODULE_INFO(VSH_MENU, 0, 1, 0);
 SYS_MODULE_START(vsh_menu_start);
@@ -34,6 +34,9 @@ SYS_MODULE_STOP(vsh_menu_stop);
 
 #define THREAD_NAME         "vsh_menu_thread"
 #define STOP_THREAD_NAME    "vsh_menu_stop_thread"
+
+#define VSH_MODULE_PATH 	"/dev_blind/vsh/module/"
+#define VSH_ETC_PATH		"/dev_blind/vsh/etc/"
 
 
 typedef struct
@@ -53,6 +56,7 @@ static char fw[40];
 int32_t vsh_menu_start(uint64_t arg);
 int32_t vsh_menu_stop(void);
 
+static void finalize_module(void);
 static void vsh_menu_stop_thread(uint64_t arg);
 
 char *current_file[512];
@@ -284,24 +288,250 @@ static void stop_VSH_Menu(void)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//                         MOUNT DEV_BLIND                            //
+////////////////////////////////////////////////////////////////////////
+
+static void mount_dev_blind(void)
+{
+	system_call_8(837, (uint64_t)(char*)"CELL_FS_IOS:BUILTIN_FLSH1", (uint64_t)(char*)"CELL_FS_FAT", (uint64_t)(char*)"/dev_blind", 0, 0, 0, 0, 0);
+}
+
+////////////////////////////////////////////////////////////////////////
+//                        TOGGLE NORMAL/REBUG MODE                    //
+////////////////////////////////////////////////////////////////////////
+
+static void toggle_normal_rebug_mode(void)
+{
+	struct CellFsStat s;
+	mount_dev_blind();
+
+	if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.swp", &s)==CELL_FS_SUCCEEDED)
+	{
+		stop_VSH_Menu();
+		vshtask_notify("Normal Mode detected!\r\nSwitch to REBUG Mode...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.nrm");
+		cellFsRename(VSH_ETC_PATH "index.dat.swp", VSH_ETC_PATH "index.dat");
+
+		cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.nrm");
+		cellFsRename(VSH_ETC_PATH "version.txt.swp", VSH_ETC_PATH "version.txt");
+
+		cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.nrm");
+	    cellFsRename(VSH_MODULE_PATH "vsh.self.swp", VSH_MODULE_PATH "vsh.self");
+
+		soft_reboot();
+	}
+	else
+	if((cellFsStat((char*) VSH_MODULE_PATH "vsh.self.nrm", &s)==CELL_FS_SUCCEEDED))
+	{
+		stop_VSH_Menu();
+		vshtask_notify("Rebug Mode detected!\r\nSwitch to Normal Mode...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
+		cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
+
+		cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
+		cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
+
+		cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.swp");
+		cellFsRename(VSH_MODULE_PATH "vsh.self.nrm", VSH_MODULE_PATH "vsh.self");
+
+		soft_reboot();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//                       TOGGLE XMB MODE                              //
+////////////////////////////////////////////////////////////////////////
+
+static void toggle_xmb_mode(void)
+{
+    struct CellFsStat s;
+	mount_dev_blind();
+
+	if((cellFsStat((char*) VSH_MODULE_PATH "vsh.self.cexsp", &s)==CELL_FS_SUCCEEDED))
+	{
+		stop_VSH_Menu();
+		vshtask_notify("Debug XMB detected!\r\nSwitch to Retail XMB...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.dexsp");
+		cellFsRename(VSH_MODULE_PATH "vsh.self.cexsp", VSH_MODULE_PATH "vsh.self");
+
+		soft_reboot();
+	}
+	else
+	if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.dexsp", &s)==CELL_FS_SUCCEEDED)
+	{
+		stop_VSH_Menu();
+		vshtask_notify("Retail XMB detected!\r\nSwitch to Debug XMB...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.cexsp");
+		cellFsRename(VSH_MODULE_PATH "vsh.self.dexsp", VSH_MODULE_PATH "vsh.self");
+
+		soft_reboot();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//                        TOGGLE DEBUG MENU                           //
+////////////////////////////////////////////////////////////////////////
+
+static void toggle_debug_menu(void)
+{
+    struct CellFsStat s;
+	mount_dev_blind();
+
+	if(cellFsStat((char*) VSH_MODULE_PATH "sysconf_plugin.sprx.dex", &s)==CELL_FS_SUCCEEDED)
+	{
+
+		stop_VSH_Menu();
+		vshtask_notify("CEX QA Menu is active!\r\nSwitch to DEX Debug Menu...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx", VSH_MODULE_PATH "sysconf_plugin.sprx.cex");
+		cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx.dex", VSH_MODULE_PATH "sysconf_plugin.sprx");
+	}
+	else
+	if(cellFsStat((char*) VSH_MODULE_PATH "sysconf_plugin.sprx.cex", &s)==CELL_FS_SUCCEEDED)
+	{
+		stop_VSH_Menu();
+		vshtask_notify("DEX Debug Menu is active!\r\nSwitch to CEX QA Menu...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx", VSH_MODULE_PATH "sysconf_plugin.sprx.dex");
+		cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx.cex", VSH_MODULE_PATH "sysconf_plugin.sprx");
+	}
+	sys_timer_sleep(1);
+	{system_call_3(838, (uint64_t)(char*)"/dev_blind", 0, 1);}
+}
+
+////////////////////////////////////////////////////////////////////////
+//                        DISABLE COBRA STAGE2                        //
+////////////////////////////////////////////////////////////////////////
+
+static void disable_cobra_stage2(void)
+{
+	stop_VSH_Menu();
+
+	if(is_cobra_based())
+	{
+		mount_dev_blind();
+
+		vshtask_notify("Cobra Mode detected!\r\nDisabling Cobra stage2...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename("/dev_blind/rebug/cobra/stage2.cex", "/dev_blind/rebug/cobra/stage2.cex.bak");
+		cellFsRename("/dev_blind/rebug/cobra/stage2.dex", "/dev_blind/rebug/cobra/stage2.dex.bak");
+		cellFsRename("/dev_blind/sys/stage2.bin", "/dev_blind/sys/stage2_disabled.bin");
+
+		soft_reboot();
+	}
+	else
+	{
+		vshtask_notify("Cobra Mode was NOT detected!");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//                        DISABLE Webman                              //
+////////////////////////////////////////////////////////////////////////
+
+static void disable_webman(void)
+{
+	struct CellFsStat s;
+
+	stop_VSH_Menu();
+
+	if(cellFsStat("/dev_flash/vsh/module/webftp_server.sprx", &s)==CELL_FS_SUCCEEDED)
+	{
+		mount_dev_blind();
+		vshtask_notify("webMAN MOD is Enabled!\r\nNow will be Disabled...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename("/dev_blind/vsh/module/webftp_server.sprx", "/dev_blind/vsh/module/webftp_server.sprx.vsh");
+		soft_reboot();
+	}
+	else if(cellFsStat("/dev_blind/vsh/module/webftp_server.sprx.vsh", &s)==CELL_FS_SUCCEEDED)
+	{
+		mount_dev_blind();
+		vshtask_notify("webMAN MOD Disabled!\r\nNow will be Enabled...");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+
+		cellFsRename("/dev_blind/vsh/module/webftp_server.sprx.vsh", "/dev_blind/vsh/module/webftp_server.sprx");
+		soft_reboot();
+	}
+	else
+	{
+		vshtask_notify("webMAN MOD was not detected on dev_flash");
+		play_rco_sound("system_plugin", "snd_system_ok");
+		sys_timer_sleep(1);
+	}
+}
+
+static void recovery_mode(void)
+{
+	#define SC_UPDATE_MANAGER_IF				863
+	#define UPDATE_MGR_PACKET_ID_READ_EPROM		0x600B
+	#define UPDATE_MGR_PACKET_ID_WRITE_EPROM	0x600C
+	#define RECOVER_MODE_FLAG_OFFSET			0x48C61
+
+	stop_VSH_Menu();
+	vshtask_notify("Now PS3 will be restart in Recovery Mode");
+	play_rco_sound("system_plugin", "snd_system_ok");
+	sys_timer_sleep(1);
+
+   {system_call_7(SC_UPDATE_MANAGER_IF, UPDATE_MGR_PACKET_ID_WRITE_EPROM, RECOVER_MODE_FLAG_OFFSET, 0x00, 0, 0, 0, 0);} // set recovery mode
+	hard_reboot();
+}
+
+
+////////////////////////////////////////////////////////////////////////
 //                            BLITTING                                //
 ////////////////////////////////////////////////////////////////////////
 static uint16_t line = 0;           // current line into menu, init 0 (Menu Entry 1)
 #define MAX_MENU     9
+#define MAX_MENU2    6
+
+static uint8_t view = 0;
 
 uint8_t entry_mode[MAX_MENU] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-static char entry_str[MAX_MENU][32] = {
-                                       "0: Unmount Game",
-                                       "1: Mount /net0",
-                                       "2: Fan (+)",
-                                       "3: Refresh XML",
-                                       "4: Toggle gameDATA",
-                                       "5: Backup Disc",
-                                       "6: Screenshot (XMB)",
-                                       "7: Shutdown PS3",
-                                       "8: Reboot PS3 (soft)",
-                                      };
+static char entry_str[2][MAX_MENU][32] = {
+                                          {
+                                           "0: Unmount Game",
+                                           "1: Mount /net0",
+                                           "2: Fan (+)",
+                                           "3: Refresh XML",
+                                           "4: Toggle gameDATA",
+                                           "5: Backup Disc to HDD",
+                                           "6: Screenshot (XMB)",
+                                           "7: Shutdown PS3",
+                                           "8: Reboot PS3 (soft)",
+                                          },
+                                          {
+                                           "0: Toggle Rebug Mode",
+                                           "1: Toggle XMB Mode",
+                                           "2: Toggle Debug Menu",
+                                           "3: Disable Cobra",
+                                           "4: Disable webMAN MOD",
+                                           "5: Recovery Mode",
+                                          }
+                                        };
 
 ////////////////////////////////////////////////////////////////////////
 //               EXECUTE ACTION DEPENDING LINE SELECTED               //
@@ -325,7 +555,7 @@ static void do_menu_action(void)
       if(entry_mode[line])
       {
           entry_mode[line]=(entry_mode[line]==2) ? 1 : 2;
-          strcpy(entry_str[line], ((entry_mode[line] == 2) ? "0: Insert Disc\0" : (entry_mode[line] == 1) ? "0: Eject Disc\0" : "0: Unmount Game"));
+          strcpy(entry_str[view][line], ((entry_mode[line] == 2) ? "0: Insert Disc\0" : (entry_mode[line] == 1) ? "0: Eject Disc\0" : "0: Unmount Game"));
       }
       return;
     case 1:
@@ -350,7 +580,7 @@ static void do_menu_action(void)
       if(entry_mode[line]==(fan_mode ? 1 : 0)) {send_wm_request((char*)"GET /cpursx.ps3?dn"); buzzer(1);}
       if(entry_mode[line]==(fan_mode ? 0 : 1)) {send_wm_request((char*)"GET /cpursx.ps3?up"); buzzer(1);}
 
-      if(entry_mode[line]==2) {send_wm_request((char*)"GET /cpursx.ps3?mode"); buzzer(3); entry_mode[line]=3; strcpy(entry_str[line], "2: System Info"); fan_mode = fan_mode ? 0 : 1;} else
+      if(entry_mode[line]==2) {send_wm_request((char*)"GET /cpursx.ps3?mode"); buzzer(3); entry_mode[line]=3; strcpy(entry_str[view][line], "2: System Info"); fan_mode = fan_mode ? 0 : 1;} else
       if(entry_mode[line]==3) {send_wm_request((char*)"GET /popup.ps3"); sys_timer_sleep(1); stop_VSH_Menu();}
 
       play_rco_sound("system_plugin", "snd_system_ok");
@@ -393,6 +623,38 @@ static void do_menu_action(void)
   play_rco_sound("system_plugin", "snd_system_ok");
 }
 
+static void do_menu_action2(void)
+{
+  buzzer(1);
+
+  switch(line)
+  {
+    case 0:
+      toggle_normal_rebug_mode();
+      break;
+
+    case 1:
+      toggle_xmb_mode();
+      break;
+
+    case 2:
+      toggle_debug_menu();
+      break;
+
+    case 3:
+      disable_cobra_stage2();
+      break;
+
+    case 4:
+      disable_webman();
+      break;
+
+    case 5:
+      recovery_mode();
+      break;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////
 //                             DRAW A FRAME                           //
 ////////////////////////////////////////////////////////////////////////
@@ -419,8 +681,8 @@ static void draw_frame(void)
 
 
   // print headline string, center(x = -1)
-  set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, "VSH Menu for webMAN");
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.5");
+  set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, (view ? "VSH Menu for Rebug" : "VSH Menu for webMAN"));
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.6");
 
 
   set_font(20.f, 20.f, 1.f, 1);
@@ -442,7 +704,8 @@ static void draw_frame(void)
     }
 
     set_foreground_color(color);
-    print_text(20, 40 + (LINE_HEIGHT * (i + 1)), entry_str[selected + i]);
+
+    print_text(20, 40 + (LINE_HEIGHT * (i + 1)), entry_str[view][selected + i]);
 
     selected++;
   }
@@ -456,9 +719,10 @@ static void draw_frame(void)
 
   //draw command buttons
   set_foreground_color(0xFF999999);
-  draw_png(0, 522, 230, 128+64, 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
+  draw_png(0, 522, 230, 128 + ((!view && (line<3||line==6||line==8)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
   draw_png(0, 522, 262, 0, 400, 32, 32); print_text(560, 266, ": Select");  // draw X button
   draw_png(0, 522, 294, 416, 400, 32, 32); print_text(560, 298, ": Exit");  // draw select button
+  draw_png(0, 522, 326, 64, 400, 32, 32); print_text(560, 330, ": Menu");  // draw Triangle button
   set_foreground_color(0xFF008FFF);
 
 
@@ -673,11 +937,11 @@ static void vsh_menu_thread(uint64_t arg)
 
             switch (line)
             {
-             case 0: strcpy(entry_str[line], ((entry_mode[line] == 1) ? "0: Eject Disc\0"   : (entry_mode[line] == 2) ? "0: Insert Disc\0" : "0: Unmount Game\0")); break;
-             case 1: strcpy(entry_str[line], ((entry_mode[line] == 1) ? "1: Mount /net1"    : (entry_mode[line] == 2) ? "1: Mount /net2"   : "1: Mount /net0"));  break;
-             case 2: strcpy(entry_str[line], ((entry_mode[line] == 1) ? "2: Fan (-)\0"      : (entry_mode[line] == 2) ? "2: Fan Mode\0"    : (entry_mode[line] == 3) ? "2: System Info\0" : "2: Fan (+)\0")); break;
-             case 6: strcpy(entry_str[line], ((entry_mode[line]) ? "6: Screenshot (XMB + Menu)\0"  : "6: Screenshot (XMB)\0"));  break;
-             case 8: strcpy(entry_str[line], ((entry_mode[line]) ? "8: Reboot PS3 (hard)\0"        : "8: Reboot PS3 (soft)\0")); break;
+             case 0: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "0: Eject Disc\0"   : (entry_mode[line] == 2) ? "0: Insert Disc\0" : "0: Unmount Game\0")); break;
+             case 1: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "1: Mount /net1"    : (entry_mode[line] == 2) ? "1: Mount /net2"   : "1: Mount /net0"));  break;
+             case 2: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "2: Fan (-)\0"      : (entry_mode[line] == 2) ? "2: Fan Mode\0"    : (entry_mode[line] == 3) ? "2: System Info\0" : "2: Fan (+)\0")); break;
+             case 6: strcpy(entry_str[view][line], ((entry_mode[line]) ? "6: Screenshot (XMB + Menu)\0"  : "6: Screenshot (XMB)\0"));  break;
+             case 8: strcpy(entry_str[view][line], ((entry_mode[line]) ? "8: Reboot PS3 (hard)\0"        : "8: Reboot PS3 (soft)\0")); break;
             }
         }
         else
@@ -690,13 +954,13 @@ static void vsh_menu_thread(uint64_t arg)
             play_rco_sound("system_plugin", "snd_cursor");
           }
           else
-            line = (MAX_MENU-1);
+            line = (view ? MAX_MENU2 : MAX_MENU)-1;
         }
         else
         if((curpad & PAD_DOWN) && (curpad != oldpad))
         {
           frame = 0;
-          if(line < (MAX_MENU-1))
+          if(line < ((view ? MAX_MENU2 : MAX_MENU)-1))
           {
             line++;
             play_rco_sound("system_plugin", "snd_cursor");
@@ -707,7 +971,12 @@ static void vsh_menu_thread(uint64_t arg)
         else
         if((curpad & PAD_CROSS) && (curpad != oldpad))
         {
-          do_menu_action();
+          if(view) do_menu_action2(); else do_menu_action();
+        }
+        else
+        if((curpad & PAD_TRIANGLE) && (curpad != oldpad))
+        {
+            view = (view ? 0 : 1); line = 0;
         }
         else
         if((curpad & PAD_SQUARE) && (curpad != oldpad))
@@ -737,6 +1006,12 @@ static void vsh_menu_thread(uint64_t arg)
   }
 
   dbg_fini();
+
+  finalize_module();
+
+  uint64_t exit_code;
+  sys_ppu_thread_join(vsh_menu_tid, &exit_code);
+
   sys_ppu_thread_exit(0);
 }
 
@@ -752,7 +1027,7 @@ int32_t vsh_menu_start(uint64_t arg)
 }
 
 /***********************************************************************
-* stopt thread
+* stop thread
 ***********************************************************************/
 static void vsh_menu_stop_thread(uint64_t arg)
 {
@@ -798,11 +1073,10 @@ int vsh_menu_stop(void)
   int ret = sys_ppu_thread_create(&t, vsh_menu_stop_thread, 0, 0, 0x2000, 1, STOP_THREAD_NAME);
   if (ret == 0) sys_ppu_thread_join(t, &exit_code);
 
-  sys_timer_usleep(500000);
+  sys_timer_usleep(500000); // 0.5s
 
   finalize_module();
 
   _sys_ppu_thread_exit(0);
   return SYS_PRX_STOP_OK;
 }
-
