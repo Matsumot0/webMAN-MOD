@@ -23,7 +23,10 @@
 
 #include "../vsh/vsh_exports.h"
 
+#ifdef DEBUG
 #include "include/network.h"
+#endif
+
 #include "include/misc.h"
 #include "include/mem.h"
 #include "include/blitting.h"
@@ -37,6 +40,25 @@ SYS_MODULE_STOP(vsh_menu_stop);
 
 #define VSH_MODULE_PATH 	"/dev_blind/vsh/module/"
 #define VSH_ETC_PATH		"/dev_blind/vsh/etc/"
+
+#define u8	uint8_t
+#define u16	uint16_t
+#define u32	uint32_t
+#define u64	uint64_t
+#define s8	int8_t
+#define s16	int16_t
+#define s32	int32_t
+#define s64	int64_t
+
+#define lv2syscall1	system_call_1
+#define lv2syscall2	system_call_2
+#define lv2syscall3	system_call_3
+#define lv2syscall4	system_call_4
+#define lv2syscall5	system_call_5
+#define lv2syscall6	system_call_6
+#define lv2syscall7	system_call_7
+#define lv2syscall8	system_call_8
+#define lv2syscall9	system_call_9
 
 
 typedef struct
@@ -117,6 +139,16 @@ typedef struct
 	char filler[509];
 } __attribute__((packed)) vsh_menu_Cfg;
 
+static char FW[10];
+static char payload_type[64];
+static char kernel_type[64];
+static void get_firmware_version(void);
+
+struct platform_info {
+	u32 firmware_version;
+} info;
+
+
 static uint8_t vsh_menu_config[sizeof(vsh_menu_Cfg)];
 static vsh_menu_Cfg *config = (vsh_menu_Cfg*) vsh_menu_config;
 
@@ -124,7 +156,7 @@ static vsh_menu_Cfg *config = (vsh_menu_Cfg*) vsh_menu_config;
 static sys_ppu_thread_t vsh_menu_tid = -1;
 static int32_t running = 1;
 static uint8_t menu_running = 0;    // vsh menu off(0) or on(1)
-static char fw[40];
+
 int32_t vsh_menu_start(uint64_t arg);
 int32_t vsh_menu_stop(void);
 
@@ -260,7 +292,7 @@ static int is_cobra_based(void)
     return 0;
 }
 
-static void get_firmware(void)
+/*static void get_firmware(void)
 {
   uint64_t n, data;
 
@@ -295,6 +327,38 @@ static void get_firmware(void)
       break;
     }
   }
+}*/
+
+int lv2_get_platform_info(struct platform_info *info)
+{
+	lv2syscall1(387, (uint64_t) info);
+	return_to_user_prog(int);
+}
+
+void get_firmware_version(void)
+{
+	lv2_get_platform_info(&info);
+	sprintf(FW, "%02X", info.firmware_version);
+}
+
+void get_kernel_type(void)
+{
+	uint64_t type;
+	memset(kernel_type, 0, 64);
+	system_call_1(985, (uint64_t)&type);
+	if(type == 1) sprintf(kernel_type, "CEX"); else // Retail
+	if(type == 2) sprintf(kernel_type, "DEX"); else // Debug
+	if(type == 3) sprintf(kernel_type, "Debugger"); // Debugger
+}
+
+void get_payload_type(void)
+{
+	if(!is_cobra_based()) return;
+
+	bool is_mamba; {system_call_1(8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
+
+	uint16_t cobra_version; sys_get_version2(&cobra_version);
+    sprintf(payload_type, "%s %X.%X", is_mamba ? "Mamba" : "Cobra", cobra_version>>8, (cobra_version & 0xF) ? (cobra_version & 0xFF) : ((cobra_version>>4) & 0xF));
 }
 
 static void start_VSH_Menu(void)
@@ -326,8 +390,7 @@ static void start_VSH_Menu(void)
   // load png image
   load_png_bitmap(0, bg_image);
 
-  get_firmware();
-
+  get_payload_type();
 
   // stop vsh pad
   start_stop_vsh_pad(0);
@@ -384,30 +447,42 @@ static void toggle_normal_rebug_mode(void)
 		play_rco_sound("system_plugin", "snd_system_ok");
 		sys_timer_sleep(1);
 
-		cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.nrm");
-		cellFsRename(VSH_ETC_PATH "index.dat.swp", VSH_ETC_PATH "index.dat");
+		if(cellFsStat((char*) VSH_ETC_PATH "index.dat.swp", &s)==CELL_FS_SUCCEEDED)
+		{
+			cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.nrm");
+			cellFsRename(VSH_ETC_PATH "index.dat.swp", VSH_ETC_PATH "index.dat");
+		}
 
-		cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.nrm");
-		cellFsRename(VSH_ETC_PATH "version.txt.swp", VSH_ETC_PATH "version.txt");
+		if(cellFsStat((char*) VSH_ETC_PATH "version.txt.swp", &s)==CELL_FS_SUCCEEDED)
+		{
+			cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.nrm");
+			cellFsRename(VSH_ETC_PATH "version.txt.swp", VSH_ETC_PATH "version.txt");
+		}
 
 		cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.nrm");
-	    cellFsRename(VSH_MODULE_PATH "vsh.self.swp", VSH_MODULE_PATH "vsh.self");
+		cellFsRename(VSH_MODULE_PATH "vsh.self.swp", VSH_MODULE_PATH "vsh.self");
 
 		soft_reboot();
 	}
 	else
-	if((cellFsStat((char*) VSH_MODULE_PATH "vsh.self.nrm", &s)==CELL_FS_SUCCEEDED))
+	if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.nrm", &s)==CELL_FS_SUCCEEDED)
 	{
 		stop_VSH_Menu();
 		vshtask_notify("Rebug Mode detected!\r\nSwitch to Normal Mode...");
 		play_rco_sound("system_plugin", "snd_system_ok");
 		sys_timer_sleep(1);
 
-		cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
-		cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
+		if(cellFsStat((char*) VSH_ETC_PATH "index.dat.nrm", &s)==CELL_FS_SUCCEEDED)
+		{
+			cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
+			cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
+		}
 
-		cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
-		cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
+		if(cellFsStat((char*) VSH_ETC_PATH "version.txt.nrm", &s)==CELL_FS_SUCCEEDED)
+		{
+			cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
+			cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
+		}
 
 		cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.swp");
 		cellFsRename(VSH_MODULE_PATH "vsh.self.nrm", VSH_MODULE_PATH "vsh.self");
@@ -549,7 +624,7 @@ static void disable_webman(void)
 	}
 	else
 	{
-		vshtask_notify("webMAN MOD was not detected on dev_flash");
+		vshtask_notify("webMAN MOD was not found on /dev_flash");
 		play_rco_sound("system_plugin", "snd_system_ok");
 		sys_timer_sleep(1);
 	}
@@ -577,7 +652,7 @@ static void recovery_mode(void)
 ////////////////////////////////////////////////////////////////////////
 static uint16_t line = 0;           // current line into menu, init 0 (Menu Entry 1)
 #define MAX_MENU     9
-#define MAX_MENU2    7
+#define MAX_MENU2    8
 
 static uint8_t view = 0;
 
@@ -596,13 +671,14 @@ static char entry_str[2][MAX_MENU][32] = {
                                            "8: Reboot PS3 (soft)",
                                           },
                                           {
-                                           "0: Toggle Rebug Mode",
-                                           "1: Toggle XMB Mode",
-                                           "2: Toggle Debug Menu",
-                                           "3: Disable Cobra",
-                                           "4: Disable webMAN MOD",
-                                           "5: Recovery Mode",
-                                           "6: Startup Message : ON",
+                                           "0: Unload VSH Menu",
+                                           "1: Toggle Rebug Mode",
+                                           "2: Toggle XMB Mode",
+                                           "3: Toggle Debug Menu",
+                                           "4: Disable Cobra",
+                                           "5: Disable webMAN MOD",
+                                           "6: Recovery Mode",
+                                           "7: Startup Message : ON",
                                           }
                                         };
 
@@ -701,37 +777,47 @@ static void do_menu_action(void)
 
 static void do_menu_action2(void)
 {
+  struct CellFsStat s;
+
   buzzer(1);
 
   switch(line)
   {
     case 0:
+
+      if(cellFsStat("/dev_hdd0/plugins/wm_vsh_menu.sprx", &s) == CELL_FS_SUCCEEDED)
+          send_wm_request((char*)"GET /unloadprx.ps3/dev_hdd0/plugins/wm_vsh_menu.sprx");
+      else
+          return;
+
+      break;
+    case 1:
       toggle_normal_rebug_mode();
       return;
 
-    case 1:
+    case 2:
       toggle_xmb_mode();
       return;
 
-    case 2:
+    case 3:
       toggle_debug_menu();
       return;
 
-    case 3:
+    case 4:
       disable_cobra_stage2();
       return;
 
-    case 4:
+    case 5:
       disable_webman();
       return;
 
-    case 5:
+    case 6:
       recovery_mode();
       return;
 
-    case 6:
+    case 7:
       config->dnotify = config->dnotify ? 0 : 1;
-      strcpy(entry_str[view][line], (config->dnotify) ? "6: Startup Message : OFF\0" : "6: Startup Message : ON\0");
+      strcpy(entry_str[view][line], (config->dnotify) ? "7: Startup Message : OFF\0" : "7: Startup Message : ON\0");
 
       // save config
       int fd=0;
@@ -742,6 +828,12 @@ static void do_menu_action2(void)
       }
       return;
   }
+
+  // return to XMB
+  sys_timer_sleep(1);
+  stop_VSH_Menu();
+
+  play_rco_sound("system_plugin", "snd_system_ok");
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -771,7 +863,7 @@ static void draw_frame(void)
 
   // print headline string, center(x = -1)
   set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, (view ? "VSH Menu for Rebug" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.7");
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.8");
 
 
   set_font(20.f, 20.f, 1.f, 1);
@@ -816,10 +908,9 @@ static void draw_frame(void)
 
 
   //draw firmware version info
-  char firmware[48];
-
-  sprintf(firmware, "Firmware: %s", fw);
-  print_text(352, 30 + (LINE_HEIGHT * 1), firmware);
+  char cfw_str[64];
+  sprintf(cfw_str, "Firmware : %c.%c%c %s %s", FW[0], FW[2], FW[3], kernel_type, payload_type);
+  print_text(352, 30 + (LINE_HEIGHT * 1), cfw_str);
 
 
   //draw Network info
@@ -950,8 +1041,10 @@ static void draw_frame(void)
 ////////////////////////////////////////////////////////////////////////
 static void vsh_menu_thread(uint64_t arg)
 {
+#ifdef DEBUG
   dbg_init();
   dbg_printf("programstart:\n");
+#endif
 
   uint32_t oldpad = 0, curpad = 0;
   CellPadData pdata;
@@ -969,7 +1062,7 @@ static void vsh_menu_thread(uint64_t arg)
      cellFsRead(fd, (void *)vsh_menu_config, sizeof(vsh_menu_Cfg), 0);
      cellFsClose(fd);
 
-     strcpy(entry_str[1][6], (config->dnotify) ? "6: Startup Message : OFF\0" : "6: Startup Message : ON\0");
+     strcpy(entry_str[1][7], (config->dnotify) ? "7: Startup Message : OFF\0" : "7: Startup Message : ON\0");
   }
 
   sys_timer_sleep(13);
@@ -978,6 +1071,10 @@ static void vsh_menu_thread(uint64_t arg)
   {
     vshtask_notify("VSH Menu loaded.\nPress [Select] to open it.");
   }
+
+  get_firmware_version();
+  get_kernel_type();
+  memset(payload_type, 0, 64);
 
   while(running)
   {
@@ -1047,7 +1144,7 @@ static void vsh_menu_thread(uint64_t arg)
           {
             switch (line)
             {
-             case 8: do_menu_action2(); break;
+             case 7: do_menu_action2(); break;
             }
           }
         }
@@ -1112,7 +1209,9 @@ static void vsh_menu_thread(uint64_t arg)
     }
   }
 
+#ifdef DEBUG
   dbg_fini();
+#endif
 
   finalize_module();
 

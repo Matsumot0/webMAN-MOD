@@ -356,7 +356,7 @@ exit_fix:
 			cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
 			cellFsClose(fs);
 
-			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game(update_path);}
+			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {savefile(update_path, paramsfo, msiz); sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game(update_path);}
 		}
 	}
 }

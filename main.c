@@ -96,7 +96,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.08 MOD"						// webMAN version
+#define WM_VERSION			"1.43.09 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -721,7 +721,7 @@ static void handleclient(u64 conn_s_p)
 #ifdef WM_REQUEST
 	u8 wm_request=(cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &buf) == CELL_FS_SUCCEEDED);
 
-	if(wm_request)
+	if(!wm_request)
 #endif
 	{
 		sys_net_get_sockinfo(conn_s, &conn_info_main, 1);
@@ -1364,26 +1364,50 @@ html_response:
 					else
 					if(strstr(param, "loadprx.ps3"))
 					{
-						char *pos; unsigned int slot=6; bool prx_found;
+						char *pos; unsigned int slot=7; bool prx_found;
 
-						pos=strstr(param, "slot=");
-						if(pos)
-						{
-							get_value(templn, pos + 5, 2);
-							slot=RANGE((unsigned int)val(templn), 1, 6);
-						}
-
-						if(param[12]=='/') sprintf(templn, "%s", param+12);
-						else
+						if(param[12]=='/') sprintf(templn, "%s", param+12); else
+						if(param[14]=='/') sprintf(templn, "%s", param+14); else
 						{
 							sprintf(templn, "/dev_hdd0/plugins/webftp_server.sprx");
+							if(cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED) sprintf(templn, "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
 							if(cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED) sprintf(templn, "/dev_hdd0/webftp_server.sprx");
+							if(cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED) sprintf(templn, "/dev_hdd0/webftp_server_ps3mapi.sprx");
 
 							pos=strstr(param, "prx=");
 							if(pos) get_value(templn, pos + 4, MAX_PATH_LEN);
 						}
 
 						prx_found = (cellFsStat(templn, &buf)==CELL_FS_SUCCEEDED);
+#ifdef COBRA_ONLY
+						if(strlen(templn)>0)
+						{
+							char tmp_name[30];
+							char tmp_filename[256];
+
+#ifndef SYSCALL8_OPCODE_PS3MAPI
+							#define SYSCALL8_OPCODE_PS3MAPI			 			0x7777
+							#define PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO			0x0047
+#endif
+							for (slot = 1; slot < 7; slot++)
+							{
+								memset(tmp_name, 0, sizeof(tmp_name));
+								memset(tmp_filename, 0, sizeof(tmp_filename));
+								{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
+								if(strstr(tmp_filename, templn) || strstr(tmp_name, templn)) break;
+							}
+							if(strstr(param, "unloadprx.ps3")) prx_found = false;
+						}
+#endif
+						if(slot>6)
+						{
+							pos=strstr(param, "slot="); slot = 6; // default (last slot)
+							if(pos)
+							{
+								get_value(templn, pos + 5, 2);
+								slot=RANGE((unsigned int)val(templn), 1, 6);
+							}
+						}
 
 						if(prx_found)
 							sprintf(param, "slot: %i<br>load prx: %s", slot, templn);
@@ -1392,10 +1416,13 @@ html_response:
 
 						strcat(buffer, param); strcat(buffer, "</font></body></html>");
 
-						cobra_unload_vsh_plugin(slot);
+						if(slot < 7)
+						{
+							cobra_unload_vsh_plugin(slot);
 
-						if(prx_found)
-							{cobra_load_vsh_plugin(slot, templn, NULL, 0); if(strstr(templn, "/webftp_server")) goto quit;}
+							if(prx_found)
+								{cobra_load_vsh_plugin(slot, templn, NULL, 0); if(strstr(templn, "/webftp_server")) goto quit;}
+						}
 					}
 #endif
 

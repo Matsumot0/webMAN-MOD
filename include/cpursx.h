@@ -59,7 +59,7 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 		char *pos = strstr(param, "fan=");
 		if(pos) {get_value(templn, pos+4, 2); read=val(templn); max_temp = 0; if(!read) enable_fan_control(0, templn); else {webman_config->manu = read; if(webman_config->fanc==0) enable_fan_control(1, templn);}}
 		else {pos = strstr(param, "max=");
-		if(pos) {get_value(templn, pos+4, 2); max_temp = val(templn); max_temp=RANGE(max_temp, 40, 83);}
+		if(pos) {get_value(templn, pos+4, 2); max_temp = val(templn); max_temp=RANGE(max_temp, 40, MAX_TEMPERATURE);}
 		else
 		if(strstr(param, "?m")) {if((max_temp && !strstr(param, "dyn")) || strstr(param, "man")) max_temp=0; else {max_temp=webman_config->temp1;} if(webman_config->fanc==0) enable_fan_control(1, templn);}}
 
@@ -67,7 +67,7 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 		{
 			if(strstr(param, "?u")) max_temp++;
 			if(strstr(param, "?d")) max_temp--;
-			webman_config->temp1=RANGE(max_temp, 40, 83); // dynamic fan max temperature in °C
+			webman_config->temp1=RANGE(max_temp, 40, MAX_TEMPERATURE); // dynamic fan max temperature in °C
 			webman_config->temp0=FAN_AUTO;
 		}
 		else

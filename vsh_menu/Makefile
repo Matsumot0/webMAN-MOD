@@ -8,7 +8,7 @@ CRT_HEAD += $(shell ppu-lv2-gcc -print-file-name'='crtbegin.o)
 CRT_TAIL += $(shell ppu-lv2-gcc -print-file-name'='crtend.o)
 CRT_HEAD += $(shell ppu-lv2-gcc -print-file-name'='ecrtn.o)
  
-PPU_SRCS = network.c mem.c misc.c png_dec.c blitting.c main.c ../libc.c
+PPU_SRCS = mem.c misc.c png_dec.c blitting.c main.c ../libc.c
 PPU_INCDIRS	= -I ../vsh
 PPU_PRX_TARGET = wm_vsh_menu.prx
 PPU_PRX_LDFLAGS = -L ../lib -Wl, --strip-unused-data
@@ -37,5 +37,6 @@ CLEANFILES = ./$(PPU_SPRX_TARGET)
 all:
 	$(MAKE) $(PPU_OBJS_DEPENDS)
 	$(PPU_PRX_STRIP) --strip-debug --strip-section-header $(PPU_PRX_TARGET)
+	../scetool -0 SELF -1 TRUE -s FALSE -2 04 -3 1070000052000001 -4 01000002 -5 APP -6 0003004000000000 -A 0001000000000000 -e $(PPU_PRX_TARGET) $(PPU_SPRX_TARGET)
 	
 include $(CELL_MK_DIR)/sdk.target.mk

@@ -1,4 +1,5 @@
 #define MAX_LAST_GAMES (5)
+
 typedef struct
 {
 	uint8_t last;
@@ -1978,7 +1979,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 				tmp_path[10]=0;
 
 				// get titleid & fix game folder if version is higher than cfw
-				if((fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) && webman_config->fixgame!=FIX_GAME_DISABLED && !strstr(tmp_path, "/net") && !strstr(tmp_path, "/dev_bdvd"))
+				if((fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) && webman_config->fixgame!=FIX_GAME_DISABLED && !strstr(tmp_path, "/net") && !strstr(tmp_path, "/dev_bdvd") && !strstr(_path, ".ntfs["))
 				{
 					savefile(filename, paramsfo, msiz);
 
@@ -1991,9 +1992,23 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 					sprintf(filename, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN", titleID); // has update on hdd0?
 
 					if(cellFsStat(filename, &s)==CELL_FS_SUCCEEDED)
-						sprintf(filename, "/dev_hdd0/game/%s/USRDIR", titleID);
+                    {
+						// fix PARAM.SFO on hdd0
+						sprintf(filename, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
+
+						if(cellFsOpen(filename, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+						{
+							cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
+							cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
+							cellFsClose(fs);
+						}
+
+						if((webman_config->fixgame!=FIX_GAME_DISABLED) && (fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED)) savefile(filename, paramsfo, msiz);
+
+						sprintf(filename, "/dev_hdd0/game/%s/USRDIR", titleID); // fix update folder
+                    }
 					else
-						sprintf(filename, "%s/PS3_GAME/USRDIR", _path);
+						sprintf(filename, "%s/PS3_GAME/USRDIR", _path); // fix bdvd game
 
 					fix_game(filename);
 					fix_in_progress=false;
@@ -2389,13 +2404,15 @@ patch:
 #endif //#ifndef COBRA_ONLY
 
 exit_mount:
+	// wait few seconds until the game is mounted
 	if(ret && extcmp(_path, ".BIN.ENC", 8))
 	{
-		waitfor((char*)"/dev_bdvd", 6);
+		waitfor((char*)"/dev_bdvd", ((strstr(_path0, "/dev_hdd0")) ? 6 : 15));
 		if(!isDir("/dev_bdvd")) ret = false;
 	}
 
 #ifdef FIX_GAME
+	// re-check PARAM.SFO to notify if game needs to be fixed
 	if(ret && (c_firmware<4.76f) && cellFsOpen("/dev_bdvd/PS3_GAME/PARAM.SFO", CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 	{
 		char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
@@ -2406,6 +2423,17 @@ exit_mount:
 		cellFsClose(fs);
 
 		fix_param_sfo(mem, titleID, 1); // show warning (if fix is needed)
+
+		// check update folder too!
+		sprintf(paramsfo, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
+		if(cellFsOpen(paramsfo, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+		{
+			cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
+			cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
+			cellFsClose(fs);
+
+			fix_param_sfo(mem, titleID, 1); // show warning (if fix is needed)
+		}
 	}
 #endif
 
