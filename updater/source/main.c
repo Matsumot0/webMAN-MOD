@@ -465,12 +465,21 @@ int main()
 		sysLv2FsMkdir("/dev_hdd0/plugins/images", 0777);
 
 		// don't update images if they already exist
-		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu.png",   &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu.png",   "/dev_hdd0/plugins/images/wm_vsh_menu.png");
-		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_1.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_1.png", "/dev_hdd0/plugins/images/wm_vsh_menu_1.png");
-		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_2.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_2.png", "/dev_hdd0/plugins/images/wm_vsh_menu_2.png");
-		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_3.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_3.png", "/dev_hdd0/plugins/images/wm_vsh_menu_3.png");
-		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_4.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_4.png", "/dev_hdd0/plugins/images/wm_vsh_menu_4.png");
-		if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_5.png", &stat) != SUCCESS) CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_5.png", "/dev_hdd0/plugins/images/wm_vsh_menu_5.png");
+		
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu.png",   &stat) != SUCCESS) 
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu.png",   "/dev_hdd0/plugins/images/wm_vsh_menu.png");
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_1.png", &stat) != SUCCESS) 
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_1.png", "/dev_hdd0/plugins/images/wm_vsh_menu_1.png");
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_2.png", &stat) != SUCCESS) 
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_2.png", "/dev_hdd0/plugins/images/wm_vsh_menu_2.png");
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_3.png", &stat) != SUCCESS) 
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_3.png", "/dev_hdd0/plugins/images/wm_vsh_menu_3.png");
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_4.png", &stat) != SUCCESS) 
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_4.png", "/dev_hdd0/plugins/images/wm_vsh_menu_4.png");
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_5.png", &stat) != SUCCESS) 
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_5.png", "/dev_hdd0/plugins/images/wm_vsh_menu_5.png");
+		//if(sysLv2FsStat("/dev_hdd0/plugins/images/wm_vsh_menu_6.png", &stat) != SUCCESS)
+			CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/images/wm_vsh_menu_6.png", "/dev_hdd0/plugins/images/wm_vsh_menu_6.png");
 
 		// append path if installing for first time
 		if(sysLv2FsStat("/dev_hdd0/plugins/wm_vsh_menu.sprx", &stat) != SUCCESS)

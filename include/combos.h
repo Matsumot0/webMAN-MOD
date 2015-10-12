@@ -45,10 +45,19 @@
 
 			if(!webman_config->nopad)
 			{
-				data.len=0;
-				if(cellPadGetData(0, &data) != CELL_PAD_OK || data.len == 0)
-					if(cellPadGetData(1, &data) != CELL_PAD_OK || data.len == 0)
-						if(cellPadGetData(2, &data) != CELL_PAD_OK) {sys_timer_usleep(300000); continue;}
+#ifdef VIRTUAL_PAD
+				if(vcombo)
+				{
+					data.len=16; data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] = (vcombo & 0xFF); data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] = (vcombo & 0xFF00) >> 8; vcombo = 0;
+				}
+				else
+#endif
+				{
+					data.len=0;
+					if(cellPadGetData(0, &data) != CELL_PAD_OK || data.len == 0)
+						if(cellPadGetData(1, &data) != CELL_PAD_OK || data.len == 0)
+							if(cellPadGetData(2, &data) != CELL_PAD_OK) {sys_timer_usleep(300000); continue;}
+				}
 
 				if(data.len > 0)
 				{
@@ -353,7 +362,7 @@ show_popup:
 #else
 								sprintf(cfw_info, "%s", dex_mode ? "DEX" : "CEX");
 #endif
-								char smax[16]; if(max_temp) sprintf(smax, "   MAX: %i°C", max_temp); else sprintf(smax, "");
+								char smax[16]; if(max_temp) sprintf(smax, "   MAX: %i°C", max_temp); else if(webman_config->fanc==0) sprintf(smax, "   SYSCON"); else memset(smax, 0, 16);
 
 								sprintf((char*)tmp, "CPU: %i°C  RSX: %i°C  FAN: %i%%   \r\n"
 													"%s: %id %02d:%02d:%02d%s\r\n"
@@ -394,8 +403,8 @@ show_popup:
 							else
 							{
 								if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) webman_config->manu+=5; else webman_config->manu+=1;
-								webman_config->manu=RANGE(webman_config->manu, 20, 99); //%
-								webman_config->temp0= (u8)(((float)webman_config->manu * 255.f)/100.f);
+								webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
+								webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f);
 								webman_config->temp0=RANGE(webman_config->temp0, 0x33, MAX_FANSPEED);
 								fan_control(webman_config->temp0, 0);
 								sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH2, webman_config->manu);
@@ -416,7 +425,7 @@ show_popup:
 							else
 							{
 								if(webman_config->manu>20) {if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) webman_config->manu-=5; else webman_config->manu-=1;}
-								webman_config->temp0= (u8)(((float)webman_config->manu * 255.f)/100.f);
+								webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f);
 								if(webman_config->temp0<0x33) webman_config->temp0=0x33;
 								if(webman_config->temp0>MAX_FANSPEED) webman_config->temp0=MAX_FANSPEED;
 								fan_control(webman_config->temp0, 0);
@@ -507,22 +516,7 @@ show_popup:
 						}
 						else if(!(webman_config->combo & DISABLEFC) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_START) ) // L3+R2+START (enable/disable fancontrol)
 						{
-							webman_config->fanc = (webman_config->fanc ? 0 : 1);
-
-							max_temp=0;
-							if(webman_config->fanc)
-							{
-								if(webman_config->temp0==0) max_temp=webman_config->temp1; else max_temp=0;
-								fan_control(webman_config->temp0, 0);
-								sprintf((char*) msg, "%s %s", STR_FANCTRL3, STR_ENABLED);
-							}
-							else
-							{
-								restore_fan(0); //syscon
-								sprintf((char*) msg, "%s %s", STR_FANCTRL3, STR_DISABLED);
-							}
-							save_settings();
-							show_msg((char*) msg);
+							enable_fan_control(2, msg);
 							sys_timer_sleep(2);
 							break;
 						}

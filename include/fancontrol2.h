@@ -57,7 +57,7 @@ static void poll_thread(uint64_t poll)
 	//u8 step_down=2;
 	u8 smoothstep=0;
 	int delta=0;
-	uint8_t msg[200];
+	char msg[200];
 
 #ifdef WM_REQUEST
 	CellFsStat stat;
@@ -133,8 +133,8 @@ static void poll_thread(uint64_t poll)
 				}
 			}
 
-			if(t1>76 && old_fan<0x43) fan_speed++;
-			if(t1>84 && fan_speed<0xB0) {old_fan=0; fan_speed=0xB0;}
+			if(t1>76 && old_fan<0x43) fan_speed++; // <26%
+			if(t1>=MAX_FANSPEED && fan_speed<0xB0) {old_fan=0; fan_speed=0xB0;} // <69%
 
 			if(fan_speed<((webman_config->minfan*255)/100)) fan_speed=(webman_config->minfan*255)/100;
 			if(fan_speed>MAX_FANSPEED) fan_speed=MAX_FANSPEED;
@@ -145,14 +145,14 @@ static void poll_thread(uint64_t poll)
 			{
 				//if(t1>76 && fan_speed<0x50) fan_speed=0x50;
 				//if(t1>77 && fan_speed<0x58) fan_speed=0x58;
-				if(t1>78 && fan_speed<0x50) fan_speed+=2;
+				if(t1>78 && fan_speed<0x50) fan_speed+=2; // <31%
 				if(old_fan!=fan_speed)
 				{
 				old_fan=fan_speed;
 				fan_control(fan_speed, 1);
 				//sprintf(debug, "OFAN: %x | CFAN: %x | TEMP: %i | SPEED APPLIED!\r\n", old_fan, fan_speed, t1); ssend(data_s, mytxt);
 				stall=0;
-			}
+				}
 			}
 			else
 				if( old_fan>fan_speed && (old_fan-fan_speed)>8 && t1<(max_temp-3) )
@@ -168,7 +168,7 @@ static void poll_thread(uint64_t poll)
 			get_temperature(0, &t1);
 			get_temperature(1, &t2);
 			t1>>=24; t2>>=24;
-			if(t1>83 || t2>83)
+			if(t1>(MAX_TEMPERATURE-2) || t2>(MAX_TEMPERATURE-2))
 			{
 				if(!webman_config->warn)
 				{
@@ -176,10 +176,10 @@ static void poll_thread(uint64_t poll)
 					show_msg((char*) msg);
 					sys_timer_sleep(2);
 				}
-				if(t1>85 || t2>85)
+				if(t1>MAX_TEMPERATURE || t2>MAX_TEMPERATURE)
 				{
-					if(!max_temp) max_temp=82;
-					if(fan_speed<0xB0) fan_speed=0xB0;
+					if(!max_temp) max_temp=(MAX_TEMPERATURE-3);
+					if(fan_speed<0xB0) fan_speed=0xB0; // 69%
 					else
 						if(fan_speed<MAX_FANSPEED) fan_speed+=8;
 

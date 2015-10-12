@@ -4,6 +4,8 @@
 #define SC_PAD_SET_DATA_INSERT_MODE		(573)
 #define SC_PAD_REGISTER_CONTROLLER		(574)
 
+static uint32_t vcombo = 0;
+
 static int32_t vpad_handle = -1;
 
 static inline void sys_pad_dbg_ldd_register_controller(uint8_t *data, int32_t *handle, uint8_t addr, uint32_t capability)
@@ -60,7 +62,7 @@ static int32_t unregister_ldd_controller(void)
   return(CELL_PAD_OK);
 }
 
-static void parse_pad_command(char *param)
+static void parse_pad_command(char *param, u8 is_combo)
 {
 	register_ldd_controller();
 
@@ -128,6 +130,8 @@ static void parse_pad_command(char *param)
 
 		if(strcasestr(param, "l3")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_L3;}
 		if(strcasestr(param, "r3")) {data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] |= CELL_PAD_CTRL_R3;}
+
+		if(is_combo) {vcombo = (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] << 8) | (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1]); return;}
 
 		// send pad data to virtual pad
 		cellPadLddDataInsert(vpad_handle, &data);

@@ -96,7 +96,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.07 MOD"						// webMAN version
+#define WM_VERSION			"1.43.08 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -347,6 +347,7 @@ typedef struct
 
 static CellRtcTick rTick, gTick;
 
+static void enable_fan_control(u8 enable, char *msg);
 static int set_gamedata_status(u8 status, bool do_mount);
 static void set_buffer_sizes(int footprint);
 
@@ -847,12 +848,13 @@ again3:
 			}
 
  #ifdef VIRTUAL_PAD
-			if(strstr(param, "/pad.ps3"))
+			if(strstr(param, "/pad.ps3") || strstr(param, "/combo.ps3"))
 			{
-				if(!webman_config->nopad) parse_pad_command(param);
+				u8 is_combo = (param[1]=='c') ? 2 : 0;
+				if(!webman_config->nopad) parse_pad_command(param+9+is_combo, is_combo);
 
 				is_binary=0;
-				http_response(conn_s, header, param, 200, param+9);
+				http_response(conn_s, header, param, 200, (param+9+is_combo));
 				loading_html--;
 				sys_ppu_thread_exit(0);
 				return;
@@ -1511,7 +1513,11 @@ bgm_status:
 						{
 							if(cellFsStat((char*)"/dev_hdd0/boot_plugins.txt", &buf)==CELL_FS_SUCCEEDED && buf.st_size<40) cellFsUnlink((char*)"/dev_hdd0/boot_plugins.txt");
 							cellFsUnlink((char*)"/dev_hdd0/webftp_server.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/webftp_server_ps3mapi.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/webftp_server_noncobra.sprx");
 							cellFsUnlink((char*)"/dev_hdd0/plugins/webftp_server.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/plugins/webftp_server_noncobra.sprx");
 							cellFsUnlink((char*)WMCONFIG);
 							del((char*)WMTMP, true);
 							del((char*)"/dev_hdd0/xmlhost", true);
@@ -1807,7 +1813,7 @@ again_debug:
 
 	if(webman_config->fanc)
 	{
-		if(webman_config->temp0==0) max_temp=webman_config->temp1; else max_temp=0;
+		if(webman_config->temp0==FAN_AUTO) max_temp=webman_config->temp1; else max_temp=0;
 		fan_control(webman_config->temp0, 0);
 	}
 

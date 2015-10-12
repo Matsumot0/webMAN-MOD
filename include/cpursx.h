@@ -56,22 +56,27 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 
 	if(strstr(param, "?"))
 	{
-
-		if(strstr(param, "?m")) {if(max_temp) max_temp=0; else max_temp=webman_config->temp1;}
+		char *pos = strstr(param, "fan=");
+		if(pos) {get_value(templn, pos+4, 2); read=val(templn); max_temp = 0; if(!read) enable_fan_control(0, templn); else {webman_config->manu = read; if(webman_config->fanc==0) enable_fan_control(1, templn);}}
+		else {pos = strstr(param, "max=");
+		if(pos) {get_value(templn, pos+4, 2); max_temp = val(templn); max_temp=RANGE(max_temp, 40, 83);}
+		else
+		if(strstr(param, "?m")) {if((max_temp && !strstr(param, "dyn")) || strstr(param, "man")) max_temp=0; else {max_temp=webman_config->temp1;} if(webman_config->fanc==0) enable_fan_control(1, templn);}}
 
 		if(max_temp) //auto mode
 		{
 			if(strstr(param, "?u")) max_temp++;
 			if(strstr(param, "?d")) max_temp--;
-			webman_config->temp1=RANGE(max_temp, 40, 85); //°C
+			webman_config->temp1=RANGE(max_temp, 40, 83); // dynamic fan max temperature in °C
+			webman_config->temp0=FAN_AUTO;
 		}
 		else
 		{
 			if(strstr(param, "?u")) webman_config->manu++;
 			if(strstr(param, "?d")) webman_config->manu--;
-			webman_config->manu=RANGE(webman_config->manu, 20, 99); //%
+			webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
 
-			webman_config->temp0= (u8)(((float)webman_config->manu * 255.f)/100.f);
+			webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f); // manual fan speed
 			webman_config->temp0=RANGE(webman_config->temp0, 0x33, MAX_FANSPEED);
 			fan_control(webman_config->temp0, 0);
 		}

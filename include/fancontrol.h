@@ -1,7 +1,10 @@
 #define MIN_FANSPEED	(20)
 #define DEFAULT_MIN_FANSPEED	(25)
-#define MAX_FANSPEED	(0xE6)
+#define MAX_FANSPEED	(0xF4)
+#define MAX_TEMPERATURE	(85)
 #define MY_TEMP 		(68)
+
+#define FAN_AUTO 		(0)
 
 static u8 fan_speed=0x33;
 static u8 old_fan=0x33;
@@ -17,7 +20,7 @@ uint64_t set_fan_policy_offset=0;
 static bool fan_ps2_mode=false; // temporary disable dynamic fan control
 
 static void get_temperature(u32 _dev, u32 *_temp);
-static void fan_control(u8 temp0, u8 maxtemp);
+static void fan_control(u8 set_fanspeed, u8 initial);
 static void restore_fan(u8 set_ps2_temp);
 
 static void get_temperature(u32 _dev, u32 *_temp)
@@ -37,7 +40,7 @@ static int sys_sm_get_fan_policy(u8 id, u8 *st, u8 *mode, u8 *speed, u8 *unknown
     return_to_user_prog(int);
 }
 
-static void fan_control(u8 temp0, u8 initial)
+static void fan_control(u8 set_fanspeed, u8 initial)
 {
 	if(fan_ps2_mode) return; //do not change fan settings while PS2 game is mounted
 
@@ -61,7 +64,7 @@ static void fan_control(u8 temp0, u8 initial)
 		    }
 		}
 
-		if(temp0<0x33)
+		if(set_fanspeed<0x33)
 		{
 			u8 st, mode, unknown;
 			u8 fan_speed8=0;
@@ -70,7 +73,7 @@ static void fan_control(u8 temp0, u8 initial)
 			fan_speed=fan_speed8;
 		}
 		else
-			fan_speed=temp0;
+			fan_speed=set_fanspeed;
 
 		if(fan_speed<0x33 || fan_speed>0xFC)
 		{
@@ -104,4 +107,25 @@ static void restore_fan(u8 set_ps2_temp)
 
 		backup[0]=0;
 	}
+}
+
+static void enable_fan_control(u8 enable, char *msg)
+{
+	if(enable < 2) webman_config->fanc = enable;
+	else           webman_config->fanc = (webman_config->fanc ? 0 : 1);
+
+	max_temp=0;
+	if(webman_config->fanc)
+	{
+		if(webman_config->temp0==FAN_AUTO) max_temp=webman_config->temp1; else max_temp=0;
+		fan_control(webman_config->temp0, 0);
+		sprintf((char*) msg, "%s %s", STR_FANCTRL3, STR_ENABLED);
+	}
+	else
+	{
+		restore_fan(0); //syscon
+		sprintf((char*) msg, "%s %s", STR_FANCTRL3, STR_DISABLED);
+	}
+	save_settings();
+	show_msg((char*) msg);
 }

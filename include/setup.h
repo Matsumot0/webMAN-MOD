@@ -172,7 +172,7 @@ static void setup_parse_settings(char *param)
 
 		webman_config->temp1=val(mytemp);
 	}
-	webman_config->temp1=RANGE(webman_config->temp1, 40, 83); //°C
+	webman_config->temp1=RANGE(webman_config->temp1, 40, MAX_TEMPERATURE); //°C
 
 	pos=strstr(param, "fsp0=");
 	if(pos)
@@ -188,19 +188,19 @@ static void setup_parse_settings(char *param)
 	{
 		get_value(mytemp, pos + 5, 2);
 
-		webman_config->manu=val(mytemp);
+		webman_config->manu=val(mytemp); // manual fan speed in %
 	}
-	webman_config->manu=RANGE(webman_config->manu, 20, 99); //%
+	webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
 
 	if(strstr(param, "temp=1"))
-		webman_config->temp0= (u8)(((float)webman_config->manu * 255.f)/100.f);
+		webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f); // manual fan speed
 	else
-		webman_config->temp0=0;
+		webman_config->temp0=0; // dynamic fan control mode
 
 	max_temp=0;
 	if(webman_config->fanc)
 	{
-		if(webman_config->temp0==0) max_temp=webman_config->temp1;
+		if(webman_config->temp0==0) max_temp=webman_config->temp1; // dynamic fan max temperature in °C
 		fan_control(webman_config->temp0, 0);
 	}
 	else
@@ -764,7 +764,7 @@ static void reset_settings()
 	webman_config->manu=35;      //manual temp
 	webman_config->ps2temp=37;   //ps2 temp
 
-	webman_config->minfan=DEFAULT_MIN_FANSPEED;
+	webman_config->minfan=DEFAULT_MIN_FANSPEED; // %
 
 	//webman_config->bind=0;       //enable remote access to FTP/WWW services
 	//webman_config->ftpd=0;       //enable ftp server

@@ -41,8 +41,80 @@ SYS_MODULE_STOP(vsh_menu_stop);
 
 typedef struct
 {
+	uint8_t usb0;
+	uint8_t usb1;
+	uint8_t usb2;
+	uint8_t usb3;
+	uint8_t usb6;
+	uint8_t usb7;
+	uint8_t netd0;
+	uint8_t lastp;
+	uint8_t autob;
+	uint8_t delay;
+	uint8_t bootd;
+	uint8_t boots;
+	uint8_t blind;
+	uint8_t nogrp;
+	uint8_t noset;
+	uint8_t cmask;
+	uint32_t netp0;
+	char neth0[16];
+	uint8_t poll;
+	uint8_t ftpd;
+	uint8_t warn;
+	uint8_t fanc;
+	uint8_t temp1;
+	uint8_t rxvid;
+	uint8_t bind;
+	uint8_t refr;
+	uint8_t manu;
+	uint8_t temp0;
+	uint8_t netd1;
+	uint32_t netp1;
+	char neth1[16];
+	uint8_t foot;
+	uint8_t nopad;
+	uint8_t nocov;
+	uint8_t nospoof;
+	uint8_t ps2temp;
+	uint8_t pspl;
+	uint8_t minfan;
+	uint16_t combo;
+	uint8_t sidps;
+	uint8_t spsid;
+	uint8_t spp;
+	uint8_t lang;
+	char vIDPS1[17];
+	char vIDPS2[17];
+	char vPSID1[17];
+	char vPSID2[17];
+	uint8_t tid;
+	uint8_t wmdn;
+	char autoboot_path[256];
+	uint8_t ps2l;
+	uint32_t combo2;
+	uint8_t homeb;
+	char home_url[256];
+	uint8_t netd2;
+	uint32_t netp2;
+	char neth2[16];
+	uint8_t profile;
+	char uaccount[9];
+	char allow_ip[16];
+	uint8_t noss;
+	uint8_t fixgame;
+	uint8_t bus;
+	uint8_t dev_sd;
+	uint8_t dev_ms;
+	uint8_t dev_cf;
+	uint8_t ps1emu;
+} __attribute__((packed)) WebmanCfg;
+
+typedef struct
+{
 	uint16_t bgindex;
-	char filler[510];
+	uint8_t  dnotify;
+	char filler[509];
 } __attribute__((packed)) vsh_menu_Cfg;
 
 static uint8_t vsh_menu_config[sizeof(vsh_menu_Cfg)];
@@ -491,7 +563,7 @@ static void recovery_mode(void)
 	#define RECOVER_MODE_FLAG_OFFSET			0x48C61
 
 	stop_VSH_Menu();
-	vshtask_notify("Now PS3 will be restart in Recovery Mode");
+	vshtask_notify("Now PS3 will be restarted in Recovery Mode");
 	play_rco_sound("system_plugin", "snd_system_ok");
 	sys_timer_sleep(1);
 
@@ -505,7 +577,7 @@ static void recovery_mode(void)
 ////////////////////////////////////////////////////////////////////////
 static uint16_t line = 0;           // current line into menu, init 0 (Menu Entry 1)
 #define MAX_MENU     9
-#define MAX_MENU2    6
+#define MAX_MENU2    7
 
 static uint8_t view = 0;
 
@@ -530,6 +602,7 @@ static char entry_str[2][MAX_MENU][32] = {
                                            "3: Disable Cobra",
                                            "4: Disable webMAN MOD",
                                            "5: Recovery Mode",
+                                           "6: Startup Message : ON",
                                           }
                                         };
 
@@ -570,10 +643,13 @@ static void do_menu_action(void)
         int fd=0;
         if(cellFsOpen((char*)"/dev_hdd0/tmp/wmconfig.bin", CELL_FS_O_RDONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
         {
-           char data[48];
-           cellFsRead(fd, (void *)data, 47, 0);
+           uint8_t wmconfig[sizeof(WebmanCfg)];
+           WebmanCfg *webman_config = (WebmanCfg*) wmconfig;
+
+           cellFsRead(fd, (void *)wmconfig, sizeof(WebmanCfg), 0);
            cellFsClose(fd);
-           fan_mode = (data[45] != 0); //temp0
+
+           fan_mode = (webman_config->temp0>0); // manual
         }
       }
 
@@ -631,27 +707,40 @@ static void do_menu_action2(void)
   {
     case 0:
       toggle_normal_rebug_mode();
-      break;
+      return;
 
     case 1:
       toggle_xmb_mode();
-      break;
+      return;
 
     case 2:
       toggle_debug_menu();
-      break;
+      return;
 
     case 3:
       disable_cobra_stage2();
-      break;
+      return;
 
     case 4:
       disable_webman();
-      break;
+      return;
 
     case 5:
       recovery_mode();
-      break;
+      return;
+
+    case 6:
+      config->dnotify = config->dnotify ? 0 : 1;
+      strcpy(entry_str[view][line], (config->dnotify) ? "6: Startup Message : OFF\0" : "6: Startup Message : ON\0");
+
+      // save config
+      int fd=0;
+      if(cellFsOpen((char*)"/dev_hdd0/tmp/wm_vsh_menu.cfg", CELL_FS_O_CREAT|CELL_FS_O_WRONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+      {
+         cellFsWrite(fd, (void *)vsh_menu_config, sizeof(vsh_menu_Cfg), 0);
+         cellFsClose(fd);
+      }
+      return;
   }
 }
 
@@ -682,7 +771,7 @@ static void draw_frame(void)
 
   // print headline string, center(x = -1)
   set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, (view ? "VSH Menu for Rebug" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.6");
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.7");
 
 
   set_font(20.f, 20.f, 1.f, 1);
@@ -762,7 +851,7 @@ static void draw_frame(void)
   else
     sprintf(ipaddr, "%s", ip);
 
-  sprintf(netstr, "Network connection :  %s\r\nIP address (local) :  %s", netdevice, ipaddr);
+  sprintf(netstr, "Network connection :  %s\r\nIP address :  %s", netdevice, ipaddr);
 
   print_text(352, 30 + (LINE_HEIGHT * 2.5), netstr);
 
@@ -867,13 +956,11 @@ static void vsh_menu_thread(uint64_t arg)
   uint32_t oldpad = 0, curpad = 0;
   CellPadData pdata;
 
-  sys_timer_sleep(13);
-  vshtask_notify("VSH Menu loaded.\nPress [Select] to open it.");
-
   uint32_t show_menu = 0;
 
   // init config
   config->bgindex = 0;
+  config->dnotify = 0;
 
   // read config file
   int fd=0;
@@ -881,6 +968,15 @@ static void vsh_menu_thread(uint64_t arg)
   {
      cellFsRead(fd, (void *)vsh_menu_config, sizeof(vsh_menu_Cfg), 0);
      cellFsClose(fd);
+
+     strcpy(entry_str[1][6], (config->dnotify) ? "6: Startup Message : OFF\0" : "6: Startup Message : ON\0");
+  }
+
+  sys_timer_sleep(13);
+
+  if(!config->dnotify)
+  {
+    vshtask_notify("VSH Menu loaded.\nPress [Select] to open it.");
   }
 
   while(running)
@@ -927,10 +1023,13 @@ static void vsh_menu_thread(uint64_t arg)
         if((curpad & (PAD_SELECT | PAD_CIRCLE)) && (curpad != oldpad))  // if select was pressed stop VSH menu
         {
           stop_VSH_Menu();
+          if(view) {view = line = 0;}
         }
         else
         if((curpad & (PAD_LEFT | PAD_RIGHT)) && (curpad != oldpad))
         {
+          if(!view)
+          {
             if(curpad & PAD_RIGHT) ++entry_mode[line]; else if(entry_mode[line]==0) entry_mode[line] = ((line==2) ? 3 : (line<=1) ? 2 : 1); else --entry_mode[line];
 
             if(entry_mode[line]>((line==2) ? 3 : (line<=1) ? 2 : 1)) entry_mode[line]=0;
@@ -943,6 +1042,14 @@ static void vsh_menu_thread(uint64_t arg)
              case 6: strcpy(entry_str[view][line], ((entry_mode[line]) ? "6: Screenshot (XMB + Menu)\0"  : "6: Screenshot (XMB)\0"));  break;
              case 8: strcpy(entry_str[view][line], ((entry_mode[line]) ? "8: Reboot PS3 (hard)\0"        : "8: Reboot PS3 (soft)\0")); break;
             }
+          }
+          else
+          {
+            switch (line)
+            {
+             case 8: do_menu_action2(); break;
+            }
+          }
         }
         else
         if((curpad & PAD_UP) && (curpad != oldpad))
