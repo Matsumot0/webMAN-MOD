@@ -119,13 +119,13 @@ STR_EJECTED			[光碟已退出.]
 STR_LOADED			[光碟已插入.]
 
 STR_GAMETOM			[遊戲加載]
-STR_GAMELOADED		[遊戲加載成功. 從光碟圖示開始遊戲<br>或者從 <b>/app_home</b>XMB 進入.<hr/>點一下 <a href=/mount.ps3/unmount>這裡 </a> 卸載遊戲.]
+STR_GAMELOADED		[遊戲加載成功. 從光碟圖示開始遊戲<br>或者從 <b>/app_home</b>XMB 進入.</a><hr/>點一下 <a href=/mount.ps3/unmount>這裡 </a> 卸載遊戲.]
 STR_PSPLOADED		[遊戲加載成功. 使用 <b>PSP 啟動器</b>開始遊戲.<hr/>點一下 <a href=/mount.ps3/unmount>這裡 </a> 卸載遊戲.]
 STR_PS2LOADED		[遊戲加載成功. 使用 <b>PS2 啟動器</b>開始遊戲.<hr/>點一下 <a href=/mount.ps3/unmount>這裡 </a> 卸載遊戲.]
 STR_LOADED2			[已加載]
 
 STR_MOVIETOM		[影片加載]
-STR_MOVIELOADED		[影片加載成功. 從光碟圖示開始播放電影<br>在視訊列下.<hr/>點一下 <a href=/mount.ps3/unmount>這裡 </a> 卸載影片.]
+STR_MOVIELOADED		[影片加載成功. 從光碟圖示開始播放電影<br>在視訊列下.</a><hr/>點一下 <a href=/mount.ps3/unmount>這裡 </a> 卸載影片.]
 
 STR_XMLRF			[已重新整理遊戲列表 (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br>點一下 <a href=/restart.ps3>這裡 </a> 立即重新啟動 PLAYSTATION®3 系統.]
 

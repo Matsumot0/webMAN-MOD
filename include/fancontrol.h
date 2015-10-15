@@ -129,3 +129,14 @@ static void enable_fan_control(u8 enable, char *msg)
 	save_settings();
 	show_msg((char*) msg);
 }
+
+static void reset_fan_mode(void)
+{
+	fan_ps2_mode=false;
+
+	webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f); // manual fan speed
+	webman_config->temp0=RANGE(webman_config->temp0, 0x33, MAX_FANSPEED);
+	fan_control(webman_config->temp0, 0);
+
+	if(max_temp) webman_config->temp0=FAN_AUTO; // enable dynamic fan mode
+}

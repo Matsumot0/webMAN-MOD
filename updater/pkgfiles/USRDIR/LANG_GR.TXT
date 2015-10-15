@@ -119,13 +119,13 @@ STR_EJECTED		[Αφαίρεση δίσκου.]
 STR_LOADED		[Εισαγωγή δισκου.]
 
 STR_GAMETOM		[Το παιχνίδι φόρτωσε.]
-STR_GAMELOADED	[Το παιχνίδι φόρτωσε.Ξεκινήστε το από το εικονίδιο του δίσκου<br>η απο το <b>/app_home</b> στο XMB<hr/>Πατήστε <a href="/mount.ps3/unmount">εδώ</a> για αφαίρεση.]
+STR_GAMELOADED	[Το παιχνίδι φόρτωσε.Ξεκινήστε το από το εικονίδιο του δίσκου<br>η απο το <b>/app_home</b> στο XMB</a><hr/>Πατήστε <a href="/mount.ps3/unmount">εδώ</a> για αφαίρεση.]
 STR_PSPLOADED	[Το παιχνίδι είναι έτοιμο .Ξεκινήστε το απο το <b>PSP Launcher</b>.<hr/>]
 STR_PS2LOADED	[Το παιχνίδι είναι έτοιμο .Ξεκινήστε το απο το <b>PS2 Classic Launcher</b>.<hr/>]
 STR_LOADED2		[Φορτώθηκε με επιτυχία]
 
 STR_MOVIETOM	[Η ταινία τοποθετήθηκε!]
-STR_MOVIELOADED	[Η ταινία φόρτωσε.Ξεκινήστε την από το εικονίδιο του δίσκου <br>από τη στήλη Vídeo.<hr/>Πατήστε <a href="/mount.ps3/unmount">εδω</a> για την αφαίρεση της.]
+STR_MOVIELOADED	[Η ταινία φόρτωσε.Ξεκινήστε την από το εικονίδιο του δίσκου <br>από τη στήλη Vídeo.</a><hr/>Πατήστε <a href="/mount.ps3/unmount">εδω</a> για την αφαίρεση της.]
 
 STR_XMLRF		[Λίστα παιχνιδιών ενημέρωμενη(<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Πατήστε <a href="/restart.ps3">εδω</a> για επανεκκίνηση του συστήματος.]
 

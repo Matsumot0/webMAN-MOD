@@ -32,7 +32,7 @@
 // vshnet_0CD116E4  // ?
 // vshnet_0D42E780  // ?
 // vshnet_0E5CEE1B  // ?
-// vshnet_0E806058  // sceNpC7yTusCreateTransaction 
+// vshnet_0E806058  // sceNpC7yTusCreateTransaction
 // vshnet_0E9DFE48  // ?
 // vshnet_0EF6211C  // ?
 // vshnet_0EF85527  // sceNpSignalingAddExtendedHandler 	int sceNpSignalingAddExtendedHandler(ctx_id, 1)
@@ -41,7 +41,7 @@
 // vshnet_108A87FB  // ?
 // vshnet_10A06011  // ?
 // vshnet_10F73566  // ?
-// vshnet_11823D97  // sceNpC7yLookupAvatarImageRequest? 	
+// vshnet_11823D97  // sceNpC7yLookupAvatarImageRequest?
 // vshnet_118CAF26  // ?
 // vshnet_122AF93C  // sceNPC7yLookupTssImageResult
 // vshnet_13563C45  // ?
@@ -72,7 +72,7 @@
 // vshnet_1B9A3AAE  // ?
 // vshnet_1BB46A89  // ?
 // vshnet_1D071824  // ?
-// vshnet_1D555F5F  // sceNpUpdateClockStart 	
+// vshnet_1D555F5F  // sceNpUpdateClockStart
 // vshnet_1FA25660  // sceNpManagerSubSignout 	int sceNpManagerSubSignout(int(0), uint8_t npId[0x24]
 // vshnet_1FA7AA51  // ?
 // vshnet_21F4C573  // ?
@@ -221,7 +221,7 @@ extern int32_t vshnet_59106229(const char *url);  // overrides regular update.tx
 #define vshnet_setUpdateUrl vshnet_59106229
 
 // vshnet_59266DA8  // ?
-// vshnet_594266BE  // sceNpBasicGetInitialPresence 
+// vshnet_594266BE  // sceNpBasicGetInitialPresence
 // vshnet_59652CEB  // ?
 // vshnet_59F7579C  // ?
 // vshnet_5A81ADD7  // ?
@@ -235,7 +235,7 @@ extern int32_t vshnet_59106229(const char *url);  // overrides regular update.tx
 // vshnet_5DF6457E  // ?
 // vshnet_5E9FDA92  // ?
 // vshnet_5EA49E2A  // ?
-// vshnet_5EE098BC  // ?
+extern int32_t (*vshnet_5EE098BC)(int,void*,int) = 0; // used for getting klicensee struct
 // vshnet_5EE81C09  // ?
 // vshnet_5EF49155  // ?
 // vshnet_5F2D9EF3  // ?
@@ -423,7 +423,7 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_9DDB30CE  // ?
 // vshnet_9E1FE092  // ?
 // vshnet_9E83CC61  // ?
-// vshnet_9EA2D869  // sceNpC7yLookupNpIdResult? 
+// vshnet_9EA2D869  // sceNpC7yLookupNpIdResult?
 // vshnet_9EE83473  // ?
 // vshnet_9EED8D14  // ?
 // vshnet_9EF14F7C  // sceNpManagerIsPlus 	int attr_is_plus sceNpManagerIsPlus(int(0))
@@ -443,7 +443,7 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_A43F2CD1  // ?
 // vshnet_A44B614C  // ?
 // vshnet_A46ABF93  // ?
-// vshnet_A5E88D4E  // checks if hdd has been replaced 
+// vshnet_A5E88D4E  // checks if hdd has been replaced
 // vshnet_A67B323A  // ?
 // vshnet_A67CE3C6  // ?
 // vshnet_A6EEFF78  // ?
@@ -566,7 +566,7 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_D5FC3ED0  // ?
 // vshnet_D61DF762  // ?
 // vshnet_D77B8CBF  // ?
-// vshnet_D79D5840  // sceNpC7yScoreGetGameDataResult? 	
+// vshnet_D79D5840  // sceNpC7yScoreGetGameDataResult?
 // vshnet_D80B1697  // ?
 // vshnet_D815DF3B  // ?
 // vshnet_D8179B94  // ?
@@ -615,7 +615,7 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_EBEA23A1  // sceNetHttpXmlConsoleInfoBitOpe 	int sceNetHttpXmlConsoleInfoBitOpe(0x190, xml?,1,1)
 // vshnet_EC45E5A8  // ?
 // vshnet_EC6FC2CC  // ?
-// vshnet_EC969F67  // sceNpC7yLookupDestroyTransaction? 
+// vshnet_EC969F67  // sceNpC7yLookupDestroyTransaction?
 // vshnet_ECC6F99F  // ?
 // vshnet_ECE103E9  // ?
 // vshnet_ECE75E73  // ?
@@ -623,12 +623,12 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_EDA4250D  // ?
 // vshnet_EE530059  // ?
 // vshnet_EE998600  // ?
-// vshnet_EEF8AC4B  // sceNpC7yLookupAvatarImageResult? 	
+// vshnet_EEF8AC4B  // sceNpC7yLookupAvatarImageResult?
 // vshnet_EF51375F  // ?
 // vshnet_EF7EF757  // ?
 // vshnet_EFB67F8E  // ?
 // vshnet_EFDFA6F6  // ?
-// vshnet_F02E64BF  // sceNpC7yLookupEnd? 
+// vshnet_F02E64BF  // sceNpC7yLookupEnd?
 // vshnet_F0A2FF34  // ?
 // vshnet_F0DB5A53  // ?
 // vshnet_F2783298  // ?
@@ -643,7 +643,7 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_F568E94C  // ?
 // vshnet_F5847AA3  // ?
 // vshnet_F5BEE8C4  // ?
-// vshnet_F5FBFB50  // sceNpC7yScoreGetGameDataRequest? 
+// vshnet_F5FBFB50  // sceNpC7yScoreGetGameDataRequest?
 // vshnet_F5FF5F31  // ?
 // vshnet_F6006766  // ?
 // vshnet_F6438A72  // ?
@@ -651,7 +651,7 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_F66088D8  // ?
 // vshnet_F677A137  // ?
 // vshnet_F7501C3F  // ?
-// vshnet_F7A88701  // sceNpC7yLookupNpIdRequest? 
+// vshnet_F7A88701  // sceNpC7yLookupNpIdRequest?
 // vshnet_F85C926D  // ?
 // vshnet_F8778972  // ?
 // vshnet_F87F7C01  // ?
@@ -678,4 +678,4 @@ extern int32_t vshnet_731E546F(const char *);  // prints Firmware version ("%02d
 // vshnet_FFE3C63B  // ?
 
 
-#endif // __VSHNET_H__ 
+#endif // __VSHNET_H__

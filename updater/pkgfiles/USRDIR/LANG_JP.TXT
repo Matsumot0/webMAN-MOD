@@ -119,13 +119,13 @@ STR_EJECTED		[ディスクを取出しました]
 STR_LOADED		[ディスクを挿入しました]
 
 STR_GAMETOM		[ゲームのマウント]
-STR_GAMELOADED	[ゲームをマウントしました。<br>XMBの<b>ディスクアイコンか"/app_home"から起動してください (<a href=\"/mount.ps3/unmount\">マウント解除</a>)。]
+STR_GAMELOADED	[ゲームをマウントしました。<br>XMBの<b>ディスクアイコンか"/app_home"から起動してください</a> (<a href=\"/mount.ps3/unmount\">マウント解除</a>)。]
 STR_PSPLOADED	[ゲームをマウントしました。<br><b>PSPランチャー</b>から起動してください。]
 STR_PS2LOADED	[ゲームをマウントしました。<br><b>PS2ランチャー</b>から起動してください。]
 STR_LOADED2		[を、マウントしました]
 
 STR_MOVIETOM	[ムービーのマウント]
-STR_MOVIELOADED	[ムービーをマウントしました。<br>ビデオの<b>ディスクアイコン</b>から起動してください (<a href=\"/mount.ps3/unmount\">マウント解除</a>)。]
+STR_MOVIELOADED	[ムービーをマウントしました。<br>ビデオの<b>ディスクアイコン</b>から起動してください</a> (<a href=\"/mount.ps3/unmount\">マウント解除</a>)。]
 
 STR_XMLRF		[ゲームの一覧を更新しました(mygames.xml)。<br><a href=\"/restart.ps3\">ココをクリック</a> して、再起動してください。]
 

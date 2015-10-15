@@ -119,13 +119,13 @@ STR_EJECTED			[Disc ejected.]
 STR_LOADED			[Disc inserted.]
                 	
 STR_GAMETOM			[Game to mount]
-STR_GAMELOADED		[Game loaded successfully. Start the game from the disc icon<br>or from <b>/app_home</b>&nbsp;XMB entry.<hr/>Click <a href="/mount.ps3/unmount">here</a> to unmount the game.]
+STR_GAMELOADED		[Game loaded successfully. Start the game from the disc icon<br>or from <b>/app_home</b>&nbsp;XMB entry.</a><hr/>Click <a href="/mount.ps3/unmount">here</a> to unmount the game.]
 STR_PSPLOADED		[Game loaded successfully. Start the game using <b>PSP Launcher</b>.<hr/>]
 STR_PS2LOADED		[Game loaded successfully. Start the game using <b>PS2 Classic Launcher</b>.<hr/>]
 STR_LOADED2			[loaded   ]
                 	
 STR_MOVIETOM		[Movie to mount]
-STR_MOVIELOADED		[Movie loaded successfully. Start the movie from the disc icon<br>under the Video column.<hr/>Click <a href="/mount.ps3/unmount">here</a> to unmount the movie.]
+STR_MOVIELOADED		[Movie loaded successfully. Start the movie from the disc icon<br>under the Video column.</a><hr/>Click <a href="/mount.ps3/unmount">here</a> to unmount the movie.]
                 	
 STR_XMLRF			[Game list refreshed (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Click <a href="/restart.ps3">here</a> to restart your PLAYSTATION®3 system now.]
                 	

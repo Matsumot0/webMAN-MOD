@@ -119,13 +119,13 @@ STR_EJECTED			[디스크 배출.]
 STR_LOADED			[디스크 삽입.]
 
 STR_GAMETOM			[게임 마운트]
-STR_GAMELOADED		[게임이 성공적으로 로드되었습니다.디스크 아이콘<br>또는<b>/app_home</b>XMB 항목에서 게임을 시작합니다.<hr/>클릭<a href=/mount.ps3/unmount>여기</a> 마운트된 게임을 해제합니다.]
+STR_GAMELOADED		[게임이 성공적으로 로드되었습니다.디스크 아이콘<br>또는<b>/app_home</b>XMB 항목에서 게임을 시작합니다.</a><hr/>클릭<a href=/mount.ps3/unmount>여기</a> 마운트된 게임을 해제합니다.]
 STR_PSPLOADED		[게임이 성공적으로 로드되었습니다.<b>PSP 런처</b>를 이용하여 게임을 시작합니다.<hr/>]
 STR_PS2LOADED		[게임이 성공적으로 로드되었습니다.<b>PS2 런처</b>를 이용하여 게임을 시작합니다.<hr/>]
 STR_LOADED2			[게임을 불러왔습니다.]
 
 STR_MOVIETOM		[영화 마운트]
-STR_MOVIELOADED		[영화가 로드되었습니다.비디오 열 디스크 아이콘에서 영화를 시작합니다.<hr/>클릭<a href=/mount.ps3/unmount>여기</a> 마운트된 영화를 해제합니다.]
+STR_MOVIELOADED		[영화가 로드되었습니다.비디오 열 디스크 아이콘에서 영화를 시작합니다.</a><hr/>클릭<a href=/mount.ps3/unmount>여기</a> 마운트된 영화를 해제합니다.]
 
 STR_XMLRF			[게임 리스트 재검색 (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br>클릭<a href=/restart.ps3>여기</a> 지금 PLAYSTATION®3 시스템을 재시작합니다.]
 

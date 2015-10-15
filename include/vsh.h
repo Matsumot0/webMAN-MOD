@@ -81,6 +81,31 @@ static char* get_game_info(void)
     return (char*)h;
 }
 
+static void launch_disc(char *category, char *seg_name)
+{
+	int view = View_Find("explore_plugin");
+	if(view)
+	{
+		char explore_command[128]; // info: http://www.ps3devwiki.com/ps3/explore_plugin
+
+		struct CellFsStat s;
+		if(cellFsStat((char*)"/dev_bdvd", &s)==CELL_FS_SUCCEEDED)
+		{
+			explore_interface = (explore_plugin_interface *)plugin_GetInterface(view,1);
+			explore_interface->DoUnk6("close_all_list",0,0);
+			sys_timer_usleep(200000);
+			{sprintf(explore_command, "focus_category %s", (*category) ? category : "game"); explore_interface->DoUnk6((char*)explore_command,0,0);}
+			sys_timer_usleep(500000);
+			explore_interface->DoUnk6("close_all_list",0,0);
+			sys_timer_usleep(200000);
+			{sprintf(explore_command, "focus_segment_index %s", (*seg_name) ? seg_name: "seg_device"); explore_interface->DoUnk6((char*)explore_command,0,0);}
+			sys_timer_usleep(500000);
+			explore_interface->DoUnk6("exec_push",0,0);
+		}
+		else {BEEP2}
+	}
+}
+
 
 /*
 #include "vsh/xmb_plugin.h"

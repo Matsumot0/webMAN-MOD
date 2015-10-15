@@ -54,6 +54,21 @@ Features:
 
 Changelog:
 ---------
+v0.9:
+	Added options to open /setup.ps3 and File Manager (req. webMAN MOD 1.43.10 or later)
+	Increased pad response when is menu on
+	Reduced CPU usage using cached info for cfw version, ip address, temperatures and devices during frame display (~12Hz)
+
+v0.8:
+	Added "Unload VSH Menu" option to Rebug Menu and made it the default/first option
+	Display of CFW version now uses code provided by Orion
+	Updated the Rebug Mode toggler
+
+v0.7
+	Added option to disable startup message
+	Fixed a bug with left/right on Rebug menu
+	New default background image by jriko
+
 v0.6:
 	Added options from Rebug VSH Menu made by Orion
 

@@ -119,13 +119,13 @@ STR_EJECTED		[Disc dikeluarkan.]
 STR_LOADED		[Disc dimasukkan.]
 
 STR_GAMETOM		[Game untuk dipasang]
-STR_GAMELOADED	[Game berhasil dimuat. Memulai game dari icon disc<br>atau dari <b>/app_home</b>XMB entry.<hr/>Klik, <a href=/mount.ps3/unmount>SINI</a> untuk melepas game.]
+STR_GAMELOADED	[Game berhasil dimuat. Memulai game dari icon disc<br>atau dari <b>/app_home</b>XMB entry.</a><hr/>Klik, <a href=/mount.ps3/unmount>SINI</a> untuk melepas game.]
 STR_PSPLOADED	[Game berhasil dimuat. Memulai game pakai <b>PSP Launcher</b>.<hr/>]
 STR_PS2LOADED	[Game berhasil dimuat. Memulai game pakai <b>PS2 Classic Launcher</b>.<hr/>]
 STR_LOADED2		[aquarius]
 
 STR_MOVIETOM	[Film untuk dipasang]
-STR_MOVIELOADED	[Film berhasil dimuat. Memulai film dari icon disc<br>di bawah kolom Video.<hr/>klik, <a href=/mount.ps3/unmount>SINI</a> untuk melepas film.]
+STR_MOVIELOADED	[Film berhasil dimuat. Memulai film dari icon disc<br>di bawah kolom Video.</a><hr/>klik, <a href=/mount.ps3/unmount>SINI</a> untuk melepas film.]
 
 STR_XMLRF		[Daftar game segarkan (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br>Klik, <a href=/restart.ps3>SINI</a> untuk mengulangi PLAYSTATION®3 sistem Anda.]
 

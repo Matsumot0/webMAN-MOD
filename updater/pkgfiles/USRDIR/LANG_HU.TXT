@@ -119,13 +119,13 @@ STR_EJECTED			[Lemez kiadva.]
 STR_LOADED			[Lemez behelyezve.]
 
 STR_GAMETOM			[Beilleszthető játék]
-STR_GAMELOADED		[A játék sikeresen betöltődött. Indítsd a játékot a lemez ikonról<br>vagy az <b>/app_home-ról</b> az XMB-ben.<hr/>Klikkelj <a href=/mount.ps3/unmount>ide</a> a játék leválasztásához.]
+STR_GAMELOADED		[A játék sikeresen betöltődött. Indítsd a játékot a lemez ikonról<br>vagy az <b>/app_home-ról</b> az XMB-ben.</a><hr/>Klikkelj <a href=/mount.ps3/unmount>ide</a> a játék leválasztásához.]
 STR_PSPLOADED		[A játék sikeresen betöltődött. A játék indításához használd a <b>PSP Launcher-t</b>.<hr/>]
 STR_PS2LOADED		[A játék sikeresen betöltődött. A játék indításához használd a <b>PS2 Classic Launcher-t</b>.<hr/>]
 STR_LOADED2			[betöltve]
 
 STR_MOVIETOM		[Beillesztehető film]
-STR_MOVIELOADED		[A film sikeresen betöltődött. Indítsd a filmet a lemez ikonról<br> a Video oszlop alól.<hr/>Klikkelj <a href=/mount.ps3/unmount>ide</a> a film leválasztáshoz.]
+STR_MOVIELOADED		[A film sikeresen betöltődött. Indítsd a filmet a lemez ikonról<br> a Video oszlop alól.</a><hr/>Klikkelj <a href=/mount.ps3/unmount>ide</a> a film leválasztáshoz.]
 
 STR_XMLRF			[Játéklista frissítve (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br>Klikkelj <a href=/restart.ps3>ide</a> a PLAYSTATION®3 azonnali újraindításához.]
 

@@ -1736,3 +1736,26 @@ end:
 ////////////////////////////////////////
 
 #endif
+
+#ifdef COBRA_ONLY
+ #ifndef SYSCALL8_OPCODE_PS3MAPI
+	#define SYSCALL8_OPCODE_PS3MAPI			 			0x7777
+	#define PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO			0x0047
+ #endif
+
+static unsigned int get_vsh_plugin_slot_by_name(char *name, bool unload)
+{
+	char tmp_name[30];
+	char tmp_filename[256];
+	unsigned int slot;
+
+	for (slot = 1; slot < 7; slot++)
+	{
+		memset(tmp_name, 0, sizeof(tmp_name));
+		memset(tmp_filename, 0, sizeof(tmp_filename));
+		{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
+		if(strstr(tmp_filename, name) || !strcmp(tmp_name, name)) {if(unload) cobra_unload_vsh_plugin(slot); break;}
+	}
+	return slot;
+}
+#endif // #ifdef COBRA_ONLY

@@ -4,7 +4,7 @@
 #include "include/mem.h"
 
 #include <cell/rtc.h>
-#include "include/network.h"	// debug
+//#include "include/network.h"	// debug
 
 
 
@@ -579,28 +579,32 @@ uint8_t bmp_header[] = {
 ***********************************************************************/
 void screenshot(uint8_t mode)
 {
-	FILE *fd = NULL;
-	uint32_t tmp = 0;
-	int32_t i, k, idx = 0, pad = 0, mem_size = (15 * 1024 * 1024);  // 9MB(frame dump) 6MB(bmp data)
-	sys_addr_t sys_mem = NULL;
-	sys_memory_container_t mc_app = (sys_memory_container_t)-1;
-	CellRtcDateTime t;
-	char path[128];
-
-
-	// alloc buffers
-	mc_app = vsh_memory_container_by_id(1);
-	sys_memory_allocate_from_container(mem_size, mc_app, SYS_MEMORY_PAGE_SIZE_1M, &sys_mem);
-	uint64_t *dump_buf = (uint64_t*)sys_mem;
-	uint8_t *bmp_buf = (uint8_t*)sys_mem + (9 * 1024 * 1024);
-	uint64_t *bg = (uint64_t*)ctx.bg;
+	char path[64];
 
 	// build file path
+	CellRtcDateTime t;
 	cellRtcGetCurrentClockLocalTime(&t);
 	sprintf(path, "/dev_hdd0/screenshot_%02d_%02d_%02d_%02d_%02d_%02d.bmp", t.year, t.month, t.day, t.hour, t.minute, t.second);
 
 	// create bmp file
-	fd = fopen(path, "wb");
+	FILE *fd = NULL;
+	fd = fopen(path, "wb"); if(!fd) return;
+
+	// alloc buffers
+	sys_memory_container_t mc_app = (sys_memory_container_t)-1;
+	mc_app = vsh_memory_container_by_id(1);
+
+	const int32_t mem_size = (14 * 1024 * 1024);  // 8MB(frame dump) 6MB(bmp data)
+
+	sys_addr_t sys_mem = NULL;
+	sys_memory_allocate_from_container(mem_size, mc_app, SYS_MEMORY_PAGE_SIZE_1M, &sys_mem);
+
+	uint64_t *dump_buf = (uint64_t*)sys_mem;
+	uint8_t *bmp_buf = (uint8_t*)sys_mem + (4 * 1920 * 1080); // ABGR * HD
+
+	int32_t i, k, idx = 0;
+
+	uint64_t *bg = (uint64_t*)ctx.bg;
 
 	// dump frame
 	for(i = 0; i < h; i++)
@@ -613,7 +617,7 @@ void screenshot(uint8_t mode)
 					dump_buf[k + i * w/2] = bg[(((i - canvas_y) * CANVAS_W) + ((k*2) - canvas_x)) /2];
 		}
 
-	// convert dump color data from ARGB to RGB
+	// convert dump color data from ABGR to RGB
 	uint8_t *tmp_buf = (uint8_t*)sys_mem;
 
 	for(i = 0; i < h; i++)
@@ -631,6 +635,7 @@ void screenshot(uint8_t mode)
 	}
 
 	// set bmp header
+	uint32_t tmp = 0;
 	tmp = _ES32(w*h*3+0x36);
 	memcpy(bmp_header + 2 , &tmp, 4);     // file size
 	tmp = _ES32(w);
@@ -647,13 +652,15 @@ void screenshot(uint8_t mode)
 	fwrite(bmp_buf, 1, (w*h*3), fd);
 
 	// padding
-	int32_t rest = (w*3) % 4;
+	int32_t rest = (w*3) % 4, pad = 0;
 	if(rest)
 		pad = 4 - rest;
 	fseek(fd, pad, SEEK_CUR);
 
 	fclose(fd);
 	sys_memory_free((sys_addr_t)sys_mem);
+
+	vshtask_notify(path);
 }
 
 

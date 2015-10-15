@@ -119,13 +119,13 @@ STR_EJECTED			[Dysk wysunięty]
 STR_LOADED			[Dysk załadowany]
 
 STR_GAMETOM				[Gra do zamontowania]
-STR_GAMELOADED		[Gra załadowana pomyślnie. Uruchom grę z ikony dysku<br>lub <b>/app_home</b>&nbsp;w menu XMB.<hr/>Kliknij <a href=/mount.ps3/unmount>tutaj</a>, aby odmontować grę.]
+STR_GAMELOADED		[Gra załadowana pomyślnie. Uruchom grę z ikony dysku<br>lub <b>/app_home</b>&nbsp;w menu XMB.</a><hr/>Kliknij <a href=/mount.ps3/unmount>tutaj</a>, aby odmontować grę.]
 STR_PSPLOADED			[Gra załadowana pomyślnie. Uruchom grę używając <b>PSP Launcher'a</b>.<hr/>]
 STR_PS2LOADED			[Gra załadowana pomyślnie. Uruchom grę używając <b>PS2 Classic Launcher'a</b>.<hr/>]
 STR_LOADED2				[- załadowano]
 
 STR_MOVIETOM			[Film do zamontowania]
-STR_MOVIELOADED		[Film załadowany pomyślnie. Uruchom film z ikony dysku<br>dostępnej w kolumnie wideo.<hr/>Kliknij <a href=/mount.ps3/unmount>tutaj</a>, aby odmontować film.]
+STR_MOVIELOADED		[Film załadowany pomyślnie. Uruchom film z ikony dysku<br>dostępnej w kolumnie wideo.</a><hr/>Kliknij <a href=/mount.ps3/unmount>tutaj</a>, aby odmontować film.]
 
 STR_XMLRF				[Lista gier odświeżona (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br>Kliknij <a href=/restart.ps3>tutaj</a>, aby ponownie uruchomić system PLAYSTATION®3.]
 

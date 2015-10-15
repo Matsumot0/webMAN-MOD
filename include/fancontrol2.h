@@ -66,6 +66,8 @@ static void poll_thread(uint64_t poll)
 	old_fan=0;
 	while(working)
 	{
+		if(fan_ps2_mode) /* skip dynamic fan control */; else
+
 		// dynamic fan control
 		if(max_temp)
 		{
@@ -76,6 +78,8 @@ static void poll_thread(uint64_t poll)
 
 			get_temperature(1, &t2); // 3E030000 -> 3E.03°C -> 62.(03/256)°C
 			sys_timer_usleep(200000);
+
+			if(!max_temp || fan_ps2_mode) continue; // if fan mode was changed to manual by another thread while doing usleep
 
 			t1=t1>>24;
 			t2=t2>>24;

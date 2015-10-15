@@ -119,13 +119,13 @@ STR_EJECTED			[光碟已弹出。]
 STR_LOADED			[光碟已插入。]
 
 STR_GAMETOM			[游戏加载]
-STR_GAMELOADED		[游戏加载成功。从光碟图标开始游戏<br>或者从 <b>/app_home</b>XMB 进入.<hr/>点击 <a href=/mount.ps3/unmount>此处</a> 卸载游戏.]
+STR_GAMELOADED		[游戏加载成功。从光碟图标开始游戏<br>或者从 <b>/app_home</b>XMB 进入.</a><hr/>点击 <a href=/mount.ps3/unmount>此处</a> 卸载游戏.]
 STR_PSPLOADED		[游戏加载成功。使用 <b>PSP 启动器</b>开始游戏.<hr/>点击 <a href=/mount.ps3/unmount>此处</a> 卸载游戏.]
 STR_PS2LOADED		[游戏加载成功。使用 <b>PS2 启动器</b>开始游戏.<hr/>点击 <a href=/mount.ps3/unmount>此处</a> 卸载游戏.]
 STR_LOADED2			[已加载]
 
 STR_MOVIETOM		[影片加载]
-STR_MOVIELOADED		[影片加载成功。请从视频列下的光盘<br>图标播放影片。<hr/>点击 <a href=/mount.ps3/unmount>此处</a> 卸载影片。]
+STR_MOVIELOADED		[影片加载成功。请从视频列下的光盘<br>图标播放影片。</a><hr/>点击 <a href=/mount.ps3/unmount>此处</a> 卸载影片。]
 
 STR_XMLRF			[游戏列表已刷新 (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>)。<br>点击 <a href=/restart.ps3>此处</a> 立即重新启动 PLAYSTATION®3 系统。]
 

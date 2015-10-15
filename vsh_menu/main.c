@@ -21,7 +21,7 @@
 
 #include <netinet/in.h>
 
-#include "../vsh/vsh_exports.h"
+#include "include/vsh_exports.h"
 
 #ifdef DEBUG
 #include "include/network.h"
@@ -163,6 +163,13 @@ int32_t vsh_menu_stop(void);
 static void finalize_module(void);
 static void vsh_menu_stop_thread(uint64_t arg);
 
+static char tempstr[128];
+static uint16_t t_icon_X;
+static char netstr[64];
+static char cfw_str[64];
+static char drivestr[6][64];
+static uint8_t drive_type[6];
+
 char *current_file[512];
 
 ////////////////////////////////////////////////////////////////////////
@@ -292,56 +299,19 @@ static int is_cobra_based(void)
     return 0;
 }
 
-/*static void get_firmware(void)
-{
-  uint64_t n, data;
-
-  strcpy(fw, "[unknown]");
-
-  for(n=0x8000000000330000ULL; n<0x8000000000800000ULL; n+=8)
-  {
-    data = lv2peek(n);
-    if( 8000 < data && data < 80000 )
-    {
-      char param[16] = "";
-
-      if(is_cobra_based())
-      {
-        uint16_t cobra_version = 0; sys_get_version2(&cobra_version);
-
-        char cobra_ver[8];
-        if((cobra_version & 0x0F) == 0)
-            sprintf(cobra_ver, "%X.%X", cobra_version>>8, (cobra_version & 0xFF) >> 4);
-        else
-            sprintf(cobra_ver, "%X.%02X", cobra_version>>8, (cobra_version & 0xFF));
-
-        bool is_mamba; {system_call_1(8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
-
-        sprintf(param, " %s %s", is_mamba ? "Mamba" : "Cobra", cobra_ver);
-      }
-
-      if( n > 0x8000000000360000ULL )
-        sprintf(fw, "%1.2f DEX %s", (float) data/10000, param);
-      else
-        sprintf(fw, "%1.2f CEX %s", (float) data/10000, param);
-      break;
-    }
-  }
-}*/
-
-int lv2_get_platform_info(struct platform_info *info)
+static int lv2_get_platform_info(struct platform_info *info)
 {
 	lv2syscall1(387, (uint64_t) info);
 	return_to_user_prog(int);
 }
 
-void get_firmware_version(void)
+static void get_firmware_version(void)
 {
 	lv2_get_platform_info(&info);
 	sprintf(FW, "%02X", info.firmware_version);
 }
 
-void get_kernel_type(void)
+static void get_kernel_type(void)
 {
 	uint64_t type;
 	memset(kernel_type, 0, 64);
@@ -351,7 +321,7 @@ void get_kernel_type(void)
 	if(type == 3) sprintf(kernel_type, "Debugger"); // Debugger
 }
 
-void get_payload_type(void)
+static void get_payload_type(void)
 {
 	if(!is_cobra_based()) return;
 
@@ -359,6 +329,38 @@ void get_payload_type(void)
 
 	uint16_t cobra_version; sys_get_version2(&cobra_version);
     sprintf(payload_type, "%s %X.%X", is_mamba ? "Mamba" : "Cobra", cobra_version>>8, (cobra_version & 0xF) ? (cobra_version & 0xFF) : ((cobra_version>>4) & 0xF));
+}
+
+static void get_network_info(void)
+{
+  char netdevice[32];
+  char ipaddr[32];
+
+  net_info info1;
+  memset(&info1, 0, sizeof(net_info));
+  xsetting_F48C0548()->sub_44A47C(&info1);
+
+  if (info1.device == 0)
+  {
+    strcpy(netdevice, "LAN");
+  }
+  else if (info1.device == 1)
+  {
+    strcpy(netdevice, "WLAN");
+  }
+  else
+    strcpy(netdevice, "[N/A]");
+
+  int32_t size = 0x10;
+  char ip[size];
+  netctl_main_9A528B81(size, ip);
+
+  if (ip[0] == '\0')
+    strcpy(ipaddr, "[N/A]");
+  else
+    sprintf(ipaddr, "%s", ip);
+
+  sprintf(netstr, "Network connection :  %s\r\nIP address :  %s", netdevice, ipaddr);
 }
 
 static void start_VSH_Menu(void)
@@ -391,6 +393,10 @@ static void start_VSH_Menu(void)
   load_png_bitmap(0, bg_image);
 
   get_payload_type();
+
+  get_network_info();
+
+  sprintf(cfw_str, "Firmware : %c.%c%c %s %s", FW[0], FW[2], FW[3], kernel_type, payload_type);
 
   // stop vsh pad
   start_stop_vsh_pad(0);
@@ -651,14 +657,14 @@ static void recovery_mode(void)
 //                            BLITTING                                //
 ////////////////////////////////////////////////////////////////////////
 static uint16_t line = 0;           // current line into menu, init 0 (Menu Entry 1)
-#define MAX_MENU     9
+#define MAX_MENU     11
 #define MAX_MENU2    8
 
 static uint8_t view = 0;
 
 uint8_t entry_mode[MAX_MENU] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-static char entry_str[2][MAX_MENU][32] = {
+static char entry_str[3][MAX_MENU][32] = {
                                           {
                                            "0: Unmount Game",
                                            "1: Mount /net0",
@@ -667,8 +673,10 @@ static char entry_str[2][MAX_MENU][32] = {
                                            "4: Toggle gameDATA",
                                            "5: Backup Disc to HDD",
                                            "6: Screenshot (XMB)",
-                                           "7: Shutdown PS3",
-                                           "8: Reboot PS3 (soft)",
+                                           "7: File Manager",
+                                           "8: webMAN Setup",
+                                           "9: Shutdown PS3",
+                                           "A: Reboot PS3 (soft)",
                                           },
                                           {
                                            "0: Unload VSH Menu",
@@ -755,12 +763,20 @@ static void do_menu_action(void)
 
       break;
     case 7:
+      send_wm_request((char*)"GET /browser.ps3/");
+
+      break;
+    case 8:
+      send_wm_request((char*)"GET /browser.ps3/setup.ps3");
+
+      break;
+    case 9:
       stop_VSH_Menu();
 
       buzzer(2);
       shutdown_system();
       return;
-    case 8:
+    case 0xA:
       stop_VSH_Menu();
 
       buzzer(1);
@@ -863,12 +879,12 @@ static void draw_frame(void)
 
   // print headline string, center(x = -1)
   set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, (view ? "VSH Menu for Rebug" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.8");
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.9");
 
 
   set_font(20.f, 20.f, 1.f, 1);
 
-  frame++; if(frame & 0x8) frame = 0; selcolor = (frame & 0x4) ? 0xFFFFFFFF : 0xFF00FF00;
+  selcolor = (frame & 0x4) ? 0xFFFFFFFF : 0xFF00FF00;
 
   // draw menu entry list
   for(i = 0; i < count; i++)
@@ -898,76 +914,44 @@ static void draw_frame(void)
   set_font(20.f, 17.f, 1.f, 1);
 
 
-  //draw command buttons
+  // draw command buttons
   set_foreground_color(0xFF999999);
-  draw_png(0, 522, 230, 128 + ((!view && (line<3||line==6||line==8)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
+  draw_png(0, 522, 230, 128 + ((!view && (line<3||line==6||line==10) || (view && line==7)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
   draw_png(0, 522, 262, 0, 400, 32, 32); print_text(560, 266, ": Select");  // draw X button
   draw_png(0, 522, 294, 416, 400, 32, 32); print_text(560, 298, ": Exit");  // draw select button
   draw_png(0, 522, 326, 64, 400, 32, 32); print_text(560, 330, ": Menu");  // draw Triangle button
   set_foreground_color(0xFF008FFF);
 
 
-  //draw firmware version info
-  char cfw_str[64];
-  sprintf(cfw_str, "Firmware : %c.%c%c %s %s", FW[0], FW[2], FW[3], kernel_type, payload_type);
+  // draw firmware version info
   print_text(352, 30 + (LINE_HEIGHT * 1), cfw_str);
 
-
-  //draw Network info
-  char netdevice[32];
-  char ipaddr[32];
-  char netstr[64];
-
-  net_info info1;
-  memset(&info1, 0, sizeof(net_info));
-  xsetting_F48C0548()->sub_44A47C(&info1);
-
-  if (info1.device == 0)
-  {
-    strcpy(netdevice, "LAN");
-  }
-  else if (info1.device == 1)
-  {
-    strcpy(netdevice, "WLAN");
-  }
-  else
-    strcpy(netdevice, "[N/A]");
-
-  int32_t size = 0x10;
-  char ip[size];
-  netctl_main_9A528B81(size, ip);
-
-  if (ip[0] == '\0')
-    strcpy(ipaddr, "[N/A]");
-  else
-    sprintf(ipaddr, "%s", ip);
-
-  sprintf(netstr, "Network connection :  %s\r\nIP address :  %s", netdevice, ipaddr);
-
+  // draw network info
   print_text(352, 30 + (LINE_HEIGHT * 2.5), netstr);
 
 
   // draw temperatures
-  char tempstr[128];
-  int t_icon_X;
-    uint32_t cpu_temp_c = 0, rsx_temp_c = 0, cpu_temp_f = 0, rsx_temp_f = 0, higher_temp;
+  if(frame == 1 || frame == 33)
+  {
+      uint32_t cpu_temp_c = 0, rsx_temp_c = 0, cpu_temp_f = 0, rsx_temp_f = 0, higher_temp;
 
-  get_temperature(0, &cpu_temp_c);
-  get_temperature(1, &rsx_temp_c);
-  cpu_temp_c = cpu_temp_c >> 24;
-  rsx_temp_c = rsx_temp_c >> 24;
-  cpu_temp_f = (1.8f * (float)cpu_temp_c + 32.f);
-  rsx_temp_f = (1.8f * (float)rsx_temp_c + 32.f);
+      get_temperature(0, &cpu_temp_c);
+      get_temperature(1, &rsx_temp_c);
+      cpu_temp_c = cpu_temp_c >> 24;
+      rsx_temp_c = rsx_temp_c >> 24;
+      cpu_temp_f = (1.8f * (float)cpu_temp_c + 32.f);
+      rsx_temp_f = (1.8f * (float)rsx_temp_c + 32.f);
 
-  sprintf(tempstr, "CPU :  %i°C  •  %i°F\r\nRSX :  %i°C  •  %i°F", cpu_temp_c, cpu_temp_f, rsx_temp_c, rsx_temp_f);
+      sprintf(tempstr, "CPU :  %i°C  •  %i°F\r\nRSX :  %i°C  •  %i°F", cpu_temp_c, cpu_temp_f, rsx_temp_c, rsx_temp_f);
 
-  if (cpu_temp_c > rsx_temp_c) higher_temp = cpu_temp_c;
-  else higher_temp = rsx_temp_c;
+      if (cpu_temp_c > rsx_temp_c) higher_temp = cpu_temp_c;
+      else higher_temp = rsx_temp_c;
 
-       if (higher_temp < 50)                       t_icon_X = 224;  // blue icon
-  else if (higher_temp >= 50 && higher_temp <= 65) t_icon_X = 256;  // green icon
-  else if (higher_temp >  65 && higher_temp <  75) t_icon_X = 288;  // yellow icon
-  else                                             t_icon_X = 320;  // red icon
+           if (higher_temp < 50)                       t_icon_X = 224;  // blue icon
+      else if (higher_temp >= 50 && higher_temp <= 65) t_icon_X = 256;  // green icon
+      else if (higher_temp >  65 && higher_temp <  75) t_icon_X = 288;  // yellow icon
+      else                                             t_icon_X = 320;  // red icon
+  }
 
   set_font(24.f, 17.f, 1.f, 1);
 
@@ -983,12 +967,13 @@ static void draw_frame(void)
 
   int fd;
 
-  if(cellFsOpendir("/", &fd) == CELL_FS_SUCCEEDED)
+  if((frame == 1) && cellFsOpendir("/", &fd) == CELL_FS_SUCCEEDED)
   {
-    int32_t j = 0;
-    char drivestr[64], drivepath[32], freeSizeStr[32], devSizeStr[32];
+    char drivepath[32], freeSizeStr[32], devSizeStr[32];
     uint64_t read, freeSize, devSize;
     CellFsDirent dir;
+
+    int8_t j; for(j = 0; j < 6; j++) {memset(drivestr[j], 0, 64); drive_type[j] = 0;} j = 0;
 
     read = sizeof(CellFsDirent);
     while(!cellFsReaddir(fd, &dir, &read))
@@ -1012,23 +997,26 @@ static void draw_frame(void)
       if (devSize < 1073741824) sprintf(devSizeStr, "%.2f MB", (double) (devSize / 1048576.00f));
       else  sprintf(devSizeStr, "%.2f GB", (double) (devSize / 1073741824.00f));
 
-      sprintf(drivestr, "%s :  %s / %s", drivepath, freeSizeStr, devSizeStr);
+      sprintf(drivestr[j], "%s :  %s / %s", drivepath, freeSizeStr, devSizeStr);
 
       if (strncmp("dev_hdd", dir.d_name, 7) == 0)
-        draw_png(0, 25, 230 + (26 * j), 64, 464, 32, 32);
+        drive_type[j] = 1;
       else if (strncmp("dev_usb", dir.d_name, 7) == 0)
-        draw_png(0, 25, 230 + (26 * j), 96, 464, 32, 32);
-      else if ((strncmp("dev_sd", dir.d_name, 6) == 0 ) || (strncmp("dev_ms", dir.d_name, 6) == 0 ) ||  (strncmp("dev_cf", dir.d_name, 6) == 0 ))
-        draw_png(0, 25, 230 + (26 * j), 160, 464, 32, 32);
+        drive_type[j] = 2;
       else if (strncmp("dev_blind", dir.d_name, 9) == 0 )
-        draw_png(0, 25, 230 + (26 * j), 128, 464, 32, 32);
-
-      print_text(60, 235 + (26 * j), drivestr);
+        drive_type[j] = 3;
+      else if ((strncmp("dev_sd", dir.d_name, 6) == 0 ) || (strncmp("dev_ms", dir.d_name, 6) == 0 ) ||  (strncmp("dev_cf", dir.d_name, 6) == 0 ))
+        drive_type[j] = 4;
 
       j++; if(j > 5) break;
-
     }
+
     cellFsClosedir(fd);
+  }
+
+  for(int8_t j = 0; j < 6; j++)
+  {
+        if(drive_type[j]) {draw_png(0, 25, 230 + (26 * j), 32 + (32 * drive_type[j]), 464, 32, 32); print_text(60, 235 + (26 * j), drivestr[j]);}
   }
 
   //...
@@ -1092,7 +1080,7 @@ static void vsh_menu_thread(uint64_t arg)
         if(show_menu>4) // if select was pressed start VSH menu
         {
           show_menu = 0;
-          if(line % 2) line = 0;   // menu on first entry in list
+          if(line & 1) line = 0;   // menu on first entry in list
 
           start_VSH_Menu();
         }
@@ -1106,9 +1094,7 @@ static void vsh_menu_thread(uint64_t arg)
     }
     else // menu is running, draw frame, flip frame, check for pad events, sleep, ...
     {
-      draw_frame();
-
-      flip_frame();
+      frame++; if(frame & 0x40) frame = 0; if(frame & 1) {draw_frame(); flip_frame();}
 
       for(int32_t port=0; port<4; port++)
         {MyPadGetData(port, &pdata); if(pdata.len > 0) break;}          // use MyPadGetData() during VSH menu
@@ -1133,11 +1119,11 @@ static void vsh_menu_thread(uint64_t arg)
 
             switch (line)
             {
-             case 0: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "0: Eject Disc\0"   : (entry_mode[line] == 2) ? "0: Insert Disc\0" : "0: Unmount Game\0")); break;
-             case 1: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "1: Mount /net1"    : (entry_mode[line] == 2) ? "1: Mount /net2"   : "1: Mount /net0"));  break;
-             case 2: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "2: Fan (-)\0"      : (entry_mode[line] == 2) ? "2: Fan Mode\0"    : (entry_mode[line] == 3) ? "2: System Info\0" : "2: Fan (+)\0")); break;
-             case 6: strcpy(entry_str[view][line], ((entry_mode[line]) ? "6: Screenshot (XMB + Menu)\0"  : "6: Screenshot (XMB)\0"));  break;
-             case 8: strcpy(entry_str[view][line], ((entry_mode[line]) ? "8: Reboot PS3 (hard)\0"        : "8: Reboot PS3 (soft)\0")); break;
+             case 0x0: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "0: Eject Disc\0"   : (entry_mode[line] == 2) ? "0: Insert Disc\0" : "0: Unmount Game\0")); break;
+             case 0x1: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "1: Mount /net1"    : (entry_mode[line] == 2) ? "1: Mount /net2"   : "1: Mount /net0"));  break;
+             case 0x2: strcpy(entry_str[view][line], ((entry_mode[line] == 1) ? "2: Fan (-)\0"      : (entry_mode[line] == 2) ? "2: Fan Mode\0"    : (entry_mode[line] == 3) ? "2: System Info\0" : "2: Fan (+)\0")); break;
+             case 0x6: strcpy(entry_str[view][line], ((entry_mode[line]) ? "6: Screenshot (XMB + Menu)\0"  : "6: Screenshot (XMB)\0"));  break;
+             case 0xA: strcpy(entry_str[view][line], ((entry_mode[line]) ? "A: Reboot PS3 (hard)\0"        : "A: Reboot PS3 (soft)\0")); break;
             }
           }
           else
@@ -1205,7 +1191,7 @@ static void vsh_menu_thread(uint64_t arg)
       else
         oldpad = 0;
 
-      sys_timer_usleep(75000); // short menu frame delay
+      sys_timer_usleep(40000); // short menu frame delay
     }
   }
 

@@ -13,6 +13,7 @@
 #define MINDYNFAN (1<<11)
 #define DISACOBRA (1<<12)
 
+
 //combo2
 #define EXTGAMDAT (1<<0)
 #define MOUNTNET0 (1<<1)
@@ -23,6 +24,7 @@
 #define XMLREFRSH (1<<6)
 #define UMNT_GAME (1<<7)
 #define VIDRECORD (1<<8)
+#define PLAY_DISC (1<<9)
 
 #define REBUGMODE (1<<13)
 #define NORMAMODE (1<<14)
@@ -119,6 +121,8 @@ static void setup_parse_settings(char *param)
 	if(!strstr(param, "psv=1")) webman_config->combo2|=BLOCKSVRS;
 	if(!strstr(param, "pxr=1")) webman_config->combo2|=XMLREFRSH;
 	if(!strstr(param, "umt=1")) webman_config->combo2|=UMNT_GAME;
+	if(!strstr(param, "pld=1")) webman_config->combo2|=PLAY_DISC;
+
 #ifdef VIDEO_REC
 	if(!strstr(param, "vrc=1")) webman_config->combo2|=VIDRECORD;
 #endif
@@ -628,8 +632,8 @@ static void setup_form(char *buffer, char *templn)
 	add_check_box("pdf", "1", STR_FANCTRL4,   " : <b>L3+R2+START</b><br>"      , !(webman_config->combo & DISABLEFC), buffer);
 
 	add_check_box("umt", "1", STR_UNMOUNT,    " : <b>SELECT+O</b><br>"         , !(webman_config->combo2 & UMNT_GAME), buffer);
-	add_check_box("psv", "1", "OFFLINE",      " : <b>R2+口</b><br>"             , !(webman_config->combo2 & BLOCKSVRS), buffer);
-	add_check_box("pgd", "1", "gameDATA",     " : <b>SELECT+口</b><br>"         , !(webman_config->combo2 & EXTGAMDAT), buffer);
+	add_check_box("psv", "1", "OFFLINE",      " : <b>R2+&#9633;</b><br>"       , !(webman_config->combo2 & BLOCKSVRS), buffer);
+	add_check_box("pgd", "1", "gameDATA",     " : <b>SELECT+&#9633;</b><br>"   , !(webman_config->combo2 & EXTGAMDAT), buffer);
 
 	sprintf(templn, "%s XML", STR_REFRESH);
 	add_check_box("pxr", "1", templn,         " : <b>SELECT+L3</b><br>"        , !(webman_config->combo2 & XMLREFRSH), buffer);
@@ -658,12 +662,12 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 #ifndef LITE_EDITION
-	add_check_box("pn0", "1", "NET0",       " : <b>SELECT+R2+口</b><br>"        , !(webman_config->combo2 & MOUNTNET0), buffer);
-	add_check_box("pn1", "1", "NET1",       " : <b>SELECT+L2+口</b><br>"        , !(webman_config->combo2 & MOUNTNET1), buffer);
+	add_check_box("pn0", "1", "NET0",       " : <b>SELECT+R2+&#9633;</b><br>"  , !(webman_config->combo2 & MOUNTNET0), buffer);
+	add_check_box("pn1", "1", "NET1",       " : <b>SELECT+L2+&#9633;</b><br>"  , !(webman_config->combo2 & MOUNTNET1), buffer);
 #endif
 
 #ifdef REX_ONLY
-	add_check_box("pr0", "1", STR_RBGMODE, 	" : <b>L3+L2+口</b><br>"            , !(webman_config->combo2 & REBUGMODE), buffer);
+	add_check_box("pr0", "1", STR_RBGMODE, 	" : <b>L3+L2+&#9633;</b><br>"      , !(webman_config->combo2 & REBUGMODE), buffer);
 	add_check_box("pr1", "1", STR_RBGNORM, 	" : <b>L3+L2+O</b><br>"            , !(webman_config->combo2 & NORMAMODE), buffer);
 	add_check_box("pr2", "1", STR_RBGMENU, 	" : <b>L3+L2+X</b><br>"            , !(webman_config->combo2 & DEBUGMENU), buffer);
 
@@ -672,6 +676,7 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 	add_check_box("p2s", "1", "PS2 SWITCH",   " : <b>SELECT+L2+R2</b><br>"     , !(webman_config->combo2 & PS2SWITCH), buffer);
+	add_check_box("pld", "1", "PLAY DISC",    " : <b>L2+START</b><br>"         , !(webman_config->combo2 & PLAY_DISC), buffer);
 
 	sprintf(templn, "</td></tr></table>"
 					"<hr color=\"#FF0000\"/><input type=\"submit\" value=\" %s \"/>"

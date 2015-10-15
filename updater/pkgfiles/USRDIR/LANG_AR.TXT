@@ -119,13 +119,13 @@ STR_EJECTED			[ﺹﺮﻘﻟا ﺝاﺮﺧا ﻢﺗ]
 STR_LOADED			[ﺹﺮﻘﻟا ﻝﺎﺧﺩا ﻢﺗ]
 
 STR_GAMETOM			[ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ]
-STR_GAMELOADED		[ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﺀﺎﻐﻟﺎﻟ<a href=/mount.ps3/unmount> ﺎﻨﻫ </a> ﻂﻐﺿا <hr/>XMB ﺪﻨﻋ<b>/app_home</b>ﻦﻣ ﻭا<br>ﺹﺮﻘﻟا ﺔﻧﻮﻘﻳا ﻦﻣ ﺔﺒﻌﻠﻟا ﻞﻐﺷ ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﻢﺗ]
+STR_GAMELOADED		[ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﺀﺎﻐﻟﺎﻟ<a href=/mount.ps3/unmount> ﺎﻨﻫ </a> ﻂﻐﺿا </a><hr/>XMB ﺪﻨﻋ<b>/app_home</b>ﻦﻣ ﻭا<br>ﺹﺮﻘﻟا ﺔﻧﻮﻘﻳا ﻦﻣ ﺔﺒﻌﻠﻟا ﻞﻐﺷ ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﻢﺗ]
 STR_PSPLOADED		[ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﺀﺎﻐﻟﺎﻟ<a href=/mount.ps3/unmount> ﺎﻨﻫ </a> ﻂﻐﺿا <b><hr/>PSP ﻞﻐﺸﻣ</b> ﻡاﺪﺨﺘﺳﺎﺑ ﺔﺒﻌﻠﻟا ﻞﻐﺷ ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﻢﺗ]
 STR_PS2LOADED		[ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﺀﺎﻐﻟﺎﻟ<a href=/mount.ps3/unmount> ﺎﻨﻫ </a> ﻂﻐﺿا <b><hr/>PS2 Classic ﻞﻐﺸﻣ</b> ﻡاﺪﺨﺘﺳﺎﺑ ﺔﺒﻌﻠﻟا ﻞﻐﺷ ﺔﺒﻌﻠﻟا ﻞﻴﻐﺸﺗ ﻢﺗ]
 STR_LOADED2			[ﻞﻐﺸﻣ]
 
 STR_MOVIETOM		[ﻢﻠﻔﻟا ﻞﻴﻐﺸﺗ]
-STR_MOVIELOADED		[ﻢﻠﻔﻟا ﻞﻴﻐﺸﺗ ﺀﺎﻐﻟﺎﻟ<a href=/mount.ps3/unmount> ﺎﻨﻫ </a> ﻂﻐﺿا <br><hr/>ﺹﺮﻘﻟا ﺔﻧﻮﻘﻳا ﻦﻣ ﻢﻠﻔﻟا ﻞﻐﺷ ﻢﻠﻔﻟا ﻞﻴﻐﺸﺗ ﻢﺗ]
+STR_MOVIELOADED		[ﻢﻠﻔﻟا ﻞﻴﻐﺸﺗ ﺀﺎﻐﻟﺎﻟ<a href=/mount.ps3/unmount> ﺎﻨﻫ </a> ﻂﻐﺿا </a><hr/>ﺹﺮﻘﻟا ﺔﻧﻮﻘﻳا ﻦﻣ ﻢﻠﻔﻟا ﻞﻐﺷ ﻢﻠﻔﻟا ﻞﻴﻐﺸﺗ ﻢﺗ]
 
 STR_XMLRF			[ﻥﺎﻟا ٣ ﻦﺸﻴﺘﺴﻳﺎﻠﺒﻟا ﻡﺎﻈﻧ ﻞﻴﻐﺸﺗ ﺓﺩﺎﻋﺎﻟ<a href=/restart.ps3> ﺎﻨﻫ </a> ﻂﻐﺿا (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br> ﺏﺎﻌﻟﺎﻟا ﺔﻤﺋﺎﻗ ﺚﻳﺪﺤﺗ ﻢﺗ]
 

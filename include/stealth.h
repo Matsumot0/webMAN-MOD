@@ -3,7 +3,7 @@ static void remove_cfw_syscalls(void)
 {
 	detect_firmware();
 
-	if(c_firmware==0.00f) return;
+	if(!SYSCALL_TABLE) return;
 
     u64 sc_null = peekq(SYSCALL_TABLE);
 	u64 sc_not_impl_pt = peekq(sc_null);

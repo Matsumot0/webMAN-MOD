@@ -1,8 +1,8 @@
 #include <sys/memory.h>
 
 #include "include/mem.h"
-#include "../vsh/vsh_exports.h"
-#include "include/network.h"	// debug
+#include "include/vsh_exports.h"
+//#include "include/network.h"	// debug
 
 
 static sys_memory_container_t mc_app = (sys_memory_container_t)-1;
@@ -22,7 +22,7 @@ void create_heap(int32_t size)
 }
 
 /***********************************************************************
-* 
+*
 ***********************************************************************/
 void destroy_heap(void)
 {
@@ -32,13 +32,13 @@ void destroy_heap(void)
 }
 
 /***********************************************************************
-* 
+*
 ***********************************************************************/
 void *mem_alloc(uint32_t size)
 {
 	uint32_t add = prx_heap;
 	prx_heap += size;
-  
+
 	return (void*)add;
 }
 

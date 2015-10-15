@@ -119,13 +119,13 @@ STR_EJECTED			[Диск извлечён]
 STR_LOADED			[Диск вставлен]
 
 STR_GAMETOM			[Игра для монтирования]
-STR_GAMELOADED		[Игра успешно загружена<hr/>Нажмите <a href=/mount.ps3/unmount>здесь</a> для выгрузки игры]
+STR_GAMELOADED		[Игра успешно загружена</a><hr/>Нажмите <a href=/mount.ps3/unmount>здесь</a> для выгрузки игры]
 STR_PSPLOADED		[Игра успешно загружена. Используйте <b>PSP Launcher</b> для запуска<hr/>]
 STR_PS2LOADED		[Игра успешно загружена. Используйте <b>PS2 Classic Launcher</b> для запуска<hr/>]
 STR_LOADED2			[   Загружено!]
 
 STR_MOVIETOM		[Фильм для монтирования]
-STR_MOVIELOADED		[Фильм успешно загружен<hr/>Используйте иконку диска в столбце 'Видео' для просмотра<hr/>Нажмите <a href=/mount.ps3/unmount>здесь</a> для выгрузки диска]
+STR_MOVIELOADED		[Фильм успешно загружен<hr/>Используйте иконку диска в столбце 'Видео' для просмотра</a><hr/>Нажмите <a href=/mount.ps3/unmount>здесь</a> для выгрузки диска]
 
 STR_XMLRF			[Список игр обновлён (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>)<hr/>Нажмите <a href=/restart.ps3>здесь</a> для перезагрузки PS3]
 

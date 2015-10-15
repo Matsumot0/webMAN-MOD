@@ -499,9 +499,9 @@ int main()
 			if(sysLv2FsStat("/dev_hdd0/prx_plugins.txt", &stat) == SUCCESS)
 			{
 				// append line to prx_plugins.txt
-					f=fopen("/dev_hdd0/prx_plugins.txt", "a");
-					fputs("\r\n/dev_hdd0/plugins/wm_vsh_menu.sprx", f);
-					fclose(f);
+				f=fopen("/dev_hdd0/prx_plugins.txt", "a");
+				fputs("\r\n/dev_hdd0/plugins/wm_vsh_menu.sprx", f);
+				fclose(f);
 			}
 		}
 
@@ -683,7 +683,10 @@ cont:
 		}
 
 		// append line to boot_plugins.txt
-		f=fopen("/dev_hdd0/boot_plugins.txt", "a");
+		if(sysLv2FsStat("/dev_hdd0/boot_plugins.txt", &stat) == SUCCESS)
+			f=fopen("/dev_hdd0/boot_plugins.txt", "a");
+		else
+			f=fopen("/dev_hdd0/boot_plugins.txt", "w");
 		if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
 		{
 			if(is_ps3mapi() && !lite)
@@ -773,7 +776,10 @@ cont:
 		}
 
 		// append line to mamba_plugins.txt (Mamba/PRX Loader - PS3MAPI)
-		f=fopen("/dev_hdd0/mamba_plugins.txt", "a");
+		if(sysLv2FsStat("/dev_hdd0/mamba_plugins.txt", &stat) == SUCCESS)
+			f=fopen("/dev_hdd0/mamba_plugins.txt", "a");
+		else
+			f=fopen("/dev_hdd0/mamba_plugins.txt", "w");
 		if((sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS))
 			fputs("\r\n/dev_hdd0/plugins/webftp_server_ps3mapi.sprx", f);
 		else
@@ -824,6 +830,7 @@ cont:
 
 		// append line to prx_plugins.txt
 		f=fopen("/dev_hdd0/prx_plugins.txt", "a");
+
 		if(sysLv2FsStat("/dev_hdd0/plugins", &stat) == SUCCESS)
 			fputs("\r\n/dev_hdd0/plugins/webftp_server_noncobra.sprx", f);
 		else

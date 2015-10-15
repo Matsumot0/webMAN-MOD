@@ -119,13 +119,13 @@ STR_EJECTED		[Disk uitgeworpen.]
 STR_LOADED		[Disk geladen.]
 
 STR_GAMETOM		[Spel starten]
-STR_GAMELOADED	[Spel succesvol geladen Start het spel vanaf de disk icoon<br>of vanaf <b>/app_home</b> XMB optie<hr/>Klik <a href=/mountps3/unmount>hier</a> om het spel te ontkoppelen.]
+STR_GAMELOADED	[Spel succesvol geladen Start het spel vanaf de disk icoon<br>of vanaf <b>/app_home</b> XMB optie</a><hr/>Klik <a href=/mountps3/unmount>hier</a> om het spel te ontkoppelen.]
 STR_PSPLOADED	[Spel succesvol geladen Start het spel dmv <b>PSP Launcher</b><hr/>]
 STR_PS2LOADED	[Spel succesvol geladen Start het spel dmv <b>PS2 Classic Launcher</b><hr/>]
 STR_LOADED2		[loaded]
 
 STR_MOVIETOM	[Film starten]
-STR_MOVIELOADED	[Film succesvol geladen Start de film vanaf de Disk icoon<br>onder de Video kolom<hr/>Klik <a href=/mountps3/unmount>hier</a> om de film te ontkoppelen.]
+STR_MOVIELOADED	[Film succesvol geladen Start de film vanaf de Disk icoon<br>onder de Video kolom</a><hr/>Klik <a href=/mountps3/unmount>hier</a> om de film te ontkoppelen.]
 
 STR_XMLRF		[Game list refreshed (<a href=/dev_hdd0/xmlhost/game_plugin/mygamesxml>mygamesxml</a>)<br>Klik <a href=/restartps3>hier</a> om je PLAYSTATION®3 systeem nu te herstarten.]
 

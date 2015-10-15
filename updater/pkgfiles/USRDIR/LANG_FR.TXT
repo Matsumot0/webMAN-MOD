@@ -119,13 +119,13 @@ STR_EJECTED		[Disque éjecté.]
 STR_LOADED		[Disque inséré.]
 
 STR_GAMETOM		[Jeu monté]
-STR_GAMELOADED	[Jeu chargé avec succès. Lancer le jeu depuis l'icône de disque<br>ou depuis <b>/app_home</b>&nbsp;dans le XMB.<hr/>Clic <a href="/mount.ps3/unmount">ici</a> pour démonter le jeu.]
+STR_GAMELOADED	[Jeu chargé avec succès. Lancer le jeu depuis l'icône de disque<br>ou depuis <b>/app_home</b>&nbsp;dans le XMB.</a><hr/>Clic <a href="/mount.ps3/unmount">ici</a> pour démonter le jeu.]
 STR_PSPLOADED	[Jeu chargé avec succès. Lancer le jeu depuis <b>PSP Launcher</b>.<hr/>]
 STR_PS2LOADED	[Jeu chargé avec succès. Lancer le jeu depuis <b>PS2 Classic Launcher</b>.<hr/>]
 STR_LOADED2		[chargé avec succès]
 
 STR_MOVIETOM	[Film monté]
-STR_MOVIELOADED	[DVD/BD Vidéo chargé avec succès. Lancer le film depuis l'icône de disque<br>dans la colonne Vidéo.<hr/>Clic <a href="/mount.ps3/unmount">ici</a> pour démonter le DVD/BD Vidéo.]
+STR_MOVIELOADED	[DVD/BD Vidéo chargé avec succès. Lancer le film depuis l'icône de disque<br>dans la colonne Vidéo.</a><hr/>Clic <a href="/mount.ps3/unmount">ici</a> pour démonter le DVD/BD Vidéo.]
 
 STR_XMLRF		[Liste des jeux rafraîchit (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Clic <a href="/restart.ps3">ici</a> pour redémarrer ton système PLAYSTATION®3 maintenant.]
 

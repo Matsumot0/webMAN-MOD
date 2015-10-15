@@ -119,13 +119,13 @@ STR_EJECTED		[Disk izbacen.]
 STR_LOADED		[Disk umetnut.]
 
 STR_GAMETOM		[Ucitaj igru]
-STR_GAMELOADED	[Igra je uspjesno ucitana. Pokrenite igru putem disk ikone<br>ili putem<b>/app_home</b> u odjeljku GAMES<hr/>Kliknite <a href="/mount.ps3/unmount">ovdje</a> da izbacite igru.]
+STR_GAMELOADED	[Igra je uspjesno ucitana. Pokrenite igru putem disk ikone<br>ili putem<b>/app_home</b> u odjeljku GAMES</a><hr/>Kliknite <a href="/mount.ps3/unmount">ovdje</a> da izbacite igru.]
 STR_PSPLOADED	[Igra je uspjesno ucitana. Pokrenite igru koristenjem <b>PSP Launchera</b>.<hr/>]
 STR_PS2LOADED	[Igra je uspjesno ucitana. Pokrenite igru koristenjem <b>PS2 Classic Launchera</b>.<hr/>]
 STR_LOADED2		[ucitana]
 
 STR_MOVIETOM	[Ucitaj film]
-STR_MOVIELOADED	[Film je uspjesno ucitan. Pokrenite film putem disk ikone<br>koja se nalazi u VIDEO odjeljku.<hr/>Kliknite <a href="/mount.ps3/unmount">ovdje</a> da izbacite film.]
+STR_MOVIELOADED	[Film je uspjesno ucitan. Pokrenite film putem disk ikone<br>koja se nalazi u VIDEO odjeljku.</a><hr/>Kliknite <a href="/mount.ps3/unmount">ovdje</a> da izbacite film.]
 
 STR_XMLRF		[Popis igara je osvjezen (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Kliknite <a href="/restart.ps3">ovdje</a> da ponovno pokrenete PLAYSTATION®3 sustav.]
 

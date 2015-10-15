@@ -1,6 +1,6 @@
 #include "include/misc.h"
-#include "../vsh/vsh_exports.h"
-#include "include/network.h"	// debug
+#include "include/vsh_exports.h"
+//#include "include/network.h"	// debug
 
 
 
@@ -13,10 +13,10 @@ static void *vsh_pdata_addr = NULL;
 static int32_t get_vsh_toc(void)
 {
 	uint32_t pm_start  = 0x10000UL;
-  uint32_t v0 = 0, v1 = 0, v2 = 0;
+	uint32_t v0 = 0, v1 = 0, v2 = 0;
 
-  while(pm_start < 0x700000UL)
-  {
+	while(pm_start < 0x700000UL)
+	{
 		v0 = *(uint32_t*)(pm_start+0x00);
 		v1 = *(uint32_t*)(pm_start+0x04);
 		v2 = *(uint32_t*)(pm_start+0x0C);
@@ -38,7 +38,7 @@ static int32_t get_vsh_pad_obj(void)
 	uint32_t (*base)(uint32_t) = sys_io_3733EA3C;               // get pointer to cellPadGetData()
 	int16_t idx = *(uint32_t*)(*(uint32_t*)base) & 0x0000FFFF;  // get got_entry idx from first instruction,
 	int32_t got_entry = (idx + get_vsh_toc());                  // get got_entry of io_pad_object
-  return (int32_t)(*(int32_t*)got_entry);                     // return io_pad_object address
+	return (int32_t)(*(int32_t*)got_entry);                     // return io_pad_object address
 }
 
 /***********************************************************************
@@ -48,22 +48,22 @@ static int32_t get_vsh_pad_obj(void)
 ***********************************************************************/
 void VSHPadGetData(CellPadData *data)
 {
-	uint32_t pm_start = 0x10000UL;
-	uint64_t pat[2]   = {0x380000077D3F4B78ULL, 0x7D6C5B787C0903A6ULL};
-
 	if(!vsh_pdata_addr)        // first time, get address
 	{
+		uint32_t pm_start = 0x10000UL;
+		uint64_t pat[2]   = {0x380000077D3F4B78ULL, 0x7D6C5B787C0903A6ULL};
+
 		while(pm_start < 0x700000UL)
-	  {
+		{
 			if((*(uint64_t*)pm_start == pat[0]) && (*(uint64_t*)(pm_start+8) == pat[1]))
-		  {
-		  	vsh_pdata_addr = (void*)(uint32_t)((int32_t)((*(uint32_t*)(pm_start + 0x234) & 0x0000FFFF) <<16) +
-		  	                                   (int16_t)( *(uint32_t*)(pm_start + 0x244) & 0x0000FFFF));
+			{
+				vsh_pdata_addr = (void*)(uint32_t)((int32_t)((*(uint32_t*)(pm_start + 0x234) & 0x0000FFFF) <<16) +
+				                                   (int16_t)( *(uint32_t*)(pm_start + 0x244) & 0x0000FFFF));
 
-			  break;
-		  }
+				break;
+			}
 
-		  pm_start+=4;
+			pm_start+=4;
 		}
 	}
 

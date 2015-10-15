@@ -119,13 +119,13 @@ STR_EJECTED			[Disk çikarildi.]
 STR_LOADED			[Disc takildi.]
 
 STR_GAMETOM			[Baglanacak oyun]
-STR_GAMELOADED		[Oyun basariyla yüklendi. Oyunu disk simgesinden<br>veya <b>/app_home</b> XMB girisinden baslatin.<hr/>Oyunu çözmek için <a href="/mount.ps3/unmount">buraya</a> tiklayin.]
+STR_GAMELOADED		[Oyun basariyla yüklendi. Oyunu disk simgesinden<br>veya <b>/app_home</b> XMB girisinden baslatin.</a><hr/>Oyunu çözmek için <a href="/mount.ps3/unmount">buraya</a> tiklayin.]
 STR_PSPLOADED		[Oyun basariyla yüklendi. Oyunu <b>PSP Launcher</b> kullanarak baslatin.<hr/>]
 STR_PS2LOADED		[Oyun basariyla yüklendi. Oyunu <b>PS2 Classic Launcher</b> kullanarak baslatin.<hr/>]
 STR_LOADED2			[yüklendi]
 
 STR_MOVIETOM		[Baglanacak film]
-STR_MOVIELOADED		[Film basariyla yüklendi. Filmi Video sütunundaki<br>disk simgesinden baslatin.<hr/>Filmi çözmek için <a href="/mount.ps3/unmount">buraya</a> tiklayin.]
+STR_MOVIELOADED		[Film basariyla yüklendi. Filmi Video sütunundaki<br>disk simgesinden baslatin.</a><hr/>Filmi çözmek için <a href="/mount.ps3/unmount">buraya</a> tiklayin.]
 
 STR_XMLRF			[Oyun listesi yenilendi (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>PLAYSTATION®3 sisteminizi simdi yeniden baslatmak için <a href="/restart.ps3">buraya</a> tiklayin.]
 

@@ -41,6 +41,8 @@
 #include "vsh/game_plugin.h"
 #include "vsh/netctl_main.h"
 #include "vsh/xregistry.h"
+#include "vsh/vshnet.h"
+#include "vsh/explore_plugin.h"
 
 #define _game_TitleID  _game_info+0x04
 #define _game_Title    _game_info+0x14
@@ -96,7 +98,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.09 MOD"						// webMAN version
+#define WM_VERSION			"1.43.10 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -106,10 +108,18 @@ SYS_MODULE_STOP(wwwd_stop);
 #define WM_ICONS_PATH		"/dev_hdd0/tmp/wm_icons/"			// webMAN icons path
 #define WMNOSCAN			"/dev_hdd0/tmp/wm_noscan"			// webMAN config file
 
-#ifdef WEB_CHAT
- #define DELETE_TURNOFF		{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)WMCHATFILE);}
+#ifdef WM_REQUEST
+ #ifdef WEB_CHAT
+  #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request"); cellFsUnlink((char*)WMCHATFILE);}
+ #else
+  #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");}
+ #endif
 #else
- #define DELETE_TURNOFF		{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff");}
+ #ifdef WEB_CHAT
+  #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)WMCHATFILE);}
+ #else
+  #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff");}
+ #endif
 #endif
 
 #define THREAD_NAME 		"wwwdt"
@@ -355,6 +365,10 @@ static void set_buffer_sizes(int footprint);
 static void select_ps1emu(void);
 #endif
 
+#ifdef GET_KLICENSEE
+int npklic_struct_offset = 0;
+#endif
+
 int extcmp(const char *s1, const char *s2, size_t n);
 int extcasecmp(const char *s1, const char *s2, size_t n);
 char *strcasestr(const char *s1, const char *s2);
@@ -411,7 +425,6 @@ static char local_ip[16] = "127.0.0.1";
 #include "include/vpad.h"
 #include "include/idps.h"
 #include "include/singstar.h"
-#include "include/xmb_savebmp.h"
 
 int wwwd_start(uint64_t arg);
 int wwwd_stop(void);
@@ -443,6 +456,7 @@ static char current_file[MAX_PATH_LEN];
 #include "include/file.h"
 #include "include/fix_game.h"
 #include "include/ps2_disc.h"
+#include "include/xmb_savebmp.h"
 
 #ifndef COBRA_ONLY
 static void string_to_lv2(char* path, u64 addr);
@@ -795,6 +809,7 @@ again3:
 			{
 				cellFsRead(fd, (void *)header, buf.st_size, NULL);
 				cellFsClose(fd); for(size_t n = buf.st_size; n > 4; n--) if(header[n]==' ') header[n]=9;
+				if(strstr(header, "/play.ps3")) {if(View_Find("game_plugin")) {sys_timer_sleep(1); served=0; is_binary=1; continue;} else if(is_binary) waitfor((char*)"/dev_bdvd", 10); for(u8 n=0; n<10; n++) sys_timer_sleep(1);}
 			}
 			cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");
 		}
@@ -848,10 +863,18 @@ again3:
 			}
 
  #ifdef VIRTUAL_PAD
-			if(strstr(param, "/pad.ps3") || strstr(param, "/combo.ps3"))
+			if(strstr(param, "/pad.ps3") || strstr(param, "/combo.ps3") || strstr(param, "/play.ps3"))
 			{
-				u8 is_combo = (param[1]=='c') ? 2 : 0;
-				if(!webman_config->nopad) parse_pad_command(param+9+is_combo, is_combo);
+				u8 is_combo = (param[2]=='a') ? 0 : (param[1]=='c') ? 2 : 1;
+
+				if(is_combo != 1) {if(!webman_config->nopad) parse_pad_command(param+9+is_combo, is_combo);}
+				else
+				{   // default: play.ps3?col=game&seg=seg_device
+					char *pos, col[16] = {NULL}, seg[80] = {NULL};
+					pos=strstr(param, "col="); if(pos) get_value(col, pos + 4, 16); // game / video / friend / psn / network / music / photo / tv
+					pos=strstr(param, "seg="); if(pos) get_value(seg, pos + 4, 80);
+					launch_disc(col, seg); sprintf(param+10, HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
+				}
 
 				is_binary=0;
 				http_response(conn_s, header, param, 200, (param+9+is_combo));
@@ -860,7 +883,58 @@ again3:
 				return;
 			}
 #endif
+#ifdef PS3_BROWSER
+			if(strstr(param, "/browser.ps3"))
+			{
+				if(View_Find("game_plugin")==0)
+				{   // in-XMB
+					if(strlen(param) < 13)     {do_umount(false); sprintf(header, "http://%s/", local_ip); vshmain_AE35CF2D(header, 0);} else
+					if(strstr(param, ".ps3/")) {do_umount(false); sprintf(header, "http://%s%s", local_ip, param+12); vshmain_AE35CF2D(header, 0);} else
+					if(strstr(param, ".ps3$")) {int view = View_Find("explore_plugin"); if(view) {explore_interface = (explore_plugin_interface *)plugin_GetInterface(view,1); explore_interface->DoUnk6(param+13,0,0);}} else
+					if(strstr(param, ".ps3?")) {do_umount(false); vshmain_AE35CF2D((char*)param+13, 0);} else
+					vshmain_AE35CF2D((char*)param+13, 1);  // example: /browser.ps3*regcam:reg?   More examples: http://www.ps3devwiki.com/ps3/Xmb_plugin#Function_23
 
+					show_msg((char*)param+13);
+ 					sprintf(header, "%s<hr>" HTML_BUTTON_FMT, param+13, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
+				}
+				else
+ 					sprintf(param+13, "ERROR: Not in XMB!<hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
+
+				is_binary=0;
+				http_response(conn_s, header, param, 200, param+13);
+				loading_html--;
+				sys_ppu_thread_exit(0);
+				return;
+			}
+#endif
+#ifdef GET_KLICENSEE
+			if(strstr(param, "/klic.ps3"))
+			{
+				if(npklic_struct_offset==0)
+				{
+					// get klicensee struct
+					vshnet_5EE098BC = (void*)((int)getNIDfunc("vshnet", 0x5EE098BC, 0));
+					int* func_start = (int*)(*((int*)vshnet_5EE098BC));
+					npklic_struct_offset = (((*func_start) & 0x0000FFFF) << 16) + ((*(func_start+5)) & 0x0000FFFF) + 0xC;//8;
+				}
+
+				char buffer[0x200];
+
+				if(View_Find("game_plugin"))
+				{
+					char kl[0x120]; memset(kl, 0, 0x120);
+                    get_game_info(); sprintf(buffer, "%s %s</H2>KLicensee: %s<br>Content ID: %s<hr>" HTML_BUTTON_FMT, _game_TitleID, _game_Title, hex_dump(kl,npklic_struct_offset,0x10), (char*)(npklic_struct_offset-0xA4), HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
+				}
+				else
+					sprintf(buffer, "ERROR: Not in-game!<hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
+
+				is_binary=0;
+				http_response(conn_s, header, param, 200, buffer);
+				loading_html--;
+				sys_ppu_thread_exit(0);
+				return;
+			}
+#endif
 #ifndef LITE_EDITION
  #ifdef WEB_CHAT
 			if(strstr(param, "/chat.ps3"))
@@ -1382,20 +1456,7 @@ html_response:
 #ifdef COBRA_ONLY
 						if(strlen(templn)>0)
 						{
-							char tmp_name[30];
-							char tmp_filename[256];
-
-#ifndef SYSCALL8_OPCODE_PS3MAPI
-							#define SYSCALL8_OPCODE_PS3MAPI			 			0x7777
-							#define PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO			0x0047
-#endif
-							for (slot = 1; slot < 7; slot++)
-							{
-								memset(tmp_name, 0, sizeof(tmp_name));
-								memset(tmp_filename, 0, sizeof(tmp_filename));
-								{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
-								if(strstr(tmp_filename, templn) || strstr(tmp_name, templn)) break;
-							}
+							slot = get_vsh_plugin_slot_by_name(templn, false);
 							if(strstr(param, "unloadprx.ps3")) prx_found = false;
 						}
 #endif
@@ -1486,7 +1547,7 @@ html_response:
 bgm_status:
 						sprintf(templn, "System BGM: %s", (system_bgm>0)?STR_ENABLED:STR_DISABLED);
 						strcat(buffer, templn);
-						show_msg(templn);
+						show_msg((char*)templn);
 					}
 #endif
 
@@ -1785,9 +1846,6 @@ static void wwwd_thread(uint64_t arg)
 
 	View_Find = (void*)((int)getNIDfunc("paf", 0xF21655F3, 0));
 	plugin_GetInterface = (void*)((int)getNIDfunc("paf", 0x23AFB290, 0));
-#ifdef EXTRA_FEAT
-	vsh_sprintf = (void*)((int)getNIDfunc("stdc", 0x273B9711, 0)); // sprintf
-#endif
 
 	//pokeq(0x8000000000003560ULL, 0x386000014E800020ULL); // li r3, 0 / blr
 	//pokeq(0x8000000000003D90ULL, 0x386000014E800020ULL); // li r3, 0 / blr
@@ -1797,6 +1855,9 @@ static void wwwd_thread(uint64_t arg)
 	WebmanCfg *webman_config = (WebmanCfg*) wmconfig;
 	reset_settings();
 
+#ifdef WM_REQUEST
+	cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");
+#endif
 
 	{struct CellFsStat buf; from_reboot = (cellFsStat((char*)WMNOSCAN, &buf)==CELL_FS_SUCCEEDED);} //is_rebug=isDir("/dev_flash/rebug");
 

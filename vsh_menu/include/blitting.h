@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "../vsh/vsh_exports.h"
+#include "vsh_exports.h"
 
 
 // font constants
@@ -40,7 +40,7 @@ typedef struct _Buffer {
 typedef struct _Glyph {
 	uint32_t code;                           // char unicode
 	CellFontGlyphMetrics metrics;            // glyph metrics
-	uint16_t w;                              // image width 
+	uint16_t w;                              // image width
 	uint16_t h;                              // image height
 	uint8_t *image;                          // addr -> image data
 } Glyph;
@@ -60,7 +60,7 @@ typedef struct _DrawCtx {
 	uint32_t *canvas;             // addr of canvas
 	uint32_t *bg;                 // addr of background backup
 	uint32_t *font_cache;         // addr of glyph bitmap cache buffer
-	CellFont font;                
+	CellFont font;
 	CellFontRenderer renderer;
 	Buffer   png[PNG_MAX];        // bitmaps
 	uint32_t bg_color;            // background color
@@ -89,4 +89,4 @@ void screenshot(uint8_t mode);
 //void draw_circle(int32_t x_c, int32_t y_c, int32_t r);
 
 
-#endif // __BLITT_H__ 
+#endif // __BLITT_H__

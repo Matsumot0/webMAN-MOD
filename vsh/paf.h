@@ -2,8 +2,6 @@
 #define __PAF_H__
 
 
-
-
 // paf_541F8EBB  // ?
 // paf_1565FC46  // ?
 
@@ -13,13 +11,13 @@ extern void* paf_AF58E756(void);  // Gets the base of loaded plugins. The pointe
 // paf_ED7791B6  // ? get...
 
 // paf_A4819ADB  // ? main_mem / rwlock_unlock
-// paf_0EAA28B8  // ? 
+// paf_0EAA28B8  // ?
 // paf_59BDA198  // ? rsx command buffer
 
 extern void paf_85D1D23B(void);  // ?, base pointer: pad_data / pad_lwmtx
 
 // paf_A5B4FB55  // ? init libs: gcm, io, ...
-// paf_54E2C229  // ? 
+// paf_54E2C229  // ?
 // paf_E5B6AF9E  // ?
 // paf_99919819  // ?
 
@@ -35,7 +33,7 @@ extern uint32_t *paf_23AFB290(uint32_t arg, uint32_t id);  // gets Interface fro
 // paf_2361E649  // ?
 // paf_BCAACE40  // ?
 // paf_2166E819  // ? PageActivate
-// paf_42B2CD4A  // ? 
+// paf_42B2CD4A  // ?
 // paf_DF5E3BFD  // ?
 // paf_794CEACB  // finds widget in a plugin 	Example: plugin->FindWidget(return from paf_F21655F3, "page_autooff_guide")
 // paf_E014D3BA  // ?
@@ -59,7 +57,7 @@ extern void paf_B93AFE7E(uint32_t plugin, const char* sound, float arg1, int arg
 // paf_75457863  // ? close page
 // paf_202CA2A7  // ?
 // paf_724E5A8B  // ?
-// paf_3CEC3833  // ? sets up a plugin widget ? (page_...) 
+// paf_3CEC3833  // ? sets up a plugin widget ? (page_...)
 
 extern uint32_t paf_F21655F3(const char *sprx_name);  // finds a loaded plugin 	uint32_t paf::View::Find(const char* plugin) Example: uint32_t paf::View::Find("system_plugin")
 #define FindLoadedPlugin paf_F21655F3
@@ -203,7 +201,7 @@ extern uint32_t paf_F21655F3(const char *sprx_name);  // finds a loaded plugin 	
 // paf_84FC5B16  // ? set functionspointer, system_plugin, "tex_default_progress_..."
 // paf_84D7A733  // ? set functionspointer, system_plugin, "snd_..."
 // paf_D31D0770  // ? set and ret old
-// int32_t paf_FD14966A  // ? get 
+// int32_t paf_FD14966A  // ? get
 
 // paf_6F8663E4  // ?
 // paf_03283B28  // ?
@@ -832,7 +830,7 @@ extern const char *paf_3806365F(void);  // returns "PhIPAddr"
 // paf_BAA424C6  // ?
 
 // paf_EA43988A  // ?
-// paf_5F5DA385  // Gets Dialog Size 	int paf_5F5DA385( uint16_t *size_width, uint16_t *size_height, int dialog_type) 
+// paf_5F5DA385  // Gets Dialog Size 	int paf_5F5DA385( uint16_t *size_width, uint16_t *size_height, int dialog_type)
 
 // paf_01B2CEDD  // ?
 
@@ -885,7 +883,7 @@ extern const char *paf_3806365F(void);  // returns "PhIPAddr"
 // paf_33944117  // ?
 
 // paf_E1F51D8A  // ?
-// paf_FE0C1F10  // Job_Queue 
+// paf_FE0C1F10  // Job_Queue
 // ??? _Export_paf_job_start:
 // paf_5D836E75  // ?
 // paf_AC90BC8F  // ?
@@ -1292,7 +1290,7 @@ extern void paf_503187C0(void);  // base pointer, pad
 // paf_0F9B4667  // ? pad...
 
 // paf_37D5F621  // ? pad...
-// paf_06CBE4AD  // ? pad... 
+// paf_06CBE4AD  // ? pad...
 
 // paf_DE35D405  // ?
 
@@ -1309,18 +1307,4 @@ extern void paf_503187C0(void);  // base pointer, pad
 extern int32_t paf_55F2C2A6(void);  // eject disk
 
 
-#endif // __PAF_H__ 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif // __PAF_H__

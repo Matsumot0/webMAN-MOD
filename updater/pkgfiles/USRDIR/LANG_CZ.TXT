@@ -119,13 +119,13 @@ STR_EJECTED			[Disk vysunut.]
 STR_LOADED			[Disk vložen.]
                 	
 STR_GAMETOM			[Hra pro vložení]
-STR_GAMELOADED		[Hra úspěšně načtena. Spusť hru pomocí disk ikony<br>nebo z <b>/app_home</b>&nbsp;XMB vstupu.<hr/>Klini <a href="/mount.ps3/unmount">zde</a> pro odebrání hry.]
+STR_GAMELOADED		[Hra úspěšně načtena. Spusť hru pomocí disk ikony<br>nebo z <b>/app_home</b>&nbsp;XMB vstupu.</a><hr/>Klini <a href="/mount.ps3/unmount">zde</a> pro odebrání hry.]
 STR_PSPLOADED		[Hra úspěšně načtena. Spusť hru pomocí <b>PSP Launcher</b>.<hr/>]
 STR_PS2LOADED		[Hra úspěšně načtena. Spusť hru pomocí <b>PS2 Classic Launcher</b>.<hr/>]
 STR_LOADED2			[načteno   ]
                 	
 STR_MOVIETOM		[Načtení filmu]
-STR_MOVIELOADED		[Film načten úspěšně. Spusť film z diskové ikony<br>pod Video kolonkou.<hr/>Klini <a href="/mount.ps3/unmount">zde</a> pro odebrání filmu.]
+STR_MOVIELOADED		[Film načten úspěšně. Spusť film z diskové ikony<br>pod Video kolonkou.</a><hr/>Klini <a href="/mount.ps3/unmount">zde</a> pro odebrání filmu.]
                 	
 STR_XMLRF			[Seznam her obnoven (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Klini <a href="/restart.ps3">zde</a> pro restartování PLAYSTATION®3 systému.]
                 	

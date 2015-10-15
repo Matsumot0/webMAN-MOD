@@ -488,9 +488,9 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 			else if(strstr(param, "/PSPISO") || strstr(param, "/ISO/"))
 				sprintf(tempstr, "%s: %s<hr><img src=\"%s\" height=%i><hr>%s", STR_GAMETOM, templn, enc_dir_name, strcasestr(enc_dir_name,".png")?200:300, mounted?STR_PSPLOADED:STR_ERROR);
 			else if(strstr(param, "/BDISO") || strstr(param, "/DVDISO") || !extcmp(param, ".ntfs[BDISO]", 12) || !extcmp(param, ".ntfs[DVDISO]", 13))
-				sprintf(tempstr, "%s: %s<hr><a href=\"/dev_bdvd\"><img src=\"%s\" border=0></a><hr>%s", STR_MOVIETOM, templn, enc_dir_name, mounted?STR_MOVIELOADED:STR_ERROR);
+				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><a href=\"/play.ps3\"><img src=\"%s\" border=0></a><hr><a href=\"/dev_bdvd\">%s</a>", STR_MOVIETOM, templn, templn, enc_dir_name, mounted?STR_MOVIELOADED:STR_ERROR);
 			else
-				sprintf(tempstr, "%s: %s<hr><a href=\"/dev_bdvd\"><img src=\"%s\" border=0></a><hr>%s", STR_GAMETOM, templn, enc_dir_name, mounted?STR_GAMELOADED:STR_ERROR);
+				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><a href=\"/play.ps3\"><img src=\"%s\" border=0></a><hr><a href=\"/dev_bdvd\">%s</a>", STR_GAMETOM, templn, templn, enc_dir_name, mounted?STR_GAMELOADED:STR_ERROR);
 
 			strcat(buffer, tempstr);
 
@@ -576,7 +576,12 @@ static void do_umount_iso(void)
 	if(effective_disctype != DISC_TYPE_NONE)
 	{
 		cobra_send_fake_disc_eject_event();
-		sys_timer_usleep(4000);
+		for(u8 m=0; m<25; m++)
+		{
+			sys_timer_usleep(4000);
+
+			if(!isDir("/dev_bdvd")) break;
+		}
 	}
 
 	if(iso_disctype != DISC_TYPE_NONE) cobra_umount_disc_image();
@@ -585,7 +590,7 @@ static void do_umount_iso(void)
 	if(real_disctype != DISC_TYPE_NONE)
 	{
 		cobra_send_fake_disc_insert_event();
-		for(u8 m=0; m<22; m++)
+		for(u8 m=0; m<25; m++)
 		{
 			sys_timer_usleep(4000);
 
@@ -600,7 +605,7 @@ static void do_umount(bool clean)
 {
 	if(clean) cellFsUnlink((char*)WMTMP "/last_game.txt");
 
-	fan_ps2_mode=false;
+	if(fan_ps2_mode) reset_fan_mode();
 
 #ifdef COBRA_ONLY
 	//if(cobra_mode)
@@ -704,7 +709,8 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 	if(is_mounting) return false;
 
 	bool ret=true;
-	fan_ps2_mode=false;
+
+	if(fan_ps2_mode) reset_fan_mode();
 
 	is_mounting=true;
 
@@ -2055,7 +2061,7 @@ patch:
 			poke_lv1(HV_START_OFFSET_421 + 0x18, 0x65140cd200000000ULL);
 		}
 		else
-		if( (c_firmware>=4.30f && c_firmware<=4.53f) )
+		if(c_firmware>=4.30f && c_firmware<=4.53f)
 		{
 			poke_lv1(HV_START_OFFSET_430 + 0x00, 0x0000000000000001ULL);
 			poke_lv1(HV_START_OFFSET_430 + 0x08, 0xe0d251b556c59f05ULL);

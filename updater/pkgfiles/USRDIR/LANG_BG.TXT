@@ -119,13 +119,13 @@ STR_EJECTED			[Дискът е изкаран.]
 STR_LOADED			[Дискът е вкаран.]
                 	
 STR_GAMETOM			[Игра за монтиране]
-STR_GAMELOADED		[Играта е заредена успешно. Пуснете играта от иконката с диска<br>или от <b>/app_home</b>&nbsp;XMB вход.<hr/>Натиснете <a href="/mount.ps3/unmount">тук</a> , за да демонтирате играта.]
+STR_GAMELOADED		[Играта е заредена успешно. Пуснете играта от иконката с диска<br>или от <b>/app_home</b>&nbsp;XMB вход.</a><hr/>Натиснете <a href="/mount.ps3/unmount">тук</a> , за да демонтирате играта.]
 STR_PSPLOADED		[Играта е заредена успешно. Пуснете играта чрез <b>PSP Launcher</b>.<hr/>]
 STR_PS2LOADED		[Играта е заредена успешно. Пуснете играта чрез <b>PS2 Classic Launcher</b>.<hr/>]
 STR_LOADED2			[заредена   ]
                 	
 STR_MOVIETOM		[Филм за монтиране]
-STR_MOVIELOADED		[Филмът е зареден успешно. Пуснете филмът от иконката с диска<br>под Видео колоната.<hr/>Натиснете <a href="/mount.ps3/unmount">тук</a> , за да демонтирате филма.]
+STR_MOVIELOADED		[Филмът е зареден успешно. Пуснете филмът от иконката с диска<br>под Видео колоната.</a><hr/>Натиснете <a href="/mount.ps3/unmount">тук</a> , за да демонтирате филма.]
                 	
 STR_XMLRF			[Листата с игрите е опреснена (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Натиснете <a href="/restart.ps3">тук</a> , за да рестартирате Вашата PLAYSTATION®3 система.]
                 	

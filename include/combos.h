@@ -3,33 +3,46 @@
  RESET SAFE   : SELECT+R3+L2+R2
 
  REFRESH XML  : SELECT+L3 (+R2=profile1, +L2=profile2)
- UNLOAD WM    : L3+R2+R3
+ UNLOAD WM    : L3+R3+R2
+
+ PLAY_DISC    : L2+START
 
  PREV GAME    : SELECT+L1
  NEXT GAME    : SELECT+R1
- SHUTDOWN     : L3+R2+X
- RESTART      : L3+R2+O
+ UMNT_GAME    : SELECT+O (unmount)
 
- FAN CNTRL    : L3+R2+START
- SHOW TEMP    : SELECT+R3 / SELECT+START
+ SHUTDOWN     : L3+R2+X
+ SHUTDOWN  *2 : L3+R1+X (vsh shutdown)
+ RESTART      : L3+R2+O (lpar restart)
+ RESTART   *2 : L3+R1+O (vsh restart)
+
+ FAN CNTRL    : L3+R2+START  (enable/disable fancontrol)
+ SHOW TEMP    : SELECT+START (SELECT+START+R2 will show only copy progress) / SELECT+R3 (if rec video flag is disabled)
  DYNAMIC TEMP : SELECT+LEFT/RIGHT
  MANUAL TEMP  : SELECT+UP/DOWN
 
- SYSCALLS     : R2+TRIANGLE
- SHOW IDPS    : R2+O
- OFFLINE MODE : R2+口
+ REC VIDEO    : SELECT+R3
 
- EXT GAME DATA: SELECT+口
- MOUNT net0/  : SELECT+R2+口
- MOUNT net1/  : SELECT+L2+口
+ SYSCALLS     : R2+TRIANGLE
+ SHOW IDPS    : R2+O  (Abort copy/fix process)
+ OFFLINE MODE : R2+□
+
+ EXT GAME DATA: SELECT+□
+ MOUNT net0/  : SELECT+R2+□
+ MOUNT net1/  : SELECT+L2+□
 
  TOGGLE PS2CLASSIC    : SELECT+L2+TRIANGLE
  SWITCH PS2EMU        : SELECT+L2+R2
 
  COBRA TOGGLE         : L3+L2+TRIANGLE
- REBUG  Mode Switcher : L3+L2+口
+ REBUG  Mode Switcher : L3+L2+□
  Normal Mode Switcher : L3+L2+O
  DEBUG  Menu Switcher : L3+L2+X
+
+ Open File Manager : L2+R2+O
+ Open Games List   : L2+R2+R1+O
+ Open System Info  : L2+R2+L1+O
+ Open Setup        : L2+R2+L1+R1+O
 */
 		bool reboot = false;
 
@@ -61,6 +74,12 @@
 
 				if(data.len > 0)
 				{
+					if(!(webman_config->combo2 & PLAY_DISC) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] == CELL_PAD_CTRL_START) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_L2))
+					{
+						launch_disc((char*)"game", (char*)"seg_device"); // L2+START
+						break;
+					}
+
 					if((data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_SELECT))
 					{
 						if( !(webman_config->combo2 & (EXTGAMDAT | MOUNTNET0 | MOUNTNET1))         // Toggle External Game Data
@@ -267,9 +286,9 @@
 							}
 #endif
 
-#ifdef EXTRA_FEAT
+#ifdef XMB_SCREENSHOT
 							if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == (CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_L2) )
-								saveBMP();
+								saveBMP(); // L2 + R2 + SELECT + START
 							else
 #endif
 							{
@@ -304,6 +323,7 @@ show_popup:
 								cellFsGetFreeSize((char*)"/dev_hdd0", &blockSize, &freeSize);
 
 								u8 st, mode, speed, unknown;
+								if(fan_ps2_mode) speed=(int)(255.f*(float)(webman_config->ps2temp+1)/100.f); else
 								if(get_fan_policy_offset)
 								{
 									if(!webman_config->fanc)
@@ -319,6 +339,7 @@ show_popup:
 										pokeq(get_fan_policy_offset, backup[5]); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 									}
 								}
+
 								_meminfo meminfo;
 								{system_call_1(SC_GET_FREE_MEM, (uint64_t)(u32) &meminfo);}
 
@@ -362,7 +383,7 @@ show_popup:
 #else
 								sprintf(cfw_info, "%s", dex_mode ? "DEX" : "CEX");
 #endif
-								char smax[16]; if(max_temp) sprintf(smax, "   MAX: %i°C", max_temp); else if(webman_config->fanc==0) sprintf(smax, "   SYSCON"); else memset(smax, 0, 16);
+								char smax[16]; if(fan_ps2_mode) sprintf(smax, "   PS2 Mode"); else if(max_temp) sprintf(smax, "   MAX: %i°C", max_temp); else if(webman_config->fanc==0) sprintf(smax, "   SYSCON"); else memset(smax, 0, 16);
 
 								sprintf((char*)tmp, "CPU: %i°C  RSX: %i°C  FAN: %i%%   \r\n"
 													"%s: %id %02d:%02d:%02d%s\r\n"
@@ -503,20 +524,7 @@ show_popup:
 						else if(!(webman_config->combo & UNLOAD_WM) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_R3) ) // L3+R3+R2 (quit webMAN)
 						{
 #ifdef COBRA_ONLY
-							char tmp_name[30];
-							char tmp_filename[256];
-
-#ifndef SYSCALL8_OPCODE_PS3MAPI
-							#define SYSCALL8_OPCODE_PS3MAPI			 			0x7777
-							#define PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO			0x0047
-#endif
-							for (unsigned int slot = 1; slot < 7; slot++)
-							{
-								memset(tmp_name, 0, sizeof(tmp_name));
-								memset(tmp_filename, 0, sizeof(tmp_filename));
-								{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (u64)slot, (u64)(u32)tmp_name, (u64)(u32)tmp_filename); }
-								if(!strcmp(tmp_filename, "/dev_hdd0/plugins/wm_vsh_menu.sprx")) {cobra_unload_vsh_plugin(slot); break;}
-							}
+							get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload
 #endif
 							if(!webman_config->fanc || webman_config->ps2temp<33)
 								restore_fan(0); //restore syscon fan control mode
@@ -538,9 +546,9 @@ show_popup:
 						}
 					}
 					else
-					if(!(webman_config->combo & RESTARTPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_L3) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R1))
+					if((data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_L3) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R1))
 					{
-						if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CROSS) // L3+R1+X (vsh shutdown)
+						if(!(webman_config->combo & SHUT_DOWN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CROSS)) // L3+R1+X (vsh shutdown)
 						{
 							// vsh shutdown
 							working = 0;
@@ -551,7 +559,7 @@ show_popup:
 							sys_ppu_thread_exit(0);
 						}
 						else
-						if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) // L3+R1+O (vsh restart)
+						if(!(webman_config->combo & RESTARTPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE)) // L3+R1+O (vsh restart)
 						{
 							// vsh reboot
 							working = 0;
@@ -565,6 +573,24 @@ show_popup:
 					else
 					if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2)
 					{
+#ifdef PS3_BROWSER
+						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))==(CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE) && View_Find("game_plugin")==0) // L2+R2+O
+						{
+							do_umount(false); // prevent system freeze on disc icon
+
+							if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == (CELL_PAD_CTRL_L1 | CELL_PAD_CTRL_R1 | CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))
+								{vshmain_AE35CF2D("http://127.0.0.1/setup.ps3", 0); show_msg((char*)STR_WMSETUP);}     // L2+R2+L1+R1+O
+							else if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R1)
+								{vshmain_AE35CF2D("http://127.0.0.1/index.ps3", 0); show_msg((char*)STR_MYGAMES);}     // L2+R2+R1+O
+							else if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_L1)
+								{vshmain_AE35CF2D("http://127.0.0.1/cpursx.ps3", 0); show_msg((char*)"webMAN Info");}  // L2+R2+L1+O
+							else
+								{vshmain_AE35CF2D("http://127.0.0.1/", 0); show_msg((char*)"webMAN " WM_VERSION);}     // L2+R2+O
+
+							sys_timer_sleep(3);
+							break;
+						}
+#endif
 						if((copy_in_progress || fix_in_progress) && data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) // R2+O Abort copy process
 						{
 							fix_aborted=copy_aborted=true;
@@ -573,6 +599,9 @@ show_popup:
 						else
 						if(!(webman_config->combo & DISABLESH) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE) ) // R2+TRIANGLE Disable CFW Sycalls
 						{
+#ifdef COBRA_ONLY
+							get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload
+#endif
 							if(peekq(0x8000000000003000ULL)==SYSCALLS_UNAVAILABLE) {
 								{ BEEP2 }
 								show_msg((char*)STR_CFWSYSALRD);
@@ -604,7 +633,6 @@ show_popup:
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) ) // R2+O Show IDPS EID0+LV2
 						{
 							vshmain_is_ss_enabled = (void*)((int)getNIDfunc("vshmain", 0x981D7E9F, 0)); //is screenshot enabled?
-
 
 							if(vshmain_is_ss_enabled()==0)
 							{
@@ -727,7 +755,7 @@ show_popup:
 #ifdef REX_ONLY
 						if(!(webman_config->combo2 & REBUGMODE)
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE))
-						{ // L3+L2+口 REBUG Mode Switcher
+						{ // L3+L2+□ REBUG Mode Switcher
 							enable_dev_blind((char*)"REBUG Mode Switcher activated!");
 
 							if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.swp", &s)==CELL_FS_SUCCEEDED)

@@ -145,13 +145,13 @@ static char STR_HOME[8] = "Home";
 #define STR_LOADED		"Disc inserted."
 
 #define STR_GAMETOM		"Game to mount"
-#define STR_GAMELOADED	"Game loaded successfully. Start the game from the disc icon<br>or from <b>/app_home</b>&nbsp;XMB entry.<hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the game."
+#define STR_GAMELOADED	"Game loaded successfully. Start the game from the disc icon<br>or from <b>/app_home</b>&nbsp;XMB entry.</a><hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the game."
 #define STR_PSPLOADED	"Game loaded successfully. Start the game using <b>PSP Launcher</b>.<hr>"
 #define STR_PS2LOADED	"Game loaded successfully. Start the game using <b>PS2 Classic Launcher</b>.<hr>"
 #define STR_LOADED2		"loaded   "
 
 #define STR_MOVIETOM	"Movie to mount"
-#define STR_MOVIELOADED	"Movie loaded successfully. Start the movie from the disc icon<br>under the Video column.<hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the movie."
+#define STR_MOVIELOADED	"Movie loaded successfully. Start the movie from the disc icon<br>under the Video column.</a><hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the movie."
 
 #define STR_XMLRF		"Game list refreshed (<a href=\"" MY_GAMES_XML "\">mygames.xml</a>).<br>Click <a href=\"/restart.ps3\">here</a> to restart your PLAYSTATION®3 system now."
 
@@ -311,13 +311,13 @@ static char STR_EJECTED[50]			= "Disc ejected.";
 static char STR_LOADED[50]			= "Disc inserted.";
 
 static char STR_GAMETOM[50]			= "Game to mount";
-static char STR_GAMELOADED[250]		= "Game loaded successfully. Start the game from the disc icon<br>or from <b>/app_home</b>&nbsp;XMB entry.<hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the game.";
+static char STR_GAMELOADED[250]		= "Game loaded successfully. Start the game from the disc icon<br>or from <b>/app_home</b>&nbsp;XMB entry.</a><hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the game.";
 static char STR_PSPLOADED[230]		= "Game loaded successfully. Start the game using <b>PSP Launcher</b>.<hr>";
 static char STR_PS2LOADED[230]		= "Game loaded successfully. Start the game using <b>PS2 Classic Launcher</b>.<hr>";
 static char STR_LOADED2[50]			= "loaded   ";
 
 static char STR_MOVIETOM[50]		= "Movie to mount";
-static char STR_MOVIELOADED[250]	= "Movie loaded successfully. Start the movie from the disc icon<br>under the Video column.<hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the movie.";
+static char STR_MOVIELOADED[250]	= "Movie loaded successfully. Start the movie from the disc icon<br>under the Video column.</a><hr>Click <a href=\"/mount.ps3/unmount\">here</a> to unmount the movie.";
 
 static char STR_XMLRF[200]			= "Game list refreshed (<a href=\"" MY_GAMES_XML "\">mygames.xml</a>).<br>Click <a href=\"/restart.ps3\">here</a> to restart your PLAYSTATION®3 system now.";
 

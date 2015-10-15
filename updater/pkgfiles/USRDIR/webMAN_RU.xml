@@ -615,7 +615,7 @@
 			<Table key="webman_restart">
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Перезагрузить PS3</String></Pair>
-				<Pair key="info"><String>Консоль будт перезагружена [L3+R2+X]</String></Pair>
+				<Pair key="info"><String>Консоль будет перезагружена [L3+R2+X]</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/restart.ps3</String></Pair>
 			</Table>

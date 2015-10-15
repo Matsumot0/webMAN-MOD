@@ -46,6 +46,9 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 
 	if(View_Find("game_plugin"))
 	{
+#ifdef GET_KLICENSEE
+		sprintf(templn, " [<a href=\"/klic.ps3\">KLIC</a>]"); strcat(buffer, templn);
+#endif
 #ifdef VIDEO_REC
 		sprintf(templn, " [<a href=\"/videorec.ps3\">REC</a>]<hr><H2><a href=\"%s", search_url); strcat(buffer, templn);
 #else
@@ -69,6 +72,8 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 			if(strstr(param, "?d")) max_temp--;
 			webman_config->temp1=RANGE(max_temp, 40, MAX_TEMPERATURE); // dynamic fan max temperature in °C
 			webman_config->temp0=FAN_AUTO;
+
+			fan_ps2_mode=false;
 		}
 		else
 		{
@@ -76,16 +81,18 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 			if(strstr(param, "?d")) webman_config->manu--;
 			webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
 
-			webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f); // manual fan speed
-			webman_config->temp0=RANGE(webman_config->temp0, 0x33, MAX_FANSPEED);
-			fan_control(webman_config->temp0, 0);
+			reset_fan_mode();
 		}
 		save_settings();
 	}
 
 	char max_temp1[50], max_temp2[50]; max_temp2[0]=0;
 
-	if(!webman_config->fanc || (!webman_config->temp0 && !max_temp))
+	if(fan_ps2_mode)
+	{
+		sprintf(max_temp1, " (PS2 Mode: %i%%)", webman_config->ps2temp);
+	}
+	else if(!webman_config->fanc || (!webman_config->temp0 && !max_temp))
 		sprintf(max_temp1, " <small>[%s %s]</small>", STR_FANCTRL3, STR_DISABLED);
 	else if(max_temp)
 	{

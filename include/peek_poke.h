@@ -75,6 +75,16 @@ uint64_t convertH(char *val)
 	return ret;
 }
 
+#ifdef GET_KLICENSEE
+char *hex_dump(char *buffer, int offset, int size)
+{
+	for (int k = 0; k < size ; k++)
+	{
+		sprintf(&buffer[2 * k],"%02X", (unsigned int)(((unsigned char*)offset)[k]));
+	}
+	return buffer;
+}
+#endif
 
 /*
 s32 lv2_get_platform_info(struct platform_info *info)
