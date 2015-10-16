@@ -865,7 +865,7 @@ again3:
  #ifdef VIRTUAL_PAD
 			if(strstr(param, "/pad.ps3") || strstr(param, "/combo.ps3") || strstr(param, "/play.ps3"))
 			{
-				u8 is_combo = (param[2]=='a') ? 0 : (param[1]=='c') ? 2 : 1;
+				u8 is_combo = (param[2]=='a') ? 0 : (param[1]=='c') ? 2 : 1; // 0 = /pad.ps3   1 = /play.ps3   2 = /combo.ps3
 
 				if(is_combo != 1) {if(!webman_config->nopad) parse_pad_command(param+9+is_combo, is_combo);}
 				else

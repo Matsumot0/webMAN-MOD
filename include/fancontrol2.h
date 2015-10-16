@@ -49,11 +49,11 @@ static void poll_thread(uint64_t poll)
 
 	u8 to=0;
 	u8 sec=0;
-	u8 step=3;
 	u32 t1=0, t2=0;
 	u8 lasttemp=0;
 	u8 stall=0;
-	u8 step_up=5;
+	const u8 step=3;
+	const u8 step_up=5;
 	//u8 step_down=2;
 	u8 smoothstep=0;
 	int delta=0;
@@ -219,6 +219,7 @@ static void poll_thread(uint64_t poll)
 
 #ifdef WM_REQUEST
 		// Poll requests via local file
+		if((sec & 1) && (gTick.tick>rTick.tick)) continue; // slowdown polling if ingame
 		if(cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &stat)==CELL_FS_SUCCEEDED)
 		{
 			loading_html++;
