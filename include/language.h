@@ -61,6 +61,7 @@ static char STR_HOME[8] = "Home";
  #define STR_NOSINGSTAR	"Remove SingStar icon"
 #endif
 #define STR_RESET_USB	"Disable Reset USB Bus"
+#define STR_AUTO_PLAY	"Auto-Play"
 #define STR_TITLEID		"Include the ID as part of the title of the game"
 #define STR_FANCTRL		"Enable dynamic fan control"
 #define STR_NOWARN		"Disable temperature warnings"
@@ -228,6 +229,7 @@ static char STR_NOWMDN[200]			= "Disable startup notification of WebMAN on the X
 static char STR_NOSINGSTAR[100]		= "Remove SingStar icon";
 #endif
 static char STR_RESET_USB[100]		= "Disable Reset USB Bus";
+static char STR_AUTO_PLAY[100]		= "Auto-Play";
 static char STR_TITLEID[200]		= "Include the ID as part of the title of the game";
 static char STR_FANCTRL[120]		= "Enable dynamic fan control";
 static char STR_NOWARN[120]			= "Disable temperature warnings";
@@ -605,6 +607,7 @@ static void update_language(void)
 		language("STR_NOSINGSTAR", STR_NOSINGSTAR);
 #endif
 		language("STR_RESET_USB", STR_RESET_USB);
+		language("STR_AUTO_PLAY", STR_AUTO_PLAY);
 		language("STR_TITLEID", STR_TITLEID);
 		language("STR_FANCTRL", STR_FANCTRL);
 		language("STR_NOWARN", STR_NOWARN);

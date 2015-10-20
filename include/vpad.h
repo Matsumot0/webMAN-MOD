@@ -161,3 +161,20 @@ static void parse_pad_command(char *param, u8 is_combo)
 	}
 }
 #endif
+
+static CellPadData pad_read(void)
+{
+	CellPadData pad_data; pad_data.len=0;
+
+	for(u8 n=0;n<10;n++)
+	{
+		if(cellPadGetData(0, &pad_data) != CELL_PAD_OK || pad_data.len == 0)
+			if(cellPadGetData(1, &pad_data) != CELL_PAD_OK || pad_data.len == 0)
+					cellPadGetData(2, &pad_data);
+
+		if(pad_data.len > 0) break;
+		sys_timer_usleep(100000);
+	}
+
+	return pad_data;
+}

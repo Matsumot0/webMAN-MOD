@@ -125,7 +125,7 @@ static int32_t rsx_fifo_pause(uint8_t pause)
 /***********************************************************************
 *
 ***********************************************************************/
-static void init_graphic()
+static void init_graphic(void)
 {
 	memset(&ctx, 0, sizeof(DrawCtx));
 
@@ -152,7 +152,7 @@ static void init_graphic()
 	memcpy((uint8_t *)ctx.canvas, (uint8_t *)ctx.bg, CANVAS_W * CANVAS_H * 4);
 }
 
-static void saveBMP()
+static void saveBMP(void)
 {
 	char path[64];
 

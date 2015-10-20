@@ -1,5 +1,12 @@
 #define MAX_LAST_GAMES (5)
 
+// File name TAGS:
+// [auto]   Auto-play
+// [online] Auto-disable syscalls
+// [gd]     Auto-enable external gameDATA
+// [raw]    Use raw_iso.sprx to mount the ISO (ntfs)
+// [PS2]    PS2 extracted folders in /PS2DISC (needs PS2_DISC compilation flag)
+
 typedef struct
 {
 	uint8_t last;
@@ -302,6 +309,14 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 
 		if(mount_ps3)
 		{
+			if(mounted && View_Find("game_plugin")==0 && strstr(param, "/PSPISO")==NULL && extcmp(param, ".BIN.ENC", 8)!=0)
+			{
+				CellPadData pad_data = pad_read();
+				bool atag = (strcasestr(param, AUTOPLAY_TAG)!=NULL) || (webman_config->autoplay);
+				bool r2 = (pad_data.len>0 && pad_data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2));
+				if((atag && !r2) || (!atag && r2)) {sys_timer_sleep(1); launch_disc((char*)"game", (char*)"seg_device");} // L2 + X or R2 + X
+			}
+
 			is_busy=false;
 			return;
 		}
@@ -1318,7 +1333,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 		}
 	}
 
-	struct CellFsStat s; int fs;
+	struct CellFsStat s;
 	char titleID[10];
 
 	char _path[MAX_PATH_LEN];
@@ -1353,7 +1368,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 	{
 		//cobra_lib_init();
 
-		//if(!strstr(_path0, "/PSPISO/") && !strstr(_path0, "/ISO/"))
+		//if(!strstr(_path0, "/PSPISO") && !strstr(_path0, "/ISO/"))
 		{
 			int fd=0;
 			_lastgames lastgames; memset(&lastgames, 0, sizeof(_lastgames)); lastgames.last=250;
@@ -1530,7 +1545,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 		goto patch;
 	}
 
-	if((c_firmware>=4.65f) && strstr(_path, "/PS2ISO/")!=NULL)
+	if((c_firmware>=4.65f) && strstr(_path, "/PS2ISO")!=NULL)
 	{   // Auto remove "classic_ps2" flag for PS2 ISOs on rebug 4.65.2
 		disable_classic_ps2_mode();
 	}
@@ -1580,11 +1595,11 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 		cobra_send_fake_disc_eject_event();
 		sys_timer_usleep(4000);
 
-		if( strstr(_path, "/PS3ISO/") || strstr(_path, "/BDISO/")    || strstr(_path, "/DVDISO/") || strstr(_path, "/PS2ISO/") ||
-			strstr(_path, "/PSXISO/") || strstr(_path, "/PSXGAMES/") || strstr(_path, "/PSPISO/") || strstr(_path, "/ISO/")    ||
+		if( strstr(_path, "/PS3ISO") || strstr(_path, "/BDISO")    || strstr(_path, "/DVDISO") || strstr(_path, "/PS2ISO") ||
+			strstr(_path, "/PSXISO") || strstr(_path, "/PSXGAMES") || strstr(_path, "/PSPISO") || strstr(_path, "/ISO/")    ||
 			strstr(_path,"/net0/")    || strstr(_path,"/net1/")      || strstr(_path, "/net2/")   || strstr(_path, ".ntfs[") )
 		{
-			if( strstr(_path, "/PSXISO/") || strstr(_path, "/PSXGAMES/") ) select_ps1emu();
+			if( strstr(_path, "/PSXISO") || strstr(_path, "/PSXGAMES") ) select_ps1emu();
 
 			if(_next || _prev)
 				sys_timer_sleep(1);
@@ -1698,9 +1713,9 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 					}
 
 					strcpy(mynet_iso->path, _path+5);
-					if(strstr(_path, "/PS3ISO/")) mynet_iso->emu_mode=EMU_PS3; else
-					if(strstr(_path, "/BDISO/" )) mynet_iso->emu_mode=EMU_BD;  else
-					if(strstr(_path, "/DVDISO/")) mynet_iso->emu_mode=EMU_DVD; else
+					if(strstr(_path, "/PS3ISO")) mynet_iso->emu_mode=EMU_PS3; else
+					if(strstr(_path, "/BDISO" )) mynet_iso->emu_mode=EMU_BD;  else
+					if(strstr(_path, "/DVDISO")) mynet_iso->emu_mode=EMU_DVD; else
 					if(strstr(_path, "/PSX"))
 					{
 						TrackDef tracks[1];
@@ -1756,7 +1771,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 			{
 				cellFsUnlink((char*)WMNOSCAN); // remove wm_noscan if PS2ISO was already mounted
 
-				if(strstr(_path, "/PS3ISO/"))
+				if(strstr(_path, "/PS3ISO"))
 				{
  #ifdef FIX_GAME
 					if(webman_config->fixgame!=FIX_GAME_DISABLED)
@@ -1794,7 +1809,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 					goto patch;
 					//return;
 				}
-				else if(strstr(_path, "/PSPISO/") || strstr(_path, "/ISO/"))
+				else if(strstr(_path, "/PSPISO") || strstr(_path, "/ISO/"))
 				{
 					delete_history(false);
 
@@ -1810,11 +1825,11 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 						return true;
 					}
 				}
-				else if(strstr(_path, "/BDISO/"))
+				else if(strstr(_path, "/BDISO"))
 					cobra_mount_bd_disc_image(cobra_iso_list, iso_num);
-				else if(strstr(_path, "/DVDISO/"))
+				else if(strstr(_path, "/DVDISO"))
 					cobra_mount_dvd_disc_image(cobra_iso_list, iso_num);
-				else if(strstr(_path, "/PS2ISO/"))
+				else if(strstr(_path, "/PS2ISO"))
 				{
 					TrackDef tracks[1];
 					tracks[0].lba = 0;
@@ -1825,7 +1840,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 					// create "wm_noscan" to avoid re-scan of XML returning to XMB from PS2
 					savefile((char*)WMNOSCAN, NULL, 0);
 				}
-				else if(strstr(_path, "/PSXISO/") || strstr(_path, "/PSXGAMES/"))
+				else if(strstr(_path, "/PSXISO") || strstr(_path, "/PSXGAMES"))
 				{
 					if(!extcasecmp(_path, ".cue", 4))
 					{
@@ -1937,18 +1952,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 			int special_mode=0;
 
  #ifdef EXTRA_FEAT
-			CellPadData pad_data;
-			pad_data.len=0;
-
-			for(u8 n=0;n<10;n++)
-			{
-				if(cellPadGetData(0, &pad_data) != CELL_PAD_OK || pad_data.len == 0)
-					if(cellPadGetData(1, &pad_data) != CELL_PAD_OK || pad_data.len == 0)
-							cellPadGetData(2, &pad_data);
-
-				if(pad_data.len > 0) break;
-				sys_timer_usleep(100000);
-			}
+			CellPadData pad_data = pad_read();
 
 			if(pad_data.len > 0 && (pad_data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_SELECT)) special_mode=true; //mount also app_home / eject disc
 			sys_timer_usleep(10000);
@@ -1957,10 +1961,10 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
  #endif //#ifdef EXTRA_FEAT
 
 			// -- get TitleID from PARAM.SFO
-			char filename[MAX_PATH_LEN];
-
+ #ifndef FIX_GAME
 			memset(titleID, 0, 10);
 
+			char filename[MAX_PATH_LEN];
 			sprintf(filename, "%s/PS3_GAME/PARAM.SFO", _path);
 			if(cellFsOpen(filename, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 			{
@@ -1971,58 +1975,12 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 				cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
 				cellFsClose(fs);
 
- #ifndef FIX_GAME
 				// get titleid
 				fix_param_sfo(mem, titleID, 0);
- #else
-				// fix ps3 extra
-				char tmp_path[MAX_PATH_LEN]; sprintf(tmp_path, "%s/PS3_EXTRA", _path);
-				if(webman_config->fixgame!=FIX_GAME_DISABLED && isDir(tmp_path) && fix_ps3_extra(mem))
-				{
-					savefile(filename, paramsfo, msiz);
-				}
-
-				tmp_path[10]=0;
-
-				// get titleid & fix game folder if version is higher than cfw
-				if((fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) && webman_config->fixgame!=FIX_GAME_DISABLED && !strstr(tmp_path, "/net") && !strstr(tmp_path, "/dev_bdvd") && !strstr(_path, ".ntfs["))
-				{
-					savefile(filename, paramsfo, msiz);
-
-					sprintf(filename, "%s %s", STR_FIXING, _path);
-					show_msg(filename);
-
-					// fix game folder
-					fix_in_progress=true; fix_aborted=false;
-
-					sprintf(filename, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN", titleID); // has update on hdd0?
-
-					if(cellFsStat(filename, &s)==CELL_FS_SUCCEEDED)
-                    {
-						// fix PARAM.SFO on hdd0
-						sprintf(filename, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
-
-						if(cellFsOpen(filename, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
-						{
-							cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
-							cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
-							cellFsClose(fs);
-						}
-
-						if((webman_config->fixgame!=FIX_GAME_DISABLED) && (fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED)) savefile(filename, paramsfo, msiz);
-
-						sprintf(filename, "/dev_hdd0/game/%s/USRDIR", titleID); // fix update folder
-                    }
-					else
-						sprintf(filename, "%s/PS3_GAME/USRDIR", _path); // fix bdvd game
-
-					fix_game(filename);
-					fix_in_progress=false;
-
-					if(webman_config->fixgame==FIX_GAME_FORCED) {webman_config->fixgame=FIX_GAME_QUICK; save_settings();}
-				}
- #endif //#ifndef FIX_GAME
 			}
+ #else
+			fix_game(_path, titleID, webman_config->fixgame);
+ #endif //#ifndef FIX_GAME
 			// ----
 
 			// -- reset USB bus
@@ -2240,57 +2198,14 @@ patch:
 	}
 
 	// -- get TitleID from PARAM.SFO
+ #ifndef FIX_GAME
 	char filename[MAX_PATH_LEN];
 
 	sprintf(filename, "%s/PS3_GAME/PARAM.SFO", _path);
-	if(cellFsOpen(filename, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
-	{
-		char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
-		uint64_t msiz = 0;
-
-		cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
-		cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
-		cellFsClose(fs);
-
- #ifndef FIX_GAME
-		// get titleid
-		memset(titleID, 0, 10);
-		fix_param_sfo(mem, titleID, 0);
+	getTitleID(filename, titleID, 0);
  #else
-		// fix ps3 extra
-		char tmp_path[MAX_PATH_LEN]; sprintf(tmp_path, "%s/PS3_EXTRA", _path);
-		if(webman_config->fixgame!=FIX_GAME_DISABLED && isDir(tmp_path) && fix_ps3_extra(mem))
-		{
-			savefile(filename, paramsfo, msiz);
-		}
-
-		tmp_path[10]=0;
-
-		// get titleid & fix game folder if version is higher than cfw
-		if((fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) && webman_config->fixgame!=FIX_GAME_DISABLED && !strstr(tmp_path, "/dev_bdvd"))
-		{
-			savefile(filename, paramsfo, msiz);
-
-			sprintf(filename, "%s %s", STR_FIXING, _path);
-			show_msg(filename);
-
-			// fix game folder
-			fix_in_progress=true; fix_aborted=false;
-
-			sprintf(filename, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN", titleID); // has update on hdd0?
-
-			if(cellFsStat(filename, &s)==CELL_FS_SUCCEEDED)
-				sprintf(filename, "/dev_hdd0/game/%s/USRDIR", titleID);
-			else
-				sprintf(filename, "%s/PS3_GAME/USRDIR", _path);
-
-			fix_game(filename);
-			fix_in_progress=false;
-
-			if(webman_config->fixgame==FIX_GAME_FORCED) {webman_config->fixgame=FIX_GAME_QUICK; save_settings();}
-		}
+	fix_game(_path, titleID, webman_config->fixgame);
  #endif //#ifndef FIX_GAME
-	}
 	// ----
 
 	//----------------------------------
@@ -2419,33 +2334,30 @@ exit_mount:
 
 #ifdef FIX_GAME
 	// re-check PARAM.SFO to notify if game needs to be fixed
-	if(ret && (c_firmware<4.76f) && cellFsOpen("/dev_bdvd/PS3_GAME/PARAM.SFO", CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+	if(ret && (c_firmware<4.76f))
 	{
-		char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
-		uint64_t msiz = 0;
+		char filename[64];
+		sprintf(filename, "/dev_bdvd/PS3_GAME/PARAM.SFO");
+		getTitleID(filename, titleID, 0);
 
-		cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
-		cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
-		cellFsClose(fs);
+		// check update folder
+		sprintf(filename, "/dev_hdd0/game/%s", titleID);
 
-		fix_param_sfo(mem, titleID, 1); // show warning (if fix is needed)
+		if(isDir(filename))
+			sprintf(filename, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
+		else
+			sprintf(filename, "/dev_bdvd/PS3_GAME/PARAM.SFO");
 
-		// check update folder too!
-		sprintf(paramsfo, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
-		if(cellFsOpen(paramsfo, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
-		{
-			cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
-			cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
-			cellFsClose(fs);
-
-			fix_param_sfo(mem, titleID, 1); // show warning (if fix is needed)
-		}
+		getTitleID(filename, titleID, 1);
 	}
 #endif
 
 	delete_history(false);
 
 	if(!ret && !isDir("/dev_bdvd")) {char msg[MAX_PATH_LEN]; sprintf(msg, "%s %s", STR_ERROR, _path); show_msg(msg);}
+#ifdef REMOVE_SYSCALLS
+    else if(strcasestr(_path, "[online]")) remove_cfw_syscalls();
+#endif
 
 #ifdef COBRA_ONLY
 	{

@@ -31,7 +31,8 @@ PPU_PRX_LDLIBS 	+= -lcrashdump_system_export_stub \
                    -lstdc_export_stub \
                    -lpngdec_ppuonly_export_stub \
                    -lxsetting_export_stub \
-				   -lnetctl_main_export_stub
+                   -lvshnet_export_stub \
+                   -lnetctl_main_export_stub
 
 PPU_CFLAGS += -Os -ffunction-sections -fdata-sections -fno-builtin-printf -nodefaultlibs -std=gnu99 -Wno-shadow -Wno-unused-parameter
 #PPU_CFLAGS += -finline-limit=100

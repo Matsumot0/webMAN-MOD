@@ -154,7 +154,7 @@ bool is_cobra(void)
 
 	u32 version = 0x99999999;
 	if (sys_get_version(&version) < 0) return false;
-	if (version != 0x99999999)         return true;
+	if ((version & 0xFF00FF) == 0x04000F || (version & 0xFFFFFF) == 0x03550F)  return true;
 
 	return ret;
 }
@@ -303,6 +303,7 @@ int main()
 
 	sysLv2FsMkdir("/dev_hdd0/tmp", 0777);
 	sysLv2FsMkdir("/dev_hdd0/tmp/wm_lang", 0777);
+	sysLv2FsMkdir("/dev_hdd0/tmp/wm_combo", 0777);
 
 	// remove language files (old location)
 	sysLv2FsUnlink("/dev_hdd0/tmp/LANG_EN.TXT");
@@ -508,9 +509,13 @@ int main()
 		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/wm_vsh_menu.sprx", "/dev_hdd0/plugins/wm_vsh_menu.sprx");
 	}
 
-	// skip update custom language
+	// skip update custom language file
 	if(sysLv2FsStat("/dev_hdd0/tmp/wm_lang/LANG_XX.TXT", &stat))
 		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/LANG_XX.TXT", "/dev_hdd0/tmp/wm_lang/LANG_XX.TXT");
+
+	// skip update custom combo file
+	if(sysLv2FsStat("/dev_hdd0/tmp/wm_custom_combo", &stat))
+		CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/wm_custom_combo", "/dev_hdd0/tmp/wm_custom_combo");
 
 	CopyFile("/dev_hdd0/game/UPDWEBMOD/USRDIR/libfs.sprx", "/dev_hdd0/tmp/libfs.sprx");
 
@@ -601,6 +606,8 @@ cont:
 	// update dev_flash (rebug)
 	if((sysLv2FsStat("/dev_flash/vsh/module/webftp_server.sprx", &stat) == SUCCESS) || (sysLv2FsStat("/dev_flash/vsh/module/webftp_server.sprx.bak", &stat) == SUCCESS))
 	{
+		is_cobra(); // re-enable cobra if it's disabled
+
 		if(sysLv2FsStat("/dev_blind", &stat) != SUCCESS)
 			sys_fs_mount("CELL_FS_IOS:BUILTIN_FLSH1", "CELL_FS_FAT", "/dev_blind", 0);
 

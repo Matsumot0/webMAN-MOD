@@ -7,9 +7,9 @@
 
  PLAY_DISC    : L2+START
 
- PREV GAME    : SELECT+L1
- NEXT GAME    : SELECT+R1
- UMNT_GAME    : SELECT+O (unmount)
+ PREV GAME    : SELECT+L1                       *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_select_l1
+ NEXT GAME    : SELECT+R1                       *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_select_r1
+ UMNT_GAME    : SELECT+O (unmount)              *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_select_circle
 
  SHUTDOWN     : L3+R2+X
  SHUTDOWN  *2 : L3+R1+X (vsh shutdown)
@@ -24,11 +24,11 @@
  REC VIDEO    : SELECT+R3
  XMB SCRNSHOT : L2+R2+SELECT+START
 
- SYSCALLS     : R2+TRIANGLE
- SHOW IDPS    : R2+O  (Abort copy/fix process)
- OFFLINE MODE : R2+□
+ SYSCALLS     : R2+TRIANGLE                     *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_r2_triangle
+ SHOW IDPS    : R2+O  (Abort copy/fix process)  *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_r2_circle
+ OFFLINE MODE : R2+□                            *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_r2_square
 
- EXT GAME DATA: SELECT+□
+ EXT GAME DATA: SELECT+□                        *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_select_square
  MOUNT net0/  : SELECT+R2+□
  MOUNT net1/  : SELECT+L2+□
 
@@ -40,16 +40,14 @@
  Normal Mode Switcher : L3+L2+O
  DEBUG  Menu Switcher : L3+L2+X
 
- Open File Manager : L2+R2+O
- Open Games List   : L2+R2+R1+O
- Open System Info  : L2+R2+L1+O
- Open Setup        : L2+R2+L1+R1+O
+ Open File Manager : L2+R2+O                    *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_l2_r2_circle
+ Open Games List   : L2+R2+R1+O                 *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_l2_r2_r1_circle
+ Open System Info  : L2+R2+L1+O                 *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_l2_r2_l1_circle
+ Open Setup        : L2+R2+L1+R1+O              *or* Custom Combo -> /dev_hdd0/tmp/wm_combo/wm_custom_l2_r2_l1_r1_circle
 */
 		bool reboot = false;
 
-#ifdef COBRA_ONLY
 		struct CellFsStat s;
-#endif
 
 		CellPadData data;
 
@@ -96,12 +94,22 @@
 							{if(webman_config->netp1 && webman_config->neth1[0]) mount_with_mm((char*)"/net1", 1);}
 							else
 #endif
-
-#ifdef EXT_GDATA
-							set_gamedata_status(extgd^1, true);
+							{
+#ifdef WM_CUSTOM_COMBO
+								if(cellFsStat((char*)WM_CUSTOM_COMBO "select_square", &s)==CELL_FS_SUCCEEDED)
+								{
+									sysLv2FsLink(WM_CUSTOM_COMBO "select_square", "/dev_hdd0/tmp/wm_request"); break;
+								}
+								else
 #endif
-							sys_timer_sleep(2);
-							break;
+								{
+#ifdef EXT_GDATA
+									set_gamedata_status(extgd^1, true);
+#endif
+									sys_timer_sleep(2);
+									break;
+								}
+							}
 						}
 						else
 						if( !(webman_config->combo & FAIL_SAFE)
@@ -155,113 +163,7 @@
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) // SELECT+L2+R2
 							&& (c_firmware>=4.53f) )
 						{
-								enable_dev_blind((char*)"Swapping ps2emu activated!");
- #ifdef REX_ONLY
-								if(cellFsStat((char*)REBUG_TOOLBOX "ps2_netemu.self", &s)==CELL_FS_SUCCEEDED)
-								{
-									uint64_t size1, size2;
-
-									// ---- Backup PS2Emus to Rebug Toolbox folder ----
-									if( cellFsStat( (char*)REBUG_TOOLBOX "ps2_netemu.self.cobra", &s)!=CELL_FS_SUCCEEDED )
-										  filecopy( (char*)PS2_EMU_PATH  "ps2_netemu.self",
-													(char*)REBUG_TOOLBOX "ps2_netemu.self.cobra", COPY_WHOLE_FILE);
-
-									if( cellFsStat( (char*)REBUG_TOOLBOX "ps2_gxemu.self.cobra", &s)!=CELL_FS_SUCCEEDED )
-										  filecopy( (char*)PS2_EMU_PATH  "ps2_gxemu.self",
-													(char*)REBUG_TOOLBOX "ps2_gxemu.self.cobra", COPY_WHOLE_FILE);
-
-									if( cellFsStat( (char*)REBUG_TOOLBOX "ps2_emu.self.cobra", &s)!=CELL_FS_SUCCEEDED )
-										  filecopy( (char*)PS2_EMU_PATH  "ps2_emu.self",
-													(char*)REBUG_TOOLBOX "ps2_emu.self.cobra", COPY_WHOLE_FILE);
-
-									// ---- Swap ps2_netemu.self ----
-									size1 = size2 = 0;
-									if( cellFsStat((char*)PS2_EMU_PATH  "ps2_netemu.self", &s)==CELL_FS_SUCCEEDED) size1 = s.st_size;
-									if( cellFsStat((char*)REBUG_TOOLBOX "ps2_netemu.self", &s)==CELL_FS_SUCCEEDED) size2 = s.st_size;
-
-									show_msg((size1==size2) ?   (char*)"Restoring original Cobra ps2emu...":
-																(char*)"Switching to custom ps2emu...");
-
-									if(size1>0 && size2>0)
-										filecopy((size1==size2) ?   (char*)REBUG_TOOLBOX "ps2_netemu.self.cobra":
-																	(char*)REBUG_TOOLBOX "ps2_netemu.self",
-																	(char*)PS2_EMU_PATH  "ps2_netemu.self", COPY_WHOLE_FILE);
-
-									// ---- Swap ps2_gxemu.self ----
-									size1 = size2 = 0;
-									if( cellFsStat((char*)PS2_EMU_PATH  "ps2_gxemu.self", &s)==CELL_FS_SUCCEEDED) size1 = s.st_size;
-									if( cellFsStat((char*)REBUG_TOOLBOX "ps2_gxemu.self", &s)==CELL_FS_SUCCEEDED) size2 = s.st_size;
-
-									if(size1>0 && size2>0)
-										filecopy((size1==size2) ?   (char*)REBUG_TOOLBOX "ps2_gxemu.self.cobra":
-																	(char*)REBUG_TOOLBOX "ps2_gxemu.self",
-																	(char*)PS2_EMU_PATH  "ps2_gxemu.self", COPY_WHOLE_FILE);
-
-									// ---- Swap ps2_emu.self ----
-									size1 = size2 = 0;
-									if( cellFsStat((char*)PS2_EMU_PATH  "ps2_emu.self", &s)==CELL_FS_SUCCEEDED) size1 = s.st_size;
-									if( cellFsStat((char*)REBUG_TOOLBOX "ps2_emu.self", &s)==CELL_FS_SUCCEEDED) size2 = s.st_size;
-
-									if(size1>0 && size2>0)
-										filecopy((size1==size2) ?   (char*)REBUG_TOOLBOX "ps2_emu.self.cobra":
-																	(char*)REBUG_TOOLBOX "ps2_emu.self",
-																	(char*)PS2_EMU_PATH  "ps2_emu.self", COPY_WHOLE_FILE);
-								}
-								else
- #endif //#ifdef REX_ONLY
-								if(cellFsStat((char*)PS2_EMU_PATH "ps2_netemu.self.swap", &s)==CELL_FS_SUCCEEDED)
-								{
-									show_msg((char*)"Switch to custom ps2emu...");
-
-									cellFsRename(PS2_EMU_PATH "ps2_netemu.self"     , PS2_EMU_PATH "ps2_netemu.tmp");
-									cellFsRename(PS2_EMU_PATH "ps2_netemu.self.swap", PS2_EMU_PATH "ps2_netemu.self");
-
-									cellFsRename(PS2_EMU_PATH "ps2_gxemu.self"      , PS2_EMU_PATH "ps2_gxemu.tmp");
-									cellFsRename(PS2_EMU_PATH "ps2_gxemu.self.swap" , PS2_EMU_PATH "ps2_gxemu.self");
-
-									cellFsRename(PS2_EMU_PATH "ps2_emu.self"        , PS2_EMU_PATH "ps2_emu.tmp");
-									cellFsRename(PS2_EMU_PATH "ps2_emu.self.swap"   , PS2_EMU_PATH "ps2_emu.self");
-								}
-								else if(cellFsStat((char*)PS2_EMU_PATH "ps2_netemu.self.sp", &s)==CELL_FS_SUCCEEDED)
-								{
-									show_msg((char*)"Switching to custom ps2emu...");
-
-									cellFsRename(PS2_EMU_PATH "ps2_netemu.self"   , PS2_EMU_PATH "ps2_netemu.tmp");
-									cellFsRename(PS2_EMU_PATH "ps2_netemu.self.sp", PS2_EMU_PATH "ps2_netemu.self");
-
-									cellFsRename(PS2_EMU_PATH "ps2_gxemu.self"    , PS2_EMU_PATH "ps2_gxemu.tmp");
-									cellFsRename(PS2_EMU_PATH "ps2_gxemu.self.sp" , PS2_EMU_PATH "ps2_gxemu.self");
-
-									cellFsRename(PS2_EMU_PATH "ps2_emu.self"      , PS2_EMU_PATH "ps2_emu.tmp");
-									cellFsRename(PS2_EMU_PATH "ps2_emu.self.sp"   , PS2_EMU_PATH "ps2_emu.self");
-								}
-								else if(cellFsStat(PS2_EMU_PATH "ps2_netemu.tmp", &s)==CELL_FS_SUCCEEDED)
-								{
-									show_msg((char*)"Restoring original ps2emu...");
-
-									if(c_firmware>=4.65f)
-									{
-										cellFsRename(PS2_EMU_PATH "ps2_netemu.self", PS2_EMU_PATH "ps2_netemu.self.swap");
-										cellFsRename(PS2_EMU_PATH "ps2_netemu.tmp" , PS2_EMU_PATH "ps2_netemu.self");
-
-										cellFsRename(PS2_EMU_PATH "ps2_gxemu.self" , PS2_EMU_PATH "ps2_gxemu.self.swap");
-										cellFsRename(PS2_EMU_PATH "ps2_gxemu.tmp"  , PS2_EMU_PATH "ps2_gxemu.self");
-
-										cellFsRename(PS2_EMU_PATH "ps2_emu.self"   , PS2_EMU_PATH "ps2_emu.self.swap");
-										cellFsRename(PS2_EMU_PATH "ps2_emu.tmp"    , PS2_EMU_PATH "ps2_emu.self");
-									}
-									else
-									{
-										cellFsRename(PS2_EMU_PATH "ps2_netemu.self", PS2_EMU_PATH "ps2_netemu.self.sp");
-										cellFsRename(PS2_EMU_PATH "ps2_netemu.tmp" , PS2_EMU_PATH "ps2_netemu.self");
-
-										cellFsRename(PS2_EMU_PATH "ps2_gxemu.self" , PS2_EMU_PATH "ps2_gxemu.self.sp");
-										cellFsRename(PS2_EMU_PATH "ps2_gxemu.tmp"  , PS2_EMU_PATH "ps2_gxemu.self");
-
-										cellFsRename(PS2_EMU_PATH "ps2_emu.self"   , PS2_EMU_PATH "ps2_emu.self.sp");
-										cellFsRename(PS2_EMU_PATH "ps2_emu.tmp"    , PS2_EMU_PATH "ps2_emu.self");
-									}
-								}
+								toggle_ps2emu();
 						}
 #endif //#ifdef COBRA_ONLY
 
@@ -415,89 +317,160 @@ show_popup:
 						else
 						if(webman_config->fanc && !(webman_config->combo & MANUALFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_UP) ) // SELECT+UP increase TEMP/FAN
 						{
-							if(max_temp) //auto mode
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_up", &s)==CELL_FS_SUCCEEDED)
 							{
-								if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) max_temp+=5; else max_temp+=1;
-								if(max_temp>85) max_temp=85;
-								webman_config->temp1=max_temp;
-								sprintf((char*) msg, "%s\r\n%s %i°C", STR_FANCH0, STR_FANCH1, max_temp);
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_up", "/dev_hdd0/tmp/wm_request"); break;
 							}
 							else
+#endif
 							{
-								if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) webman_config->manu+=5; else webman_config->manu+=1;
-								webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
-								webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f);
-								webman_config->temp0=RANGE(webman_config->temp0, 0x33, MAX_FANSPEED);
-								fan_control(webman_config->temp0, 0);
-								sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH2, webman_config->manu);
+								if(max_temp) //auto mode
+								{
+									if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) max_temp+=5; else max_temp+=1;
+									if(max_temp>85) max_temp=85;
+									webman_config->temp1=max_temp;
+									sprintf((char*) msg, "%s\r\n%s %i°C", STR_FANCH0, STR_FANCH1, max_temp);
+								}
+								else
+								{
+									if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) webman_config->manu+=5; else webman_config->manu+=1;
+									webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
+									webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f);
+									webman_config->temp0=RANGE(webman_config->temp0, 0x33, MAX_FANSPEED);
+									fan_control(webman_config->temp0, 0);
+									sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH2, webman_config->manu);
+								}
+								save_settings();
+								show_msg((char*) msg);
+								sys_timer_sleep(2);
 							}
-							save_settings();
-							show_msg((char*) msg);
-							sys_timer_sleep(2);
 						}
 						else
 						if(webman_config->fanc && !(webman_config->combo & MANUALFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_DOWN) ) // SELECT+DOWN increase TEMP/FAN
 						{
-							if(max_temp) //auto mode
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_down", &s)==CELL_FS_SUCCEEDED)
 							{
-								if(max_temp>30) {if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) max_temp-=5; else max_temp-=1;}
-								webman_config->temp1=max_temp;
-								sprintf((char*) msg, "%s\r\n%s %i°C", STR_FANCH0, STR_FANCH1, max_temp);
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_down", "/dev_hdd0/tmp/wm_request"); break;
 							}
 							else
+#endif
 							{
-								if(webman_config->manu>20) {if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) webman_config->manu-=5; else webman_config->manu-=1;}
-								webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f);
-								if(webman_config->temp0<0x33) webman_config->temp0=0x33;
-								if(webman_config->temp0>MAX_FANSPEED) webman_config->temp0=MAX_FANSPEED;
-								fan_control(webman_config->temp0, 0);
-								sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH2, webman_config->manu);
+								if(max_temp) //auto mode
+								{
+									if(max_temp>30) {if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) max_temp-=5; else max_temp-=1;}
+									webman_config->temp1=max_temp;
+									sprintf((char*) msg, "%s\r\n%s %i°C", STR_FANCH0, STR_FANCH1, max_temp);
+								}
+								else
+								{
+									if(webman_config->manu>20) {if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2) webman_config->manu-=5; else webman_config->manu-=1;}
+									webman_config->temp0= (u8)(((float)(webman_config->manu+1) * 255.f)/100.f);
+									if(webman_config->temp0<0x33) webman_config->temp0=0x33;
+									if(webman_config->temp0>MAX_FANSPEED) webman_config->temp0=MAX_FANSPEED;
+									fan_control(webman_config->temp0, 0);
+									sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH2, webman_config->manu);
+								}
+								save_settings();
+								show_msg((char*) msg);
+								sys_timer_sleep(2);
 							}
-							save_settings();
-							show_msg((char*) msg);
-							sys_timer_sleep(2);
 						}
 						else
 						if(webman_config->minfan && !(webman_config->combo & MINDYNFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_LEFT) ) // SELECT+LEFT decrease Minfan
 						{
-							if(webman_config->minfan-5>=MIN_FANSPEED) webman_config->minfan-=5;
-							sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH3, webman_config->minfan);
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_left", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_left", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+							{
+								if(webman_config->minfan-5>=MIN_FANSPEED) webman_config->minfan-=5;
+								sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH3, webman_config->minfan);
 
-							save_settings();
-							show_msg((char*) msg);
-							sys_timer_sleep(2);
+								save_settings();
+								show_msg((char*) msg);
+								sys_timer_sleep(2);
+							}
 						}
 						else
 						if(webman_config->minfan && !(webman_config->combo & MINDYNFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_RIGHT) ) // SELECT+RIGHT increase Minfan
 						{
-							if(webman_config->minfan+5<100) webman_config->minfan+=5;
-							sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH3, webman_config->minfan);
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_right", &s)==CELL_FS_SUCCEEDED)
+							{
+									sysLv2FsLink(WM_CUSTOM_COMBO "select_right", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+							{
+								if(webman_config->minfan+5<100) webman_config->minfan+=5;
+								sprintf((char*) msg, "%s\r\n%s %i%%", STR_FANCH0, STR_FANCH3, webman_config->minfan);
 
-							save_settings();
-							show_msg((char*) msg);
-							sys_timer_sleep(2);
+								save_settings();
+								show_msg((char*) msg);
+								sys_timer_sleep(2);
+							}
 						}
 						else
 						if(!(webman_config->combo & PREV_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_L1) ) // SELECT+L1 (previous title)
 						{
-							led(GREEN, BLINK_FAST);
-							mount_with_mm((char*)"_prev", 1);
-							sys_timer_sleep(3);
-							led(GREEN, ON);
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_l1", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_l1", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+							{
+								led(GREEN, BLINK_FAST);
+								mount_with_mm((char*)"_prev", 1);
+								sys_timer_sleep(3);
+								led(GREEN, ON);
+							}
 						}
 						else
 						if(!(webman_config->combo & NEXT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_R1) ) // SELECT+R1 (next title)
 						{
-							led(GREEN, BLINK_FAST);
-							mount_with_mm((char*)"_next", 1);
-							sys_timer_sleep(3);
-							led(GREEN, ON);
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_r1", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_r1", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+							{
+								led(GREEN, BLINK_FAST);
+								mount_with_mm((char*)"_next", 1);
+								sys_timer_sleep(3);
+								led(GREEN, ON);
+							}
 						}
 						else
 						if(!(webman_config->combo & UMNT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_CIRCLE) ) // SELECT+O (unmount)
 						{
-							do_umount(true);
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_circle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_circle", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+								do_umount(true);
 						}
+#ifdef WM_CUSTOM_COMBO
+						else
+						if(!(webman_config->combo & UMNT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_TRIANGLE) ) // SELECT+TRIANGLE
+						{
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_triangle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "select_triangle", "/dev_hdd0/tmp/wm_request"); break;
+							}
+						}
+#endif
 					}
 					else
 					if((data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_L3) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2))
@@ -525,7 +498,7 @@ show_popup:
 						else if(!(webman_config->combo & UNLOAD_WM) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_R3) ) // L3+R3+R2 (quit webMAN)
 						{
 #ifdef COBRA_ONLY
-							get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload
+							get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload vsh menu
 #endif
 							if(!webman_config->fanc || webman_config->ps2temp<33)
 								restore_fan(0); //restore syscon fan control mode
@@ -574,105 +547,103 @@ show_popup:
 					else
 					if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2)
 					{
-#ifdef PS3_BROWSER
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))==(CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE) && View_Find("game_plugin")==0) // L2+R2+O
 						{
-							do_umount(false); // prevent system freeze on disc icon
-
-							if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == (CELL_PAD_CTRL_L1 | CELL_PAD_CTRL_R1 | CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))
-								{vshmain_AE35CF2D("http://127.0.0.1/setup.ps3", 0); show_msg((char*)STR_WMSETUP);}     // L2+R2+L1+R1+O
-							else if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R1)
-								{vshmain_AE35CF2D("http://127.0.0.1/index.ps3", 0); show_msg((char*)STR_MYGAMES);}     // L2+R2+R1+O
-							else if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_L1)
-								{vshmain_AE35CF2D("http://127.0.0.1/cpursx.ps3", 0); show_msg((char*)"webMAN Info");}  // L2+R2+L1+O
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_circle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_circle", "/dev_hdd0/tmp/wm_request");
+							}
 							else
-								{vshmain_AE35CF2D("http://127.0.0.1/", 0); show_msg((char*)"webMAN " WM_VERSION);}     // L2+R2+O
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_l1_circle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_l1_circle", "/dev_hdd0/tmp/wm_request");
+							}
+							else
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_r1_circle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_r1_circle", "/dev_hdd0/tmp/wm_request");
+							}
+							else
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_l1_r1_circle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_l1_r1_circle", "/dev_hdd0/tmp/wm_request");
+							}
+							else
+#endif
+							{
+#ifdef PS3_BROWSER
+								do_umount(false); // prevent system freeze on disc icon
 
-							sys_timer_sleep(3);
+								if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == (CELL_PAD_CTRL_L1 | CELL_PAD_CTRL_R1 | CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))
+									{vshmain_AE35CF2D((char*)"http://127.0.0.1/setup.ps3", 0); show_msg((char*)STR_WMSETUP);}     // L2+R2+L1+R1+O
+								else if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R1)
+									{vshmain_AE35CF2D((char*)"http://127.0.0.1/index.ps3", 0); show_msg((char*)STR_MYGAMES);}     // L2+R2+R1+O
+								else if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_L1)
+									{vshmain_AE35CF2D((char*)"http://127.0.0.1/cpursx.ps3", 0); show_msg((char*)"webMAN Info");}  // L2+R2+L1+O
+								else
+									{vshmain_AE35CF2D((char*)"http://127.0.0.1/", 0); show_msg((char*)"webMAN " WM_VERSION);}     // L2+R2+O
+#endif
+								sys_timer_sleep(3);
+							}
 							break;
 						}
-#endif
 						if((copy_in_progress || fix_in_progress) && data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) // R2+O Abort copy process
 						{
 							fix_aborted=copy_aborted=true;
 						}
-#ifdef REMOVE_SYSCALLS
 						else
 						if(!(webman_config->combo & DISABLESH) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE) ) // R2+TRIANGLE Disable CFW Sycalls
 						{
-#ifdef COBRA_ONLY
-							get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload
-#endif
-							if(peekq(0x8000000000003000ULL)==SYSCALLS_UNAVAILABLE) {
-								{ BEEP2 }
-								show_msg((char*)STR_CFWSYSALRD);
-								sys_timer_sleep(2);
-							} else {
-								show_msg((char*)STR_CFWSYSRIP);
-								remove_cfw_syscalls();
-								delete_history(true);
-								if(peekq(0x8000000000003000ULL)==SYSCALLS_UNAVAILABLE) {
-									{ BEEP1 }
-									show_msg((char*)STR_RMVCFWSYS);
-									sys_timer_sleep(2);
-								} else {
-									{ BEEP2 }
-									show_msg((char*)STR_RMVCFWSYSF);
-									sys_timer_sleep(2);
-								}
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "r2_triangle", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "r2_triangle", "/dev_hdd0/tmp/wm_request"); break;
 							}
-						}
+							else
 #endif
+#ifdef REMOVE_SYSCALLS
+								disable_cfw_syscalls();
+#endif
+						}
 						else
-						if(!(webman_config->combo2 & BLOCKSVRS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) ) // R2+SQUARE
+						if(!(webman_config->combo2 & CUSTOMCMB) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) ) // R2+SQUARE
 						{
-							show_msg((char*)"Blocking servers");
-							block_online_servers();
-							show_msg((char*)"Servers blocked");
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "r2_square", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink(WM_CUSTOM_COMBO "r2_square", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+#ifdef WM_REQUEST
+							if(cellFsStat((char*)"/dev_hdd0/tmp/wm_custom_combo", &s)==CELL_FS_SUCCEEDED)
+							{
+								sysLv2FsLink("/dev_hdd0/tmp/wm_custom_combo", "/dev_hdd0/tmp/wm_request"); break;
+							}
+							else
+#endif
+							{
+								show_msg((char*)"Blocking servers");
+								block_online_servers();
+								show_msg((char*)"Servers blocked");
+							}
 						}
 						else
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) ) // R2+O Show IDPS EID0+LV2
 						{
-							vshmain_is_ss_enabled = (void*)((int)getNIDfunc("vshmain", 0x981D7E9F, 0)); //is screenshot enabled?
-
-							if(vshmain_is_ss_enabled()==0)
+#ifdef WM_CUSTOM_COMBO
+							if(cellFsStat((char*)WM_CUSTOM_COMBO "r2_circle", &s)==CELL_FS_SUCCEEDED)
 							{
-								set_SSHT_ = (uint32_t*)&opd;
-								memcpy(set_SSHT_, vshmain_is_ss_enabled, 8);
-								opd[0] -= 0x2C; // Sub before vshmain_981D7E9F sets Screenshot Flag
-								set_SSHT_(1);	// enable screenshot
-
-								show_msg((char*)"Screenshot enabled");
-								sys_timer_sleep(2);
+								sysLv2FsLink(WM_CUSTOM_COMBO "r2_circle", "/dev_hdd0/tmp/wm_request"); break;
 							}
-
-							uint64_t eid0_idps[2], buffer[0x40], start_sector;
-							uint32_t read;
-							sys_device_handle_t source;
-							if(sys_storage_open(0x100000000000004ULL, 0, &source, 0)!=0)
+							else
+#endif
 							{
-								start_sector = 0x204;
-								sys_storage_close(source);
-								sys_storage_open(0x100000000000001ULL, 0, &source, 0);
+								enable_ingame_screenshot();
+
+								show_idps(msg);
 							}
-							else start_sector = 0x178;
-							sys_storage_read(source, 0, start_sector, 1, buffer, &read, 0);
-							sys_storage_close(source);
-
-							eid0_idps[0]=buffer[0x0E];
-							eid0_idps[1]=buffer[0x0F];
-
-							get_idps_psid();
-
-							#define SEP "\n                  "
-							sprintf((char*) msg, "IDPS EID0 : %016llX" SEP
-															 "%016llX\n"
-												 "IDPS LV2  : %016llX" SEP
-															 "%016llX\r\n"
-												 "PSID LV2 : %016llX" SEP
-															"%016llX", eid0_idps[0], eid0_idps[1], IDPS[0], IDPS[1], PSID[0], PSID[1]);
-							show_msg((char*) msg);
-							sys_timer_sleep(2);
 						}
 					}
 					else
@@ -682,74 +653,7 @@ show_popup:
 						if(!(webman_config->combo & DISACOBRA)
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE))
 						{ // L3+L2+TRIANGLE COBRA Toggle
-							enable_dev_blind((char*)"COBRA Toggle activated!");
- #ifdef REX_ONLY
-							if( (cellFsStat((char*) REBUG_COBRA_PATH "stage2.cex", &s)==CELL_FS_SUCCEEDED) /* &&
-								(cellFsStat((char*) REBUG_COBRA_PATH "stage2.dex", &s)==CELL_FS_SUCCEEDED) */)
-							{
-								show_msg((char*)"REBUG COBRA is active!\r\nDeactivating COBRA...");
-
-								cellFsRename(REBUG_COBRA_PATH "stage2.cex", REBUG_COBRA_PATH "stage2.cex.bak");
-								cellFsRename(REBUG_COBRA_PATH "stage2.dex", REBUG_COBRA_PATH "stage2.dex.bak");
-								reboot=true; // vsh reboot
-							}
-							else if((cellFsStat((char*) REBUG_COBRA_PATH "stage2.cex.bak", &s)==CELL_FS_SUCCEEDED) /* &&
-									(cellFsStat((char*) REBUG_COBRA_PATH "stage2.dex.bak", &s)==CELL_FS_SUCCEEDED) */)
-							{
-								show_msg((char*)"REBUG COBRA is inactive!\r\nActivating COBRA...");
-
-								cellFsRename(REBUG_COBRA_PATH "stage2.cex.bak", REBUG_COBRA_PATH "stage2.cex");
-								cellFsRename(REBUG_COBRA_PATH "stage2.dex.bak", REBUG_COBRA_PATH "stage2.dex");
-								reboot=true; // vsh reboot
-							}
- #else
-
-							if(cellFsStat((char*)HABIB_COBRA_PATH "stage2.cex", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"COBRA is active!\r\nDeactivating COBRA...");
-
-								cellFsRename(HABIB_COBRA_PATH "stage2.cex", HABIB_COBRA_PATH "stage2_disabled.cex");
-
-								reboot=true; // vsh reboot
-							}
-							else if(cellFsStat((char*)HABIB_COBRA_PATH "stage2_disabled.cex", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"COBRA is inactive!\r\nActivating COBRA...");
-
-								cellFsRename(HABIB_COBRA_PATH "stage2_disabled.cex", HABIB_COBRA_PATH "stage2.cex");
-
-								reboot=true; // vsh reboot
-							}
-
-							if(cellFsStat((char*)SYS_COBRA_PATH "stage2.bin", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"COBRA is active!\r\nDeactivating COBRA...");
-
-								cellFsRename(SYS_COBRA_PATH "stage2.bin", SYS_COBRA_PATH "stage2_disabled.bin");
-
-								if(cellFsStat((char*)COLDBOOT_PATH ".normal", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(COLDBOOT_PATH          , COLDBOOT_PATH ".cobra");
-									cellFsRename(COLDBOOT_PATH ".normal", COLDBOOT_PATH);
-								}
-
-								reboot=true; // vsh reboot
-							}
-							else if(cellFsStat((char*)SYS_COBRA_PATH "stage2_disabled.bin", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"COBRA is inactive!\r\nActivating COBRA...");
-
-								cellFsRename(SYS_COBRA_PATH "stage2_disabled.bin", SYS_COBRA_PATH "stage2.bin");
-
-								if(cellFsStat((char*)COLDBOOT_PATH ".cobra", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(COLDBOOT_PATH         , COLDBOOT_PATH ".normal");
-									cellFsRename(COLDBOOT_PATH ".cobra", COLDBOOT_PATH);
-								}
-
-								reboot=true; // vsh reboot
-							}
- #endif //#ifdef REX_ONLY
+							reboot = toggle_cobra();
 						}
 #endif //#ifdef COBRA_ONLY
 
@@ -757,137 +661,19 @@ show_popup:
 						if(!(webman_config->combo2 & REBUGMODE)
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE))
 						{ // L3+L2+□ REBUG Mode Switcher
-							enable_dev_blind((char*)"REBUG Mode Switcher activated!");
-
-							if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.swp", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"Normal Mode detected!\r\nSwitch to REBUG Mode Debug XMB...");
-								sys_timer_sleep(3);
-
-								if(cellFsStat((char*) VSH_ETC_PATH "index.dat.swp", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.nrm");
-									cellFsRename(VSH_ETC_PATH "index.dat.swp", VSH_ETC_PATH "index.dat");
-								}
-
-								if(cellFsStat((char*) VSH_ETC_PATH "version.txt.swp", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.nrm");
-									cellFsRename(VSH_ETC_PATH "version.txt.swp", VSH_ETC_PATH "version.txt");
-								}
-
-								cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.nrm");
-								cellFsRename(VSH_MODULE_PATH "vsh.self.swp", VSH_MODULE_PATH "vsh.self");
-
-								reboot=true; // vsh reboot
-							}
-							else
-							if((cellFsStat((char*) VSH_MODULE_PATH "vsh.self.nrm", &s)==CELL_FS_SUCCEEDED)
-							&& (cellFsStat((char*) VSH_MODULE_PATH "vsh.self.cexsp", &s)==CELL_FS_SUCCEEDED))
-							{
-								show_msg((char*)"REBUG Mode Debug XMB detected!\r\nSwitch to Retail XMB...");
-								sys_timer_sleep(3);
-
-								cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.dexsp");
-								cellFsRename(VSH_MODULE_PATH "vsh.self.cexsp", VSH_MODULE_PATH "vsh.self");
-
-								reboot=true; // vsh reboot
-							}
-							else
-							if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.dexsp", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"REBUG Mode Retail XMB detected!\r\nSwitch to Debug XMB...");
-								sys_timer_sleep(3);
-
-								cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.cexsp");
-								cellFsRename(VSH_MODULE_PATH "vsh.self.dexsp", VSH_MODULE_PATH "vsh.self");
-
-								reboot=true; // vsh reboot
-							}
+							reboot = toggle_rebug_mode();
 						}
 						else
 						if(!(webman_config->combo2 & NORMAMODE)
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE))
 						{ // L3+L2+O Normal Mode Switcher
-							enable_dev_blind((char*)"Normal Mode Switcher activated!");
-
-							if((cellFsStat((char*) VSH_MODULE_PATH "vsh.self.nrm", &s)==CELL_FS_SUCCEEDED)
-							&& (cellFsStat(VSH_MODULE_PATH "vsh.self.cexsp", &s)==CELL_FS_SUCCEEDED))
-							{
-								show_msg((char*)"REBUG Mode Debug XMB detected!\r\nSwitch to Normal Mode...");
-
-								if(cellFsStat((char*) VSH_ETC_PATH "index.dat.nrm", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
-									cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
-								}
-
-								if(cellFsStat((char*) VSH_ETC_PATH "version.txt.nrm", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
-									cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
-								}
-
-								cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.swp");
-								cellFsRename(VSH_MODULE_PATH "vsh.self.nrm", VSH_MODULE_PATH "vsh.self");
-
-								reboot=true; // vsh reboot
-							}
-							else
-							if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.dexsp", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"REBUG Mode Retail XMB detected!\r\nSwitch to Normal Mode...");
-
-								if(cellFsStat((char*) VSH_ETC_PATH "index.dat.nrm", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
-									cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
-								}
-
-								if(cellFsStat((char*) VSH_ETC_PATH "version.txt.nrm", &s)==CELL_FS_SUCCEEDED)
-								{
-									cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
-									cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
-								}
-
-								cellFsRename(VSH_MODULE_PATH "vsh.self.dexsp", VSH_MODULE_PATH "vsh.self.swp");
-								cellFsRename(VSH_MODULE_PATH "vsh.self", VSH_MODULE_PATH "vsh.self.cexsp");
-								cellFsRename(VSH_MODULE_PATH "vsh.self.nrm", VSH_MODULE_PATH "vsh.self");
-
-								reboot=true; // vsh reboot
-							}
-							else
-							if(cellFsStat((char*) VSH_MODULE_PATH "vsh.self.swp", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"Normal Mode detected!\r\nNo need to switch!");
-								sys_timer_sleep(3);
-								{system_call_3(SC_FS_UMOUNT, (u64)(char*)"/dev_blind", 0, 1);}
-								break;
-							}
+							reboot = toggle_normal_mode();
 						}
 						else
 						if(!(webman_config->combo2 & DEBUGMENU)
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CROSS))
 						{ // L3+L2+X DEBUG Menu Switcher
-							enable_dev_blind((char*)"Debug Menu Switcher activated!");
-
-							if(cellFsStat((char*) VSH_MODULE_PATH "sysconf_plugin.sprx.dex", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"CEX QA Menu is active!\r\nSwitch to DEX Debug Menu...");
-
-								cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx", VSH_MODULE_PATH "sysconf_plugin.sprx.cex");
-								cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx.dex", VSH_MODULE_PATH "sysconf_plugin.sprx");
-							}
-							else
-							if(cellFsStat((char*) VSH_MODULE_PATH "sysconf_plugin.sprx.cex", &s)==CELL_FS_SUCCEEDED)
-							{
-								show_msg((char*)"DEX Debug Menu is active!\r\nSwitch to CEX QA Menu...");
-
-								cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx", VSH_MODULE_PATH "sysconf_plugin.sprx.dex");
-								cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx.cex", VSH_MODULE_PATH "sysconf_plugin.sprx");
-							}
-							sys_timer_sleep(1);
-							{system_call_3(SC_FS_UMOUNT, (u64)(char*)"/dev_blind", 0, 1);}
+							toggle_debug_menu();
 						}
 #endif //#ifdef REX_ONLY
 					}

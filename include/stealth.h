@@ -62,10 +62,38 @@ static void remove_cfw_syscalls(void)
 	if(sc6 !=sc_null) pokeq(sc6,  sc_not_impl_pt);
 	if(sc7 !=sc_null) pokeq(sc7,  sc_not_impl_pt);
 }
+
+static void disable_cfw_syscalls(void)
+{
+#ifdef COBRA_ONLY
+	get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload vsh menu
+#endif
+
+	if(peekq(0x8000000000003000ULL)==SYSCALLS_UNAVAILABLE) {
+		{ BEEP2 }
+		show_msg((char*)STR_CFWSYSALRD);
+		sys_timer_sleep(2);
+	} else {
+		show_msg((char*)STR_CFWSYSRIP);
+		remove_cfw_syscalls();
+		delete_history(true);
+		if(peekq(0x8000000000003000ULL)==SYSCALLS_UNAVAILABLE) {
+			{ BEEP1 }
+			show_msg((char*)STR_RMVCFWSYS);
+			sys_timer_sleep(2);
+		} else {
+			{ BEEP2 }
+			show_msg((char*)STR_RMVCFWSYSF);
+			sys_timer_sleep(2);
+		}
+	}
+}
 #endif
 
 static void block_online_servers(void)
 {
+	led(YELLOW, BLINK_FAST);
+
 	u64 mem=0;
 	for(u64 addr=0x860000; addr<0xFFFFF8ULL; addr+=4)//16MB
 	{
@@ -99,4 +127,39 @@ static void block_online_servers(void)
 	 else if(mem == 0x63726565706F2E77ULL)  // creepo.w
 	  pokeq(addr  , 0x0000000000000000ULL);
 	}
+
+	led(YELLOW, OFF);
+
+	led(GREEN, ON);
+}
+
+static void show_idps(char *msg)
+{
+	uint64_t eid0_idps[2], buffer[0x40], start_sector;
+	uint32_t read;
+	sys_device_handle_t source;
+	if(sys_storage_open(0x100000000000004ULL, 0, &source, 0)!=0)
+	{
+		start_sector = 0x204;
+		sys_storage_close(source);
+		sys_storage_open(0x100000000000001ULL, 0, &source, 0);
+	}
+	else start_sector = 0x178;
+	sys_storage_read(source, 0, start_sector, 1, buffer, &read, 0);
+	sys_storage_close(source);
+
+	eid0_idps[0]=buffer[0x0E];
+	eid0_idps[1]=buffer[0x0F];
+
+	get_idps_psid();
+
+	#define SEP "\n                  "
+	sprintf((char*) msg, "IDPS EID0 : %016llX" SEP
+									 "%016llX\n"
+						 "IDPS LV2  : %016llX" SEP
+									 "%016llX\r\n"
+						 "PSID LV2 : %016llX" SEP
+									"%016llX", eid0_idps[0], eid0_idps[1], IDPS[0], IDPS[1], PSID[0], PSID[1]);
+	show_msg((char*) msg);
+	sys_timer_sleep(2);
 }

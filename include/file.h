@@ -44,8 +44,8 @@ void add_log(const char *fmt, char *text)
 	{
 		uint64_t nrw; int size = strlen(buffer);
 		cellFsWrite(fd, buffer, size, &nrw);
+		cellFsClose(fd);
 	}
-	cellFsClose(fd);
 }
 */
 
@@ -280,11 +280,15 @@ static void delete_history(bool delete_folders)
 
 	if(!delete_folders) return;
 
-	cellFsRmdir("/dev_hdd0/GAMES");
 	cellFsRmdir("/dev_hdd0/GAMEZ");
+	cellFsRmdir("/dev_hdd0/GAMES");
+	cellFsRmdir("/dev_hdd0/GAMES [auto]");
 	cellFsRmdir("/dev_hdd0/PS3ISO");
+	cellFsRmdir("/dev_hdd0/PS3ISO [auto]");
 	cellFsRmdir("/dev_hdd0/PS2ISO");
+	cellFsRmdir("/dev_hdd0/PS2ISO [auto]");
 	cellFsRmdir("/dev_hdd0/PSXISO");
+	cellFsRmdir("/dev_hdd0/PSXISO [auto]");
 	cellFsRmdir("/dev_hdd0/PSXGAMES");
 	cellFsRmdir("/dev_hdd0/PSPISO");
 	cellFsRmdir("/dev_hdd0/ISO");

@@ -20,7 +20,7 @@
 #define MOUNTNET1 (1<<2)
 #define PS2TOGGLE (1<<3)
 #define PS2SWITCH (1<<4)
-#define BLOCKSVRS (1<<5)
+#define CUSTOMCMB (1<<5)
 #define XMLREFRSH (1<<6)
 #define UMNT_GAME (1<<7)
 #define VIDRECORD (1<<8)
@@ -105,6 +105,7 @@ static void setup_parse_settings(char *param)
 
 	if(strstr(param, "bus=1")) webman_config->bus=1;
 #endif
+	if(strstr(param, "apd=1")) webman_config->autoplay=1;
 #ifdef REX_ONLY
 	if(!strstr(param, "pr0=1")) webman_config->combo2|=REBUGMODE;
 	if(!strstr(param, "pr1=1")) webman_config->combo2|=NORMAMODE;
@@ -118,7 +119,7 @@ static void setup_parse_settings(char *param)
 	if(!strstr(param, "pn0=1")) webman_config->combo2|=MOUNTNET0;
 	if(!strstr(param, "pn1=1")) webman_config->combo2|=MOUNTNET1;
 #endif
-	if(!strstr(param, "psv=1")) webman_config->combo2|=BLOCKSVRS;
+	if(!strstr(param, "psv=1")) webman_config->combo2|=CUSTOMCMB;
 	if(!strstr(param, "pxr=1")) webman_config->combo2|=XMLREFRSH;
 	if(!strstr(param, "umt=1")) webman_config->combo2|=UMNT_GAME;
 	if(!strstr(param, "pld=1")) webman_config->combo2|=PLAY_DISC;
@@ -352,11 +353,18 @@ static void setup_parse_settings(char *param)
 		}
 #endif
 #endif
+
+#ifdef WM_REQUEST
+	char command[256];
+	pos=strstr(param, "ccbo="); memset(command, 0, 256);
+	if(pos) get_value(command, pos + 5, 255);
+	savefile((char*)"/dev_hdd0/tmp/wm_custom_combo", command, strlen(command));
+#endif
 }
 
 static void setup_form(char *buffer, char *templn)
 {
-	struct CellFsStat buf;
+	struct CellFsStat buf; int fd;
 
 	sprintf(templn, "<form action=\"/setup.ps3\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
 					"<table width=\"820\" border=\"0\" cellspacing=\"2\" cellpadding=\"0\">"
@@ -428,12 +436,13 @@ static void setup_form(char *buffer, char *templn)
 	add_check_box("ng" , "1", STR_NOGRP, NULL, (webman_config->nogrp), buffer);
 	add_check_box("ns" , "1", STR_NOSETUP,  NULL, (webman_config->noset), buffer);
 	add_check_box("nc" , "1", STR_MMCOVERS, NULL, (webman_config->nocov), buffer);
-	add_check_box("tid", "1", STR_TITLEID, NULL, (webman_config->tid), buffer);
+	add_check_box("tid", "1", STR_TITLEID,  NULL, (webman_config->tid),   buffer);
 
 	//game mounting
 #ifdef COBRA_ONLY
-	add_check_box("bus", "1", STR_RESET_USB  , NULL, (webman_config->bus), buffer);
+	add_check_box("bus", "1", STR_RESET_USB, NULL, (webman_config->bus), buffer);
 #endif
+	add_check_box("apd", "1", STR_AUTO_PLAY, NULL, (webman_config->autoplay), buffer);
 
 #ifdef FIX_GAME
 	if(c_firmware>=4.20f && c_firmware<4.76f)
@@ -532,8 +541,6 @@ static void setup_form(char *buffer, char *templn)
 	//default user account
 	strcat(buffer, "</select> : hdd0/home/<select name=\"uacc\">");
 	{
-		int fd;
-
 		if(cellFsOpendir("/dev_hdd0/home", &fd) == CELL_FS_SUCCEEDED)
 		{
 			CellFsDirent dir; u64 read = sizeof(CellFsDirent);
@@ -632,7 +639,6 @@ static void setup_form(char *buffer, char *templn)
 	add_check_box("pdf", "1", STR_FANCTRL4,   " : <b>L3+R2+START</b><br>"      , !(webman_config->combo & DISABLEFC), buffer);
 
 	add_check_box("umt", "1", STR_UNMOUNT,    " : <b>SELECT+O</b><br>"         , !(webman_config->combo2 & UMNT_GAME), buffer);
-	add_check_box("psv", "1", "OFFLINE",      " : <b>R2+&#9633;</b><br>"       , !(webman_config->combo2 & BLOCKSVRS), buffer);
 	add_check_box("pgd", "1", "gameDATA",     " : <b>SELECT+&#9633;</b><br>"   , !(webman_config->combo2 & EXTGAMDAT), buffer);
 
 	sprintf(templn, "%s XML", STR_REFRESH);
@@ -645,9 +651,19 @@ static void setup_form(char *buffer, char *templn)
 #ifdef REX_ONLY
 	add_check_box("pid", "1", STR_SHOWIDPS,   " : <b>R2+O</b><br>"             , !(webman_config->combo & SHOW_IDPS), buffer);
 	add_check_box("psd", "1", STR_SHUTDOWN2,  " : <b>L3+R2+X</b><br>"          , !(webman_config->combo & SHUT_DOWN), buffer);
-	add_check_box("prs", "1", STR_RESTART2,   " : <b>L3+R2+O</b></td><td>"     , !(webman_config->combo & RESTARTPS), buffer);
+	add_check_box("prs", "1", STR_RESTART2,   " : <b>L3+R2+O</b><br>"          , !(webman_config->combo & RESTARTPS), buffer);
+ #ifdef WM_REQUEST
+	add_check_box("psv", "1", "CUSTOM COMBO", " : <b>R2+&#9633;</b></td><td>"  , !(webman_config->combo2 & CUSTOMCMB), buffer);
+ #else
+	add_check_box("psv", "1", "BLOCK SERVERS"," : <b>R2+&#9633;</b></td><td>"  , !(webman_config->combo2 & CUSTOMCMB), buffer);
+ #endif
 #else
-	add_check_box("pid", "1", STR_SHOWIDPS,   " : <b>R2+O</b></td><td>"        , !(webman_config->combo & SHOW_IDPS), buffer);
+	add_check_box("pid", "1", STR_SHOWIDPS,   " : <b>R2+O</b><br>"             , !(webman_config->combo & SHOW_IDPS), buffer);
+ #ifdef WM_REQUEST
+	add_check_box("psv", "1", "CUSTOM COMBO", " : <b>R2+&#9633;</b></td><td>"  , !(webman_config->combo2 & CUSTOMCMB), buffer);
+ #else
+	add_check_box("psv", "1", "BLOCK SERVERS"," : <b>R2+&#9633;</b></td><td>"  , !(webman_config->combo2 & CUSTOMCMB), buffer);
+ #endif
 	add_check_box("psd", "1", STR_SHUTDOWN2,  " : <b>L3+R2+X</b><br>"          , !(webman_config->combo & SHUT_DOWN), buffer);
 	add_check_box("prs", "1", STR_RESTART2,   " : <b>L3+R2+O</b><br>"          , !(webman_config->combo & RESTARTPS), buffer);
 #endif
@@ -676,10 +692,25 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 	add_check_box("p2s", "1", "PS2 SWITCH",   " : <b>SELECT+L2+R2</b><br>"     , !(webman_config->combo2 & PS2SWITCH), buffer);
-	add_check_box("pld", "1", "PLAY DISC",    " : <b>L2+START</b><br>"         , !(webman_config->combo2 & PLAY_DISC), buffer);
+	add_check_box("pld", "1", "PLAY DISC",    " : <b>L2+START</b><br>"
+							  "</td></tr></table>"                             , !(webman_config->combo2 & PLAY_DISC), buffer);
 
-	sprintf(templn, "</td></tr></table>"
-					"<hr color=\"#FF0000\"/><input type=\"submit\" value=\" %s \"/>"
+#ifdef WM_REQUEST
+	if(cellFsOpen((char*)"/dev_hdd0/tmp/wm_custom_combo", CELL_FS_O_RDONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+	{
+		char command[256]; memset(command, 0, 256);
+		cellFsRead(fd, (void *)command, 255, NULL);
+		cellFsClose(fd);
+		sprintf(templn, "&nbsp; &nbsp;" HTML_INPUT("ccbo\" list=\"cmds", "%s", "255", "50") "<br>", command); strcat(buffer, templn);
+
+		strcat(buffer, "<datalist id=\"cmds\">");
+		strcat(buffer, "<option>GET /browser.ps3$block_servers</option>");
+		strcat(buffer, "<option>GET /klic.ps3?log</option>");
+		strcat(buffer, "</datalist>");
+	}
+#endif
+
+	sprintf(templn, "<hr color=\"#FF0000\"/><input type=\"submit\" value=\" %s \"/>"
 					"</form>", STR_SAVE); strcat(buffer, templn);
 
 	strcat(buffer,  "<hr color=\"#FF0000\"/>"
@@ -720,7 +751,7 @@ static int save_settings()
 	{
 		cellFsWrite(fdwm, (void *)wmconfig, sizeof(WebmanCfg), &written);
 		cellFsClose(fdwm);
-        return CELL_FS_SUCCEEDED;
+		return CELL_FS_SUCCEEDED;
 	}
 	else
 		return FAILED;
@@ -794,7 +825,9 @@ static void reset_settings()
 	//webman_config->vIDPS1[0]=webman_config->vIDPS2[0]=0;
 	//webman_config->vPSID1[0]=webman_config->vPSID2[0]=0;
 
-	//webman_config->bus=0;      //enable reset USB bus
+	//webman_config->bus=0;        //enable reset USB bus
+
+	//webman_config->autoplay=0;   //enable global autoplay
 
 	webman_config->combo=DISACOBRA; //disable combo for cobra toggle
 	webman_config->combo2|=(REBUGMODE|NORMAMODE|DEBUGMENU|PS2SWITCH|VIDRECORD); //disable combos for rebug/ps2 switch/video record
@@ -816,7 +849,7 @@ static void reset_settings()
 
 	strcpy(webman_config->autoboot_path, DEFAULT_AUTOBOOT_PATH);
 
-    int fdwm=0; cellFsStat(WMCONFIG, &buf);
+	int fdwm=0; cellFsStat(WMCONFIG, &buf);
 
 	for(u8 n=0;n<10;n++)
 	{

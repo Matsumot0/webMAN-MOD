@@ -76,7 +76,7 @@ uint64_t convertH(char *val)
 }
 
 #ifdef GET_KLICENSEE
-char *hex_dump(char *buffer, int offset, int size)
+static char *hex_dump(char *buffer, int offset, int size)
 {
 	for (int k = 0; k < size ; k++)
 	{

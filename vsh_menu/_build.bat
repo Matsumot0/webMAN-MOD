@@ -12,7 +12,7 @@ md data>nul
 if exist data\keys del /q data\*>nul
 copy ..\data\* data>nul
 
-%CYGWIN%\bash --login -i -c 'make'
+%CYGWIN%\bash --login -i -c 'make;exit'
 
 del /q data\*>nul
 rd data>nul

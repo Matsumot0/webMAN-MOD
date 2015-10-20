@@ -36,7 +36,6 @@ static int is_cd2352=0;
 static uint8_t *cd_cache=0;
 static uint32_t cached_cd_sector=0x80000000;
 
-
 static inline void get_next_read(uint64_t discoffset, uint64_t bufsize, uint64_t *offset, uint64_t *readsize, int *idx)
 {
 	uint64_t base = 0;

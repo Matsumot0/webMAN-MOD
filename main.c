@@ -98,7 +98,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.10 MOD"						// webMAN version
+#define WM_VERSION			"1.43.11 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -108,6 +108,8 @@ SYS_MODULE_STOP(wwwd_stop);
 #define WM_ICONS_PATH		"/dev_hdd0/tmp/wm_icons/"			// webMAN icons path
 #define WMNOSCAN			"/dev_hdd0/tmp/wm_noscan"			// webMAN config file
 
+#define AUTOPLAY_TAG		"[auto]"
+
 #ifdef WM_REQUEST
  #ifdef WEB_CHAT
   #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request"); cellFsUnlink((char*)WMCHATFILE);}
@@ -115,6 +117,10 @@ SYS_MODULE_STOP(wwwd_stop);
   #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");}
  #endif
 #else
+ #ifdef WM_CUSTOM_COMBO
+  #undef WM_CUSTOM_COMBO
+ #endif
+
  #ifdef WEB_CHAT
   #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)WMCHATFILE);}
  #else
@@ -343,6 +349,8 @@ typedef struct
 	uint8_t dev_ms;
 	uint8_t dev_cf;
 	uint8_t ps1emu;
+	uint8_t autoplay;
+	char padding[77];
 } __attribute__((packed)) WebmanCfg;
 
 #define AUTOBOOT_PATH            "/dev_hdd0/PS3ISO/AUTOBOOT.ISO"
@@ -360,13 +368,14 @@ static CellRtcTick rTick, gTick;
 static void enable_fan_control(u8 enable, char *msg);
 static int set_gamedata_status(u8 status, bool do_mount);
 static void set_buffer_sizes(int footprint);
+static void waitfor(char *path, uint8_t timeout);
 
 #ifdef COBRA_ONLY
 static void select_ps1emu(void);
 #endif
 
 #ifdef GET_KLICENSEE
-int npklic_struct_offset = 0;
+int npklic_struct_offset = 0; u8 klic_polling = 0;
 #endif
 
 int extcmp(const char *s1, const char *s2, size_t n);
@@ -498,6 +507,7 @@ static inline sys_prx_id_t prx_get_module_id_by_address(void *addr)
 
 #include "include/cpursx.h"
 #include "include/setup.h"
+#include "include/togglers.h"
 #include "include/fancontrol2.h"
 
 #include "include/file_manager.h"
@@ -546,7 +556,7 @@ static void prepare_html(char *buffer, char *templn, char *param, u8 is_ps3_http
 
 	if(!is_cpursx)
 	strcat(buffer,	"a.d:link{color:#D0D0D0;background-position:0px 2px;background-image:url('data:image/gif;base64,R0lGODlhEAAMAIMAAOenIumzLbmOWOuxN++9Me+1Pe+9QvDAUtWxaffKXvPOcfTWc/fWe/fWhPfckgAAACH5BAMAAA8ALAAAAAAQAAwAAARQMI1Agzk4n5Sa+84CVNUwHAz4KWzLMo3SzDStOkrHMO8O2zmXsAXD5DjIJEdxyRie0KfzYChYr1jpYVAweb/cwrMbAJjP54AXwRa433A2IgIAOw==');padding:0 0 0 20px;background-repeat:no-repeat;margin-left:auto;margin-right: auto;}"
-					"a.w:link{color:#D0D0D0;background-image:url('data:image/gif;base64,R0lGODlhDgAQAIMAAAAAAOfn5+/v7/f39////////////////////////////////////////////wAAACH5BAMAAA8ALAAAAAAOABAAAAQx8D0xqh0iSHl70FxnfaDohWYloOk6papEwa5g37gt5/zO475fJvgDCW8gknIpWToDEQA7');padding:0 0 0 20px;background-repeat:no-repeat; margin-left:auto; margin-right:auto;}");
+					"a.w:link{color:#D0D0D0;background-image:url('data:image/gif;base64,R0lGODlhDgAQAIMAAAAAAOfn5+/v7/f39////////////////////////////////////////////wAAACH5BAMAAA8ALAAAAAAOABAAAAQx8D0xqh0iSHl70FxnfaDohWYloOk6papEwa5g37gt5/zO475fJvgDCW8gknIpWToDEQA7');padding:0 0 0 20px;background-repeat:no-repeat;margin-left:auto;margin-right:auto;}");
 
 	strcat(buffer,	"a:active,a:active:hover,a:visited:hover,a:link:hover{color:#FFFFFF;}"
 					".list{display:inline;}"
@@ -618,6 +628,8 @@ static void handleclient(u64 conn_s_p)
 
 		if(conn_s_p==START_DAEMON)
 		{
+			vshnet_setUpdateUrl("http://127.0.0.1/dev_hdd0/ps3-updatelist.txt"); // custom update file
+
 			if(profile || (!(webman_config->wmdn) && strlen(STR_WMSTART)>0))
 			{
 				sys_timer_sleep(10);
@@ -809,7 +821,7 @@ again3:
 			{
 				cellFsRead(fd, (void *)header, buf.st_size, NULL);
 				cellFsClose(fd); for(size_t n = buf.st_size; n > 4; n--) if(header[n]==' ') header[n]=9;
-				if(strstr(header, "/play.ps3")) {if(View_Find("game_plugin")) {sys_timer_sleep(1); served=0; is_binary=1; continue;} else if(is_binary) waitfor((char*)"/dev_bdvd", 10); for(u8 n=0; n<10; n++) sys_timer_sleep(1);}
+				if(strstr(header, "/play.ps3")) {if(View_Find("game_plugin")) {sys_timer_sleep(1); served=0; is_ps3_http=1; continue;}}
 			}
 			cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");
 		}
@@ -862,6 +874,8 @@ again3:
 				param[pos]=0;
 			}
 
+			if(strstr(param, "/setup.ps3")) goto html_response;
+
  #ifdef VIRTUAL_PAD
 			if(strstr(param, "/pad.ps3") || strstr(param, "/combo.ps3") || strstr(param, "/play.ps3"))
 			{
@@ -876,16 +890,77 @@ again3:
 					launch_disc(col, seg); sprintf(param+10, HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
 				}
 
-				is_binary=0;
 				http_response(conn_s, header, param, 200, (param+9+is_combo));
 				loading_html--;
 				sys_ppu_thread_exit(0);
 				return;
 			}
-#endif
+#endif //  #ifdef VIRTUAL_PAD
+
 #ifdef PS3_BROWSER
 			if(strstr(param, "/browser.ps3"))
 			{
+				if(strstr(param, "$block_servers"))
+				{
+					show_msg((char*)"Blocking servers");
+					block_online_servers();
+					show_msg((char*)"Servers blocked");
+				}
+				else
+				if(strstr(param, "$disable_syscalls"))
+				{
+					disable_cfw_syscalls();
+				}
+				else
+				if(strstr(param, "$show_idps"))
+				{
+					show_idps(header);
+				}
+				else
+				if(strstr(param, "$ingame_screenshot"))
+				{
+					enable_ingame_screenshot();
+				}
+				else
+ #ifdef REX_ONLY
+				if(strstr(param, "$toggle_rebug_mode"))
+				{
+					if(toggle_rebug_mode()) goto restart;
+				}
+				else
+				if(strstr(param, "$toggle_normal_mode"))
+				{
+					if(toggle_normal_mode()) goto restart;
+				}
+				else
+				if(strstr(param, "$toggle_debug_menu"))
+				{
+					toggle_debug_menu();
+				}
+				else
+ #endif
+ #ifdef COBRA_ONLY
+				if(strstr(param, "$toggle_cobra"))
+				{
+					if(toggle_cobra()) goto restart;
+				}
+				else
+				if(strstr(param, "$toggle_ps2emu"))
+				{
+					toggle_ps2emu();
+				}
+				else
+				if(strstr(param, "$disable_classic_ps2_mode"))
+				{
+					disable_classic_ps2_mode();
+				}
+				else
+				if(strstr(param, "$enable_classic_ps2_mode"))
+				{
+					enable_classic_ps2_mode();
+				}
+				else
+ #endif
 				if(View_Find("game_plugin")==0)
 				{   // in-XMB
 					if(strlen(param) < 13)     {do_umount(false); sprintf(header, "http://%s/", local_ip); vshmain_AE35CF2D(header, 0);} else
@@ -900,13 +975,23 @@ again3:
 				else
  					sprintf(param+13, "ERROR: Not in XMB!<hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
 
-				is_binary=0;
 				http_response(conn_s, header, param, 200, param+13);
 				loading_html--;
 				sys_ppu_thread_exit(0);
 				return;
 			}
+#endif // #ifdef PS3_BROWSER
+
+#if defined(FIX_GAME)  || defined(COPY_PS3)
+			if(strstr(param, ".ps3$abort"))
+			{
+				if(copy_in_progress) {copy_aborted=true; show_msg((char*)STR_CPYABORT);}   // /copy.ps3$abort
+				if(fix_in_progress)  {fix_aborted=true;  show_msg((char*)"Fix aborted!");} // /fixgame.ps3$abort
+
+				sprintf(param, "/");
+			}
 #endif
+
 #ifdef GET_KLICENSEE
 			if(strstr(param, "/klic.ps3"))
 			{
@@ -918,18 +1003,59 @@ again3:
 					npklic_struct_offset = (((*func_start) & 0x0000FFFF) << 16) + ((*(func_start+5)) & 0x0000FFFF) + 0xC;//8;
 				}
 
-				char buffer[0x200];
+				u8 klic_polling_status = klic_polling;
+				char buffer[0x200], kl[0x120], curkl[0x20]; memset(kl, 0, 0x120);
 
 				if(View_Find("game_plugin"))
 				{
-					char kl[0x120]; memset(kl, 0, 0x120);
-                    get_game_info(); sprintf(buffer, "%s %s</H2>KLicensee: %s<br>Content ID: %s<hr>" HTML_BUTTON_FMT, _game_TitleID, _game_Title, hex_dump(kl,npklic_struct_offset,0x10), (char*)(npklic_struct_offset-0xA4), HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
+					if(strstr(param, "auto")) klic_polling = 2; else
+					if(strstr(param, "off"))  klic_polling = 0; else
+					if(strstr(param, "?log")) klic_polling = klic_polling ? 0 : 1;
+
+					sprintf(curkl, "%s", ((klic_polling_status) ? (klic_polling ? "Auto-Log: Running" : "Auto-Log: Stopped") : ((klic_polling == 1)? "Added to Log" : (klic_polling == 2)? "Auto-Log: Started" : "Enable Auto-Log")));
+
+					hex_dump(kl,npklic_struct_offset,0x10);
+					get_game_info(); sprintf(buffer, "%s %s</H2>%s%s<br>%s%s<p><a href=\"/%s\"><font color=#ccc>%s</font></a><hr>" HTML_BUTTON_FMT, _game_TitleID, _game_Title, "KLicensee: ", hex_dump(kl,npklic_struct_offset,0x10), "Content ID: ", (char*)(npklic_struct_offset-0xA4), (klic_polling_status>0 && klic_polling>0) ? "klic.ps3?off" : ((klic_polling_status | klic_polling) == 0) ? "klic.ps3?auto" : "dev_hdd0/klic.log", curkl, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
 				}
 				else
-					sprintf(buffer, "ERROR: Not in-game!<hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
+					{sprintf(buffer, "ERROR: <a href=\"play.ps3\"><font color=#ccc>Not in-game!</font></a><hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3"); klic_polling = false;}
 
 				is_binary=0;
 				http_response(conn_s, header, param, 200, buffer);
+
+				if(kl[0]>0 && klic_polling>0)
+				{
+					get_game_info(); sprintf(header, "%s [%s]\r\n", _game_Title, _game_TitleID);
+
+					sprintf(buffer, "%s%s%s\n%s%s", header, "KLicensee: ", kl, "Content ID: ", (char*)(npklic_struct_offset-0xA4));
+					show_msg(buffer);
+
+					if(klic_polling_status==0)
+					{
+						bool compare = false;
+
+						while((klic_polling>0) && View_Find("game_plugin"))
+						{
+							if(compare && memcmp(curkl, (char*)npklic_struct_offset, 0x10)==0) {sys_timer_usleep(10000); continue;}
+
+							strncpy(curkl, (char*)npklic_struct_offset, 0x10); hex_dump(kl,(int)curkl,0x10);
+
+							sprintf(buffer, "%s %s %s", kl, (char*)(npklic_struct_offset-0xA4), header);
+
+							if(cellFsOpen("/dev_hdd0/klic.log", CELL_FS_O_RDWR|CELL_FS_O_CREAT|CELL_FS_O_APPEND, &fd, NULL, 0) == CELL_OK)
+							{
+								uint64_t nrw; int size = strlen(buffer);
+								cellFsWrite(fd, buffer, size, &nrw);
+								cellFsClose(fd);
+							}
+
+							if(klic_polling==1) break; compare = true;
+						}
+
+						klic_polling = 0;
+					}
+				}
+
 				loading_html--;
 				sys_ppu_thread_exit(0);
 				return;
@@ -968,9 +1094,13 @@ again3:
 
 					cellFsMkdir((char*)"/dev_hdd0/packages", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/GAMES", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/GAMES [auto]", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PS3ISO", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS3ISO [auto]", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PSXISO", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/PSXISO [auto]", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PS2ISO", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS2ISO [auto]", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PSPISO", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/DVDISO", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/BDISO", MODE);
@@ -1070,22 +1200,10 @@ reboot:
 			if(strstr(param, "/fixgame.ps3"))
 			{
 				// fix game folder
-                char *game_path = param + 12;
-				if(cellFsStat((char*)game_path, &buf)==CELL_FS_SUCCEEDED)
-				{
-					fix_in_progress=true; fix_aborted=false;
-#ifdef COBRA_ONLY
-					if(strcasestr(game_path, ".iso"))
-						fix_iso(game_path, 0x100000UL, false);
-					else
-#endif //#ifdef COBRA_ONLY
-						fix_game(game_path);
-
-					fix_in_progress=false;
-
-					is_popup=1; is_binary=0;
-					goto html_response;
-				}
+				char *game_path = param + 12, titleID[10];
+				fix_game(game_path, titleID, FIX_GAME_FORCED);
+				is_popup=1; is_binary=0;
+				goto html_response;
 			}
 #endif
 
@@ -1147,7 +1265,6 @@ mobile_response:
 				is_binary=0;
 			else if(strstr(param, "cpursx.ps3")  ||
 					strstr(param, "index.ps3")   ||
-					strstr(param, "setup.ps3")   ||
 					strstr(param, "mount_ps3/")  ||
 					strstr(param, "mount.ps3/")  ||
 #ifdef PS2_DISC

@@ -32,7 +32,7 @@ static void add_xmb_entry(char *param, char *tempstr, char *templn, char *skey, 
 		{strcat(myxml_ps2, tempstr); skey[0]=PS2; item_count[2]++;}
 #ifdef COBRA_ONLY
 		else
-		if((strstr(param, "/PSPISO") || strstr(param, "/ISO")) && strlen(myxml_psp)<(BUFFER_SIZE_PSP-1024))
+		if((strstr(param, "/PSPISO") || strstr(param, "/ISO/")) && strlen(myxml_psp)<(BUFFER_SIZE_PSP-1024))
 		{strcat(myxml_psp, tempstr); skey[0]=PSP; item_count[4]++;}
 		else
 		if((strstr(param, "/PSX") || !extcmp(entry_name, ".ntfs[PSXISO]", 13)) && strlen(myxml_psx)<(BUFFER_SIZE_PSX-1024))
@@ -273,7 +273,7 @@ static bool update_mygames_xml(u64 conn_s_p)
 //
 			char param[MAX_PATH_LEN];
 
-			bool ls=false; u8 li=0, subfolder=0;
+			bool ls; u8 li, subfolder; li=subfolder=0; ls=false;
 
 		subfolder_letter_xml:
 			subfolder = 0; uprofile = profile;
@@ -284,6 +284,7 @@ read_folder_xml:
 			{
 				char ll[4]; if(li) sprintf(ll, "/%c", '@'+li); else ll[0]=0;
 				sprintf(param, "/%s%s%s",    paths[f1], SUFIX(uprofile), ll);
+				if(li==99) sprintf(param, "/%s %s", paths[f1], AUTOPLAY_TAG);
 			}
 			else
 #endif
@@ -292,6 +293,8 @@ read_folder_xml:
 					sprintf(param, "%s", WMTMP);
 				else
 					sprintf(param, "%s/%s%s", drives[f0], paths[f1], SUFIX(uprofile));
+
+				if(li==99) sprintf(param, "%s/%s %s", drives[f0], paths[f1], AUTOPLAY_TAG);
 			}
 
 			if(conn_s_p==START_DAEMON && f1==0)
@@ -567,7 +570,7 @@ next_xml_entry:
 continue_reading_folder_xml:
 
 			if((uprofile>0) && (f1<9)) {subfolder=uprofile=0; goto read_folder_xml;}
-			if(is_net && ls && li<27) {li++; goto subfolder_letter_xml;}
+			if(is_net && ls && li<27) {li++; goto subfolder_letter_xml;} else if(li<99 && !(IS_PSP_FOLDER)) {li=99; goto subfolder_letter_xml;}
 //
 		}
 		if(is_net && ns>=0) {shutdown(ns, SHUT_RDWR); socketclose(ns); ns=-2;}

@@ -45,6 +45,7 @@ STR_NOSPOOF		[Désactiver le spoof firmware (redémarrez 2 fois de suite pour l'
 STR_NOGRP		[Désactiver le groupement des contenus dans "Mes Jeux"]
 STR_NOWMDN		[Désactiver la notification de l'activation de webMAN sur le XMB]
 STR_NOSINGSTAR	[Retirer SingStar icône]
+STR_AUTO_PLAY	[Auto-Play]
 STR_RESET_USB	[Désactiver la réinitialisation du bus USB]
 STR_TITLEID		[Inclure l'ID dans le titre du jeu.]
 STR_FANCTRL		[Activer la gestion dynamique du ventilateur]

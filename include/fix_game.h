@@ -32,6 +32,9 @@ enum FIX_GAME_MODES
 		indx+=0x10; \
 	}
 
+void fix_game(char *game_path, char *titleID, uint8_t fix_type);
+void getTitleID(char *filename, char *titleID, u8 show_warning);
+
 static void parse_param_sfo(unsigned char *mem, char *titleID, char *title)
 {
 	READ_SFO_HEADER2()
@@ -64,7 +67,7 @@ static void parse_param_sfo(unsigned char *mem, char *titleID, char *title)
 	}
 }
 
-static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 msg)
+static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 show_warning)
 {
 	READ_SFO_HEADER()
 
@@ -96,7 +99,7 @@ static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 msg)
 			int fw_ver=10000*((version[1] & 0xFF)-'0') + 1000*((version[3] & 0xFF)-'0') + 100*((version[4] & 0xFF)-'0');
 			if((fw_ver>(int)(c_firmware*10000.0f)) && c_firmware>=4.20f && c_firmware<4.76f)
 			{
-				if(msg) {char text[64]; sprintf(text, "WARNING: Game requires firmware version %i.%i", (fw_ver/10000), (fw_ver-10000*(fw_ver/10000))/100); show_msg((char*)text);}
+				if(show_warning) {char text[64]; sprintf(text, "WARNING: Game requires firmware version %i.%i", (fw_ver/10000), (fw_ver-10000*(fw_ver/10000))/100); show_msg((char*)text);}
 
 				mem[pos+1]='4'; mem[pos+3]='2'; mem[pos+4]='0'; ret=true;
 			}
@@ -108,6 +111,24 @@ static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 msg)
 	}
 
 	return ret;
+}
+
+void getTitleID(char *filename, char *titleID, u8 show_warning)
+{
+	memset(titleID, 0, 10); int fs;
+
+	if(cellFsOpen(filename, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+	{
+		char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
+		uint64_t msiz = 0;
+
+		cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
+		cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
+		cellFsClose(fs);
+
+		// get titleid
+		fix_param_sfo(mem, titleID, show_warning);
+	}
 }
 
 #ifdef FIX_GAME
@@ -131,7 +152,7 @@ static bool fix_ps3_extra(unsigned char *mem)
 
 char fix_game_path[7][256]; int plevel=-1;
 
-static void fix_game(char *path)
+static void fix_game_folder(char *path)
 {
 	int fd; if(plevel>=6) return; // limit recursion up to 6 levels
 
@@ -188,7 +209,7 @@ static void fix_game(char *path)
 				}
 				cellFsClose(fdw);
 			}
-			else if(isDir(fix_game_path[plevel]) && (webman_config->fixgame!=FIX_GAME_QUICK)) fix_game(fix_game_path[plevel]);
+			else if(isDir(fix_game_path[plevel]) && (webman_config->fixgame!=FIX_GAME_QUICK)) fix_game_folder(fix_game_path[plevel]);
 
 			sys_timer_usleep(1);
 		}
@@ -356,10 +377,94 @@ exit_fix:
 			cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
 			cellFsClose(fs);
 
-			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {savefile(update_path, paramsfo, msiz); sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game(update_path);}
+			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {savefile(update_path, paramsfo, msiz); sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game_folder(update_path);}
 		}
 	}
 }
 #endif //#ifdef COBRA_ONLY
+
+void fix_game(char *game_path, char *titleID, uint8_t fix_type)
+{
+	struct CellFsStat s;
+
+	memset(titleID, 0, 10);
+
+	if(cellFsStat((char*)game_path, &s)==CELL_FS_SUCCEEDED)
+	{
+		fix_in_progress=true; fix_aborted=false;
+
+#ifdef COBRA_ONLY
+		int ext = strlen(game_path) - 7; if(ext<0) ext = 0;
+
+		if(strcasestr(game_path + ext, ".iso"))
+			fix_iso(game_path, 0x100000UL, false);
+		else
+#endif //#ifdef COBRA_ONLY
+
+		{
+			// -- get TitleID from PARAM.SFO
+			char filename[MAX_PATH_LEN]; int fs;
+
+			sprintf(filename, "%s/PARAM.SFO", game_path);
+			if(cellFsStat(filename, &s)!=CELL_FS_SUCCEEDED) sprintf(filename, "%s/PS3_GAME/PARAM.SFO", game_path);
+
+			if(cellFsOpen(filename,	CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+			{
+				char paramsfo[_4KB_]; unsigned char	*mem = (u8*)paramsfo;
+				uint64_t msiz = 0;
+
+				cellFsLseek(fs, 0, CELL_FS_SEEK_SET, &msiz);
+				cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
+				cellFsClose(fs);
+
+				// fix ps3 extra
+				char tmp_path[MAX_PATH_LEN]; sprintf(tmp_path, "%s/PS3_EXTRA", game_path);
+				if(webman_config->fixgame!=FIX_GAME_DISABLED && isDir(tmp_path) && fix_ps3_extra(mem))
+				{
+					savefile(filename, paramsfo, msiz);
+				}
+
+				tmp_path[10]=0;
+
+				// get titleid & fix game folder if	version	is higher than cfw
+				if((fix_param_sfo(mem, titleID, 0) || fix_type==FIX_GAME_FORCED) && fix_type!=FIX_GAME_DISABLED && !strstr(tmp_path, "/net") && !strstr(tmp_path, "/dev_bdvd") && !strstr(game_path, ".ntfs["))
+				{
+					savefile(filename, paramsfo, msiz);
+
+					sprintf(filename, "%s %s", STR_FIXING, game_path);
+					show_msg(filename);
+
+					sprintf(filename, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN",	titleID); // has update	on hdd0?
+
+					if(cellFsStat(filename, &s)==CELL_FS_SUCCEEDED)
+					{
+						// fix PARAM.SFO on	hdd0
+						sprintf(filename, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
+
+						if(cellFsOpen(filename,	CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
+						{
+							cellFsLseek(fs,	0, CELL_FS_SEEK_SET, &msiz);
+							cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
+							cellFsClose(fs);
+						}
+
+						if((fix_type!=FIX_GAME_DISABLED) && (fix_param_sfo(mem, titleID, 0) || fix_type==FIX_GAME_FORCED)) savefile(filename, paramsfo,	msiz);
+
+						sprintf(filename, "/dev_hdd0/game/%s/USRDIR", titleID);	// fix update folder
+					}
+					else
+						sprintf(filename, "%s/PS3_GAME/USRDIR",	game_path);	// fix bdvd	game
+
+					fix_game_folder(filename);
+				}
+			}
+			// ----
+
+		}
+
+		fix_in_progress=false;
+		if(webman_config->fixgame==FIX_GAME_FORCED) {webman_config->fixgame=FIX_GAME_QUICK; save_settings();}
+	}
+}
 
 #endif //#ifdef FIX_GAME

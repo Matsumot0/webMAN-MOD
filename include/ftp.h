@@ -359,7 +359,7 @@ static void handleclient_ftp(u64 conn_s_ftp_p)
 									fix_iso(param, 0x100000UL, false);
 								else
   #endif //#ifdef COBRA_ONLY
-									fix_game(param);
+									fix_game(param, filename, FIX_GAME_FORCED);
 
 								fix_in_progress=false;
 							}

@@ -45,6 +45,7 @@ STR_NOSPOOF			[Забрани симулиране на по-висок фирм
 STR_NOGRP			[Забрани групиране на съдържание в "Моите Игри"]
 STR_NOWMDN			[Изключване на уведомления в XMB при стартиране на WebMAN]
 STR_NOSINGSTAR	[Remove SingStar icon]
+STR_AUTO_PLAY	[Auto-Play]
 STR_RESET_USB	[Disable Reset USB Bus]
 STR_TITLEID			[Включи ID като част от името на играта]
 STR_FANCTRL			[Позволи динамичен контрол на вентилатора]

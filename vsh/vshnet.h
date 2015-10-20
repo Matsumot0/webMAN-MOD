@@ -217,7 +217,7 @@
 // vshnet_58AB86D8  // sceNpManagerGetSubjectStatus 	int sceNpManagerGetSubjectStatus(int(0), uint8_t subjectStatus[4]
 // vshnet_58AE4BB5  // ?
 
-extern int32_t vshnet_59106229(const char *url);  // overrides regular update.txt url
+int32_t vshnet_59106229(const char *url);  // overrides regular update.txt url
 #define vshnet_setUpdateUrl vshnet_59106229
 
 // vshnet_59266DA8  // ?
@@ -235,7 +235,7 @@ extern int32_t vshnet_59106229(const char *url);  // overrides regular update.tx
 // vshnet_5DF6457E  // ?
 // vshnet_5E9FDA92  // ?
 // vshnet_5EA49E2A  // ?
-extern int32_t (*vshnet_5EE098BC)(int,void*,int) = 0; // used for getting klicensee struct
+int32_t (*vshnet_5EE098BC)(int,void*,int) = 0; // used for getting klicensee struct
 // vshnet_5EE81C09  // ?
 // vshnet_5EF49155  // ?
 // vshnet_5F2D9EF3  // ?

@@ -76,7 +76,6 @@
 				/>
 			<Query class="type:x-xmb/folder-pixmap"
 				key="xmb_app3" 
-				attr="xmb_app3" 
 				src="xmb://localhost/dev_hdd0/xmlhost/game_plugin/fb.xml#seg_fb"
 				/>
 			<Query

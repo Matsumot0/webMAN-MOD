@@ -15,8 +15,8 @@
 
 #include <io/pad.h>
 
-#define SUFIX(a)	((a==1)? "_1" :(a==2)? "_2" :(a==3)? "_3" :(a==4)? "_4" :"")
-#define SUFIX2(a)	((a==1)?" (1)":(a==2)?" (2)":(a==3)?" (3)":(a==4)?" (4)":"")
+#define SUFIX(a)	((a==1)? "_1" :(a==2)? "_2" :(a==3)? "_3" :(a==4)? "_4" :(a==5)? " [auto]" :"")
+#define SUFIX2(a)	((a==1)?" (1)":(a==2)?" (2)":(a==3)?" (3)":(a==4)?" (4)":(a==5)? " [auto]" :"")
 
 #define USB_MASS_STORAGE_1(n)	(0x10300000000000AULL+(n)) /* For 0-5 */
 #define USB_MASS_STORAGE_2(n)	(0x10300000000001FULL+((n)-6)) /* For 6-127 */
@@ -668,7 +668,7 @@ int main(int argc, const char* argv[])
             {
                 ioPadGetData(n, &paddata);
                 button = (paddata.button[2] << 8) | (paddata.button[3] & 0xff);
-                break;
+                if (paddata.len > 0) break;
             }
         }
         if(button) break; else usleep(20000);
@@ -692,7 +692,7 @@ int main(int argc, const char* argv[])
 	mountCount = ntfsMountAll(&mounts, NTFS_DEFAULT | NTFS_RECOVER | NTFS_READ_ONLY);
 	if (mountCount <= 0) goto exit;
 
-	for (int profile = 0; profile < 5; profile++)
+	for (int profile = 0; profile < 6; profile++)
 	{
 		for (i = 0; i < mountCount; i++)
 		{

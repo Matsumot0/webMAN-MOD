@@ -597,7 +597,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 #endif
 				if(is_net && (ns<0)) break;
 
-				bool ls=false; u8 li=0, subfolder=0;
+				bool ls; u8 li, subfolder; li=subfolder=0; ls=false;
 
 		subfolder_letter_html:
 				subfolder = 0; uprofile = profile;
@@ -608,6 +608,8 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 				{
 					char ll[4]; if(li) sprintf(ll, "/%c", '@'+li); else ll[0]=0;
 					sprintf(param, "/%s%s%s",    paths[f1], SUFIX(uprofile), ll);
+
+					if(li==99) sprintf(param, "/%s %s", paths[f1], AUTOPLAY_TAG);
 				}
 				else
 #endif
@@ -616,6 +618,8 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 						sprintf(param, "%s", WMTMP);
 					else
 						sprintf(param, "%s/%s%s", drives[f0], paths[f1], SUFIX(uprofile));
+
+					if(li==99) sprintf(param, "%s/%s %s", drives[f0], paths[f1], AUTOPLAY_TAG);
 				}
 #ifdef COBRA_ONLY
  #ifndef LITE_EDITION
@@ -883,7 +887,7 @@ next_html_entry:
 //
 	continue_reading_folder_html:
 				if((uprofile>0) && (f1<9)) {subfolder=uprofile=0; goto read_folder_html;}
-				if(is_net && ls && li<27) {li++; goto subfolder_letter_html;}
+				if(is_net && ls && li<27) {li++; goto subfolder_letter_html;} else if(li<99 && !(IS_PSP_FOLDER)) {li=99; goto subfolder_letter_html;}
 //
 			}
 			if(is_net && ns>=0) {shutdown(ns, SHUT_RDWR); socketclose(ns); ns=-2;}

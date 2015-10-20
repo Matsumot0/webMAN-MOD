@@ -41,26 +41,6 @@ SYS_MODULE_STOP(vsh_menu_stop);
 #define VSH_MODULE_PATH 	"/dev_blind/vsh/module/"
 #define VSH_ETC_PATH		"/dev_blind/vsh/etc/"
 
-#define u8	uint8_t
-#define u16	uint16_t
-#define u32	uint32_t
-#define u64	uint64_t
-#define s8	int8_t
-#define s16	int16_t
-#define s32	int32_t
-#define s64	int64_t
-
-#define lv2syscall1	system_call_1
-#define lv2syscall2	system_call_2
-#define lv2syscall3	system_call_3
-#define lv2syscall4	system_call_4
-#define lv2syscall5	system_call_5
-#define lv2syscall6	system_call_6
-#define lv2syscall7	system_call_7
-#define lv2syscall8	system_call_8
-#define lv2syscall9	system_call_9
-
-
 typedef struct
 {
 	uint8_t usb0;
@@ -145,7 +125,7 @@ static char kernel_type[64];
 static void get_firmware_version(void);
 
 struct platform_info {
-	u32 firmware_version;
+	uint32_t firmware_version;
 } info;
 
 
@@ -171,6 +151,8 @@ static char drivestr[6][64];
 static uint8_t drive_type[6];
 
 char *current_file[512];
+
+extern int32_t netctl_main_9A528B81(int32_t size, const char *ip);  // get ip addr of interface "eth0"
 
 ////////////////////////////////////////////////////////////////////////
 //            SYS_PPU_THREAD_EXIT, DIRECT OVER SYSCALL                //
@@ -301,8 +283,8 @@ static int is_cobra_based(void)
 
 static int lv2_get_platform_info(struct platform_info *info)
 {
-	lv2syscall1(387, (uint64_t) info);
-	return_to_user_prog(int);
+	system_call_1(387, (uint32_t) info);
+	return (int32_t)p1;
 }
 
 static void get_firmware_version(void)
@@ -315,7 +297,7 @@ static void get_kernel_type(void)
 {
 	uint64_t type;
 	memset(kernel_type, 0, 64);
-	system_call_1(985, (uint64_t)&type);
+	system_call_1(985, (uint32_t)&type);
 	if(type == 1) sprintf(kernel_type, "CEX"); else // Retail
 	if(type == 2) sprintf(kernel_type, "DEX"); else // Debug
 	if(type == 3) sprintf(kernel_type, "Debugger"); // Debugger
@@ -664,7 +646,7 @@ static uint8_t view = 0;
 
 uint8_t entry_mode[MAX_MENU] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-static char entry_str[3][MAX_MENU][32] = {
+static char entry_str[2][MAX_MENU][32] = {
                                           {
                                            "0: Unmount Game",
                                            "1: Mount /net0",
@@ -916,7 +898,7 @@ static void draw_frame(void)
 
   // draw command buttons
   set_foreground_color(0xFF999999);
-  draw_png(0, 522, 230, 128 + ((!view && (line<3||line==6||line==10) || (view && line==7)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
+  draw_png(0, 522, 230, 128 + (((!view && (line<3||line==6||line==10)) || (view && line==7)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
   draw_png(0, 522, 262, 0, 400, 32, 32); print_text(560, 266, ": Select");  // draw X button
   draw_png(0, 522, 294, 416, 400, 32, 32); print_text(560, 298, ": Exit");  // draw select button
   draw_png(0, 522, 326, 64, 400, 32, 32); print_text(560, 330, ": Menu");  // draw Triangle button

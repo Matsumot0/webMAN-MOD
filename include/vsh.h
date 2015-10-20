@@ -78,18 +78,40 @@ static char* get_game_info(void)
 		game_interface->gameInfo(_game_info);
 	}
 
-    return (char*)h;
+	return (char*)h;
+}
+
+static void enable_ingame_screenshot(void)
+{
+	vshmain_is_ss_enabled = (void*)((int)getNIDfunc("vshmain", 0x981D7E9F, 0)); //is screenshot enabled?
+
+	if(vshmain_is_ss_enabled()==0)
+	{
+		set_SSHT_ = (uint32_t*)&opd;
+		memcpy(set_SSHT_, vshmain_is_ss_enabled, 8);
+		opd[0] -= 0x2C; // Sub before vshmain_981D7E9F sets Screenshot Flag
+		set_SSHT_(1);	// enable screenshot
+
+		show_msg((char*)"Screenshot enabled");
+		sys_timer_sleep(2);
+	}
 }
 
 static void launch_disc(char *category, char *seg_name)
 {
+	u8 n;
+	for(n=0; n<15; n++) {if(View_Find("explore_plugin")==0) sys_timer_sleep(2); else break;}
+
+	if(!strcmp(seg_name, "seg_device")) waitfor((char*)"/dev_bdvd", 10); if(n) sys_timer_sleep(3);
+
 	int view = View_Find("explore_plugin");
+
 	if(view)
 	{
 		char explore_command[128]; // info: http://www.ps3devwiki.com/ps3/explore_plugin
 
 		struct CellFsStat s;
-		if(cellFsStat((char*)"/dev_bdvd", &s)==CELL_FS_SUCCEEDED)
+		if(strcmp(seg_name, "seg_device") || cellFsStat((char*)"/dev_bdvd", &s)==CELL_FS_SUCCEEDED)
 		{
 			explore_interface = (explore_plugin_interface *)plugin_GetInterface(view,1);
 			explore_interface->DoUnk6("close_all_list",0,0);
@@ -102,7 +124,7 @@ static void launch_disc(char *category, char *seg_name)
 			sys_timer_usleep(500000);
 			explore_interface->DoUnk6("exec_push",0,0);
 		}
-		else {BEEP2}
+		else {BEEP3}
 	}
 }
 
