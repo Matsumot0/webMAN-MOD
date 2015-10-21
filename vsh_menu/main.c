@@ -364,7 +364,7 @@ static void start_VSH_Menu(void)
   rsx_fifo_pause(1);
 
   // create VSH Menu heap memory from memory container 1("app")
-  create_heap(16);  // 16 MB
+  create_heap(4);  // 4 MB
 
   // initialize VSH Menu graphic
   init_graphic();
@@ -742,8 +742,11 @@ static void do_menu_action(void)
     case 6:
       buzzer(1);
       screenshot(entry_mode[line]); // mode = 0 (XMB only), 1 (XMB + menu)
+      stop_VSH_Menu();
 
-      break;
+      play_rco_sound("system_plugin", "snd_system_ok");
+
+      return;
     case 7:
       send_wm_request((char*)"GET /browser.ps3/");
 
@@ -863,7 +866,7 @@ static void draw_frame(void)
 
   // print headline string, center(x = -1)
   set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, (view ? "VSH Menu for Rebug" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v0.9");
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.0");
 
 
   set_font(20.f, 20.f, 1.f, 1);

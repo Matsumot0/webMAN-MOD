@@ -10,7 +10,7 @@
 
 // display values
 static uint32_t unk1 = 0, offset = 0, pitch = 0;
-static int32_t h = 0, w = 0, canvas_x = 0, canvas_y = 0;
+static uint32_t h = 0, w = 0, canvas_x = 0, canvas_y = 0;
 
 static DrawCtx ctx;                                 // drawing context
 static Bitmap *bitmap = NULL;                       // font glyph cache
@@ -95,10 +95,10 @@ static void font_init(void)
 	get_font_object();
 
 	// get id of current logged in user for the xRegistry query we do next
-  user_id = xsetting_CC56EB2D()->GetCurrentUserNumber();
+	 user_id = xsetting_CC56EB2D()->GetCurrentUserNumber();
 
-  // get current font style for the current logged in user
-  xsetting_CC56EB2D()->GetRegistryValue(user_id, 0x5C, &val);
+	// get current font style for the current logged in user
+	xsetting_CC56EB2D()->GetRegistryValue(user_id, 0x5C, &val);
 
 	// get sysfont
 	switch(val)
@@ -153,36 +153,36 @@ static void render_glyph(int32_t idx, uint32_t code)
 
 
 	// setup render settings
-  FontSetupRenderScalePixel(&ctx.font, bitmap->font_w, bitmap->font_h);
-  FontSetupRenderEffectWeight(&ctx.font, bitmap->weight);
+	FontSetupRenderScalePixel(&ctx.font, bitmap->font_w, bitmap->font_h);
+	FontSetupRenderEffectWeight(&ctx.font, bitmap->weight);
 
 	x = ((int32_t)bitmap->font_w) * 2;
-  y = ((int32_t)bitmap->font_h) * 2;
-  w = x * 2;
-  h = y * 2;
+	y = ((int32_t)bitmap->font_h) * 2;
+	w = x * 2;
+	h = y * 2;
 
-  // set surface
-  FontRenderSurfaceInit(&surface, NULL, w, 1, w, h);
+	// set surface
+	FontRenderSurfaceInit(&surface, NULL, w, 1, w, h);
 
-  // set render surface scissor, (full area/no scissoring)
-  FontRenderSurfaceSetScissor(&surface, 0, 0, w, h);
+	// set render surface scissor, (full area/no scissoring)
+	FontRenderSurfaceSetScissor(&surface, 0, 0, w, h);
 
 	bitmap->glyph[idx].code = code;
 
-  FontRenderCharGlyphImage(&ctx.font, bitmap->glyph[idx].code, &surface,
-                           (float_t)x, (float_t)y, &metrics, &transinfo);
+	FontRenderCharGlyphImage(&ctx.font, bitmap->glyph[idx].code, &surface,
+							(float_t)x, (float_t)y, &metrics, &transinfo);
 
 	bitmap->count++;
 
-  ibw = transinfo.imageWidthByte;
-  bitmap->glyph[idx].w = transinfo.imageWidth;      // width of char image
-  bitmap->glyph[idx].h = transinfo.imageHeight;     // height of char image
+	ibw = transinfo.imageWidthByte;
+	bitmap->glyph[idx].w = transinfo.imageWidth;      // width of char image
+	bitmap->glyph[idx].h = transinfo.imageHeight;     // height of char image
 
 	// copy glyph bitmap into cache
 	for(k = 0; k < bitmap->glyph[idx].h; k++)
-    for(i = 0; i < bitmap->glyph[idx].w; i++)
-      bitmap->glyph[idx].image[k*bitmap->glyph[idx].w + i] =
-      transinfo.Image[k * ibw + i];
+	for(i = 0; i < bitmap->glyph[idx].w; i++)
+		bitmap->glyph[idx].image[k*bitmap->glyph[idx].w + i] =
+		transinfo.Image[k * ibw + i];
 
 	bitmap->glyph[idx].metrics = metrics;
 }
@@ -234,12 +234,12 @@ static int32_t utf8_to_ucs4(uint8_t *utf8, uint32_t *ucs4)
 	utf8++;
 
 	if(c1 <= 0x7F)                        // 1 byte sequence, ascii
-  {
+	{
 		len = 1;
 		*ucs4 = c1;
 	}
 	else if((c1 & 0xE0) == 0xC0)          // 2 byte sequence
-  {
+	{
     len = 2;
     c2 = (uint32_t)*utf8;
 
@@ -247,33 +247,33 @@ static int32_t utf8_to_ucs4(uint8_t *utf8, uint32_t *ucs4)
 		  *ucs4 = ((c1  & 0x1F) << 6) | (c2 & 0x3F);
 	  else
 			len = *ucs4 = 0;
-  }
+	}
 	else if((c1 & 0xF0) == 0xE0)          // 3 bytes sequence
-  {
+	{
     len = 3;
     c2 = (uint32_t)*utf8;
     utf8++;
 
     if((c2 & 0xC0) == 0x80)
-	  {
-			c3 = (uint32_t)*utf8;
+	{
+		c3 = (uint32_t)*utf8;
 
-		  if((c3 & 0xC0) == 0x80)
+		if((c3 & 0xC0) == 0x80)
 		    *ucs4 = ((c1  & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
-		  else
+		else
 		    len = *ucs4 = 0;
-		}
+	}
     else
 			len = *ucs4 = 0;
-  }
-  else if((c1 & 0xF8) == 0xF0)          // 4 bytes sequence
-  {
-    len = 4;
-    c2 = (uint32_t)*utf8;
-    utf8++;
+	}
+	else if((c1 & 0xF8) == 0xF0)          // 4 bytes sequence
+	{
+		len = 4;
+		c2 = (uint32_t)*utf8;
+		utf8++;
 
-    if((c2 & 0xC0) == 0x80)
-	  {
+		if((c2 & 0xC0) == 0x80)
+		{
 			c3 = (uint32_t)*utf8;
 			utf8++;
 
@@ -291,7 +291,7 @@ static int32_t utf8_to_ucs4(uint8_t *utf8, uint32_t *ucs4)
 		}
 		else
 		  len = *ucs4 = 0;
-  }
+	}
 	else
 		len = *ucs4 = 0;
 
@@ -303,12 +303,12 @@ static int32_t utf8_to_ucs4(uint8_t *utf8, uint32_t *ucs4)
 ***********************************************************************/
 static void dump_bg(void)
 {
-	int32_t i, k;
+	uint32_t i, k, CANVAS_WW = CANVAS_W/2;
 	uint64_t *bg = (uint64_t*)ctx.bg;
 
 	for(i = 0; i < CANVAS_H; i++)
-	  for(k = 0; k < CANVAS_W/2; k++)
-	    bg[k + i * CANVAS_W/2] = *(uint64_t*)(OFFSET(canvas_x + (k*2), canvas_y + (i)));
+		for(k = 0; k < CANVAS_WW; k++)
+			bg[k + i * CANVAS_WW] = *(uint64_t*)(OFFSET(canvas_x + (k*2), canvas_y + (i)));
 }
 
 /***********************************************************************
@@ -316,11 +316,11 @@ static void dump_bg(void)
 ***********************************************************************/
 void init_graphic()
 {
-  memset(&ctx, 0, sizeof(DrawCtx));
+	memset(&ctx, 0, sizeof(DrawCtx));
 
-  // set drawing context
-  ctx.canvas     = mem_alloc(CANVAS_W * CANVAS_H * 4);  // canvas buffer
-  ctx.bg         = mem_alloc(CANVAS_W * CANVAS_H * 4);  // background buffer
+	// set drawing context
+	ctx.canvas     = mem_alloc(CANVAS_W * CANVAS_H * 4);  // canvas buffer
+	ctx.bg         = mem_alloc(CANVAS_W * CANVAS_H * 4);  // background buffer
 	ctx.font_cache = mem_alloc(FONT_CACHE_MAX * 32 * 32); // glyph bitmap cache
 	ctx.bg_color   = 0xFF000000;                          // black, opaque
 	ctx.fg_color   = 0xFFFFFFFF;                          // white, opaque
@@ -328,20 +328,20 @@ void init_graphic()
 	font_init();
 
 	// get current display values
-  offset = *(uint32_t*)0x60201104;      // start offset of current framebuffer
-  getDisplayPitch(&pitch, &unk1);       // framebuffer pitch size
-  h = getDisplayHeight();               // display height
-  w = getDisplayWidth();                // display width
+	offset = *(uint32_t*)0x60201104;      // start offset of current framebuffer
+	getDisplayPitch(&pitch, &unk1);       // framebuffer pitch size
+	h = getDisplayHeight();               // display height
+	w = getDisplayWidth();                // display width
 
-  // get x/y start coordinates for our canvas, here always center
-  canvas_x = (w - CANVAS_W) / 2;
-  canvas_y = (h - CANVAS_H) / 2;
+	// get x/y start coordinates for our canvas, here always center
+	canvas_x = (w - CANVAS_W) / 2;
+	canvas_y = (h - CANVAS_H) / 2;
 
 	// dump background, for alpha blending
-  dump_bg();
+	dump_bg();
 
-  // init first frame with background dump
-  memcpy((uint8_t *)ctx.canvas, (uint8_t *)ctx.bg, CANVAS_W * CANVAS_H * 4);
+	// init first frame with background dump
+	memcpy((uint8_t *)ctx.canvas, (uint8_t *)ctx.bg, CANVAS_W * CANVAS_H * 4);
 }
 
 /***********************************************************************
@@ -381,12 +381,12 @@ static uint32_t mix_color(uint32_t bg, uint32_t fg)
 ***********************************************************************/
 void flip_frame()
 {
-	int32_t i, k;
+	int32_t i, k, CANVAS_WW = CANVAS_W/2;
 	uint64_t *canvas = (uint64_t*)ctx.canvas;
 
-  for(i = 0; i < CANVAS_H; i++)
-		for(k = 0; k < CANVAS_W/2; k++)
-		  *(uint64_t*)(OFFSET(canvas_x + (k*2), canvas_y + (i))) = canvas[k + i * CANVAS_W/2];
+	for(i = 0; i < CANVAS_H; i++)
+		for(k = 0; k < CANVAS_WW; k++)
+		  *(uint64_t*)(OFFSET(canvas_x + (k*2), canvas_y + (i))) = canvas[k + i * CANVAS_WW];
 
 	// after flip, clear frame buffer with background
   memcpy((uint8_t *)ctx.canvas, (uint8_t *)ctx.bg, CANVAS_W * CANVAS_H * 4);
@@ -442,9 +442,11 @@ void set_font(float_t font_w, float_t font_h, float_t weight, int32_t distance)
 ***********************************************************************/
 void draw_background()
 {
-	int32_t i, tmp_x = 0, tmp_y = 0;
+	uint32_t i, tmp_x = 0, tmp_y = 0;
 
-	for(i = 0; i < CANVAS_W * CANVAS_H; i++)
+	const uint32_t CANVAS_SIZE = CANVAS_W * CANVAS_H;
+
+	for(i = 0; i < CANVAS_SIZE; i++)
 	{
 		ctx.canvas[i] = mix_color(ctx.bg[i], ctx.bg_color);
 
@@ -548,15 +550,16 @@ int32_t print_text(int32_t x, int32_t y, const char *str)
 ***********************************************************************/
 int32_t draw_png(int32_t idx, int32_t c_x, int32_t c_y, int32_t p_x, int32_t p_y, int32_t w, int32_t h)
 {
-	int32_t i, k;
+	uint32_t i, k, hh = h, ww = w;
 
+	const uint32_t CANVAS_WW = CANVAS_W - c_x, CANVAS_HH = CANVAS_H - c_y;
 
-	for(i = 0; i < h; i++)
-	  for(k = 0; k < w; k++)
-	    if((c_x + k < CANVAS_W) && (c_y + i < CANVAS_H))
+	for(i = 0; i < hh; i++)
+		for(k = 0; k < ww; k++)
+			if((k < CANVAS_WW) && (i < CANVAS_HH))
 				ctx.canvas[(c_y + i) * CANVAS_W + c_x + k] =
 				mix_color(ctx.canvas[(c_y + i) * CANVAS_W + c_x + k],
-		    ctx.png[idx].addr[(p_x + p_y * ctx.png[idx].w) + (k + i * ctx.png[idx].w)]);
+				ctx.png[idx].addr[(p_x + p_y * ctx.png[idx].w) + (k + i * ctx.png[idx].w)]);
 
 	return (c_x + w);
 }
@@ -594,45 +597,21 @@ void screenshot(uint8_t mode)
 	sys_memory_container_t mc_app = (sys_memory_container_t)-1;
 	mc_app = vsh_memory_container_by_id(1);
 
-	const int32_t mem_size = (14 * 1024 * 1024);  // 8MB(frame dump) 6MB(bmp data)
+	const int32_t mem_size = 64 * 1024; // 64 KB (bmp data and frame buffer)
+
+	// max frame line size = 1920 pixel * 4(byte per pixel) = 7680 byte = 8 KB
+	// max bmp buffer size = 1920 pixel * 3(byte per pixel) = 5760 byte = 6 KB
 
 	sys_addr_t sys_mem = NULL;
-	sys_memory_allocate_from_container(mem_size, mc_app, SYS_MEMORY_PAGE_SIZE_1M, &sys_mem);
+	sys_memory_allocate_from_container(mem_size, mc_app, SYS_MEMORY_PAGE_SIZE_64K, &sys_mem);
 
-	uint64_t *dump_buf = (uint64_t*)sys_mem;
-	uint8_t *bmp_buf = (uint8_t*)sys_mem + (4 * 1920 * 1080); // ABGR * HD
+	// calc buffer sizes
+	uint32_t line_frame_size = w * 4;
 
-	int32_t i, k, idx = 0;
-
+	// alloc buffers
+	uint64_t *line_frame = (uint64_t*)sys_mem;
+	uint8_t *bmp_buf = (uint8_t*)sys_mem + line_frame_size; // start offset: 8 KB
 	uint64_t *bg = (uint64_t*)ctx.bg;
-
-	// dump frame
-	for(i = 0; i < h; i++)
-		for(k = 0; k < w/2; k++)
-		{
-			dump_buf[k + i * w/2] = *(uint64_t*)(OFFSET(k*2, i));
-
-			if(mode == 0)
-				if((k*2 >= canvas_x) && (k*2 < canvas_x + CANVAS_W) && (i >= canvas_y) && (i < canvas_y + CANVAS_H))
-					dump_buf[k + i * w/2] = bg[(((i - canvas_y) * CANVAS_W) + ((k*2) - canvas_x)) /2];
-		}
-
-	// convert dump color data from ABGR to RGB
-	uint8_t *tmp_buf = (uint8_t*)sys_mem;
-
-	for(i = 0; i < h; i++)
-	{
-		idx = (h-1-i)*w*3;
-
-		for(k = 0; k < w; k++)
-		{
-			bmp_buf[idx]   = tmp_buf[(i*w+k)*4+3];  // R
-			bmp_buf[idx+1] = tmp_buf[(i*w+k)*4+2];  // G
-			bmp_buf[idx+2] = tmp_buf[(i*w+k)*4+1];  // B
-
-			idx+=3;
-		}
-	}
 
 	// set bmp header
 	uint32_t tmp = 0;
@@ -648,8 +627,48 @@ void screenshot(uint8_t mode)
 	// write bmp header
 	fwrite(bmp_header, 1, sizeof(bmp_header), fd);
 
-	// write bmp data
-	fwrite(bmp_buf, 1, (w*h*3), fd);
+	uint32_t i, k, idx;
+
+	uint32_t canvas_x_left = canvas_x/2, canvas_x_right = canvas_x_left + CANVAS_W/2, canvas_y_bottom = canvas_y + CANVAS_H, ww=w/2;
+
+	// dump...
+	for(i = h; i > 0; i--)
+	{
+
+		if(mode == 0)
+		{
+			for(k = 0; k < ww; k++)
+			{
+				line_frame[k] = *(uint64_t*)(OFFSET(k*2, i));
+
+				if((k >= canvas_x_left) && (k < canvas_x_right) && (i >= canvas_y) && (i < canvas_y_bottom))
+					line_frame[k] = bg[(((i - canvas_y) * CANVAS_W) + ((k*2) - canvas_x)) /2];
+			}
+		}
+		else
+		{
+			for(k = 0; k < ww; k++)
+				line_frame[k] = *(uint64_t*)(OFFSET(k*2, i));
+		}
+
+		// convert line from ARGB to RGB
+		uint8_t *tmp_buf = (uint8_t*)line_frame;
+
+		idx = 0; //(h-1-i)*w*3;  // index into bmp buffer, ... f*****g bmp format
+
+		for(k = 0; k < w; k++)
+		{
+			bmp_buf[idx]   = tmp_buf[(k)*4+3];  // R
+			bmp_buf[idx+1] = tmp_buf[(k)*4+2];  // G
+			bmp_buf[idx+2] = tmp_buf[(k)*4+1];  // B
+
+			idx+=3;
+		}
+
+		// write bmp data
+		fwrite(bmp_buf, 1, idx, fd);
+	}
+
 
 	// padding
 	int32_t rest = (w*3) % 4, pad = 0;
