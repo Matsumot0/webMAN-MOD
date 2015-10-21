@@ -907,11 +907,6 @@ again3:
 					show_msg((char*)"Servers blocked");
 				}
 				else
-				if(strstr(param, "$disable_syscalls"))
-				{
-					disable_cfw_syscalls();
-				}
-				else
 				if(strstr(param, "$show_idps"))
 				{
 					show_idps(header);
@@ -922,6 +917,13 @@ again3:
 					enable_ingame_screenshot();
 				}
 				else
+ #ifdef REMOVE_SYSCALLS
+				if(strstr(param, "$disable_syscalls"))
+				{
+					disable_cfw_syscalls();
+				}
+				else
+ #endif
  #ifdef REX_ONLY
 				if(strstr(param, "$toggle_rebug_mode"))
 				{
@@ -950,14 +952,35 @@ again3:
 					toggle_ps2emu();
 				}
 				else
-				if(strstr(param, "$disable_classic_ps2_mode"))
+				if(strstr(param, "le_classic_ps2_mode"))
 				{
-					disable_classic_ps2_mode();
-				}
-				else
-				if(strstr(param, "$enable_classic_ps2_mode"))
-				{
-					enable_classic_ps2_mode();
+					bool classic_ps2_enabled;
+
+					if(strstr(param, "$disable_"))
+					{
+						// $disable_classic_ps2_mode
+						classic_ps2_enabled = true;
+					}
+					else
+					if(strstr(param, "$enable_"))
+					{
+						// $enable_classic_ps2_mode
+						classic_ps2_enabled = false;
+					}
+					else
+					{
+						// $toggle_classic_ps2_mode
+						classic_ps2_enabled = (cellFsStat((char*)PS2_CLASSIC_TOGGLER, &buf)==CELL_FS_SUCCEEDED);
+					}
+
+					if(classic_ps2_enabled)
+						disable_classic_ps2_mode();
+					else
+						enable_classic_ps2_mode();
+
+					sprintf((char*) header, (char*)"PS2 Classic %s", classic_ps2_enabled ? STR_DISABLED : STR_ENABLED);
+					show_msg((char*) header);
+					sys_timer_sleep(3);
 				}
 				else
  #endif
@@ -986,6 +1009,7 @@ again3:
 			if(strstr(param, ".ps3$abort"))
 			{
 				if(copy_in_progress) {copy_aborted=true; show_msg((char*)STR_CPYABORT);}   // /copy.ps3$abort
+				else
 				if(fix_in_progress)  {fix_aborted=true;  show_msg((char*)"Fix aborted!");} // /fixgame.ps3$abort
 
 				sprintf(param, "/");
@@ -1018,7 +1042,7 @@ again3:
 					get_game_info(); sprintf(buffer, "%s %s</H2>%s%s<br>%s%s<p><a href=\"/%s\"><font color=#ccc>%s</font></a><hr>" HTML_BUTTON_FMT, _game_TitleID, _game_Title, "KLicensee: ", hex_dump(kl,npklic_struct_offset,0x10), "Content ID: ", (char*)(npklic_struct_offset-0xA4), (klic_polling_status>0 && klic_polling>0) ? "klic.ps3?off" : ((klic_polling_status | klic_polling) == 0) ? "klic.ps3?auto" : "dev_hdd0/klic.log", curkl, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
 				}
 				else
-					{sprintf(buffer, "ERROR: <a href=\"play.ps3\"><font color=#ccc>Not in-game!</font></a><hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3"); klic_polling = false;}
+					{sprintf(buffer, "ERROR: <a href=\"play.ps3\"><font color=#ccc>Not in-game!</font></a><hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3"); klic_polling = false; show_msg((char*)"KLIC ERROR: Not in-game!");}
 
 				is_binary=0;
 				http_response(conn_s, header, param, 200, buffer);

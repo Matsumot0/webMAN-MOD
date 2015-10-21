@@ -1726,7 +1726,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 
 						memcpy(mynet_iso->tracks, tracks, sizeof(TrackDef));
 					}
-					else if(strstr(_path, "/GAMES/") || strstr(_path, "/GAMEZ/"))
+					else if(strstr(_path, "/GAMES") || strstr(_path, "/GAMEZ"))
 					{
 						mynet_iso->emu_mode=EMU_PS3;
 						sprintf(mynet_iso->path, "/***PS3***%s", _path+5);
@@ -1964,7 +1964,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
  #ifndef FIX_GAME
 			memset(titleID, 0, 10);
 
-			char filename[MAX_PATH_LEN];
+			char filename[MAX_PATH_LEN]; int fs;
 			sprintf(filename, "%s/PS3_GAME/PARAM.SFO", _path);
 			if(cellFsOpen(filename, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 			{

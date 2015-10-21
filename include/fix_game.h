@@ -32,9 +32,6 @@ enum FIX_GAME_MODES
 		indx+=0x10; \
 	}
 
-void fix_game(char *game_path, char *titleID, uint8_t fix_type);
-void getTitleID(char *filename, char *titleID, u8 show_warning);
-
 static void parse_param_sfo(unsigned char *mem, char *titleID, char *title)
 {
 	READ_SFO_HEADER2()
@@ -113,7 +110,7 @@ static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 show_warning)
 	return ret;
 }
 
-void getTitleID(char *filename, char *titleID, u8 show_warning)
+static void getTitleID(char *filename, char *titleID, u8 show_warning)
 {
 	memset(titleID, 0, 10); int fs;
 
@@ -383,7 +380,7 @@ exit_fix:
 }
 #endif //#ifdef COBRA_ONLY
 
-void fix_game(char *game_path, char *titleID, uint8_t fix_type)
+static void fix_game(char *game_path, char *titleID, uint8_t fix_type)
 {
 	struct CellFsStat s;
 

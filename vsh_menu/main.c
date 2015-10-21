@@ -753,12 +753,14 @@ static void do_menu_action(void)
 
       break;
     case 9:
+      sys_timer_sleep(1);
       stop_VSH_Menu();
 
       buzzer(2);
       shutdown_system();
       return;
     case 0xA:
+      sys_timer_sleep(1);
       stop_VSH_Menu();
 
       buzzer(1);

@@ -602,9 +602,11 @@ show_popup:
 							}
 							else
 #endif
+							{
 #ifdef REMOVE_SYSCALLS
 								disable_cfw_syscalls();
 #endif
+							}
 						}
 						else
 						if(!(webman_config->combo2 & CUSTOMCMB) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) ) // R2+SQUARE
