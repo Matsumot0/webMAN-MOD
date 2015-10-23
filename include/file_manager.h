@@ -18,12 +18,20 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 
 	if(is_dir)
 	{
+		bool show_play = ((flen == 8) && !strcmp(name, "dev_bdvd") && View_Find("game_plugin")==0);
+
 		if(name[0]=='.')
 			sprintf(fsize, "<a href=\"%s\">%s</a>", templn, HTML_DIR);
 		else if(flen == 9 && !strcmp(name, "dev_blind"))
 			sprintf(fsize, "<a href=\"%s?0\">%s</a>", templn, HTML_DIR);
-		else if(flen == 8 && !strcmp(name, "dev_bdvd") && isDir("/dev_bdvd/PS3_GAME") && View_Find("game_plugin")==0)
-			sprintf(fsize, "<a href=\"play.ps3\">&lt;Play&gt;</a>");
+		else if(show_play && (isDir("/dev_bdvd/PS3_GAME") || FileExists("/dev_bdvd/SYSTEM.CNF")))
+			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "Play");
+		else if(show_play && isDir("/dev_bdvd/BDMV"))
+			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "BDV");
+		else if(show_play && isDir("/dev_bdvd/VIDEO_TS"))
+			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "DVD");
+		else if(show_play && isDir("/dev_bdvd/AVCHD"))
+			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "AVCHD");
 #ifdef FIX_GAME
 		else if(flen == 9 && strstr(templn, "/dev_hdd0/game/"))
 			sprintf(fsize, "<a href=\"/fixgame.ps3%s\">%s</a>", templn, HTML_DIR);
@@ -132,7 +140,9 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 	u8 is_net = (param[1]=='n');
 
 	if(copy_aborted) strcat(buffer, STR_CPYABORT);    //  /copy.ps3$abort
+	else
 	if(fix_aborted)  strcat(buffer, "Fix aborted!");  //  /fixgame.ps3$abort
+
 	if(copy_aborted | fix_aborted)  strcat(buffer, "<p>");
 
 	if(is_net || cellFsOpendir(param, &fd) == CELL_FS_SUCCEEDED)

@@ -98,7 +98,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.11 MOD"						// webMAN version
+#define WM_VERSION			"1.43.12 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -369,6 +369,7 @@ static void enable_fan_control(u8 enable, char *msg);
 static int set_gamedata_status(u8 status, bool do_mount);
 static void set_buffer_sizes(int footprint);
 static void waitfor(char *path, uint8_t timeout);
+static void show_msg(char* msg);
 
 #ifdef COBRA_ONLY
 static void select_ps1emu(void);
@@ -460,9 +461,9 @@ static bool is_mounting = false;
 static char current_file[MAX_PATH_LEN];
 #endif
 
-#include "include/vsh.h"
 #include "include/webchat.h"
 #include "include/file.h"
+#include "include/vsh.h"
 #include "include/fix_game.h"
 #include "include/ps2_disc.h"
 #include "include/xmb_savebmp.h"
@@ -616,7 +617,6 @@ static void handleclient(u64 conn_s_p)
 
 
 	char param[HTML_RECV_SIZE];
-	struct CellFsStat buf;
 	int fd;
 
 	if(conn_s_p==START_DAEMON || conn_s_p==REFRESH_CONTENT)
@@ -659,10 +659,10 @@ static void handleclient(u64 conn_s_p)
 
 		for(u8 i=0; i<12; i++)
 		{
-			if(cellFsStat(wm_icons[i], &buf)!=CELL_FS_SUCCEEDED)
+			if(FileExists(wm_icons[i])==false)
 			{
 				sprintf(param, "/dev_flash/vsh/resource/explore/icon/%s", wm_icons[i] + 23); strcpy(wm_icons[i], param);
-				if(cellFsStat(param, &buf)==CELL_FS_SUCCEEDED) continue;
+				if(FileExists(param)) continue;
 				else
 				if(i==0 || i==5) strcpy(wm_icons[i] + 32, "user/024.png\0"); else //ps3
 				if(i==1 || i==6) strcpy(wm_icons[i] + 32, "user/026.png\0"); else //psx
@@ -745,6 +745,7 @@ static void handleclient(u64 conn_s_p)
 
 
 #ifdef WM_REQUEST
+	struct CellFsStat buf;
 	u8 wm_request=(cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &buf) == CELL_FS_SUCCEEDED);
 
 	if(!wm_request)
@@ -900,7 +901,16 @@ again3:
 #ifdef PS3_BROWSER
 			if(strstr(param, "/browser.ps3"))
 			{
-				if(strstr(param, "$block_servers"))
+				if(strstr(param, "$rsx"))
+				{
+					static u8 rsx = 1;
+					if(strstr(param, "pause")) rsx = 1;
+					if(strstr(param, "cont"))  rsx = 0;
+					rsx_fifo_pause(rsx); // rsx_pause / rsx_continue
+					rsx ^= 1;
+				}
+				else
+ 				if(strstr(param, "$block_servers"))
 				{
 					show_msg((char*)"Blocking servers");
 					block_online_servers();
@@ -970,7 +980,7 @@ again3:
 					else
 					{
 						// $toggle_classic_ps2_mode
-						classic_ps2_enabled = (cellFsStat((char*)PS2_CLASSIC_TOGGLER, &buf)==CELL_FS_SUCCEEDED);
+						classic_ps2_enabled = FileExists(PS2_CLASSIC_TOGGLER);
 					}
 
 					if(classic_ps2_enabled)
@@ -986,13 +996,18 @@ again3:
  #endif
 				if(View_Find("game_plugin")==0)
 				{   // in-XMB
-					if(strlen(param) < 13)     {do_umount(false); sprintf(header, "http://%s/", local_ip); vshmain_AE35CF2D(header, 0);} else
-					if(strstr(param, ".ps3/")) {do_umount(false); sprintf(header, "http://%s%s", local_ip, param+12); vshmain_AE35CF2D(header, 0);} else
-					if(strstr(param, ".ps3$")) {int view = View_Find("explore_plugin"); if(view) {explore_interface = (explore_plugin_interface *)plugin_GetInterface(view,1); explore_interface->DoUnk6(param+13,0,0);}} else
-					if(strstr(param, ".ps3?")) {do_umount(false); vshmain_AE35CF2D((char*)param+13, 0);} else
-					vshmain_AE35CF2D((char*)param+13, 1);  // example: /browser.ps3*regcam:reg?   More examples: http://www.ps3devwiki.com/ps3/Xmb_plugin#Function_23
+ #ifdef XMB_SCREENSHOT
+					if(strstr(param, "$screenshot_xmb")) {sprintf(header, "%s", param+27); saveBMP(header); sprintf(param+13, "<a href=\"%s\">%s</a>", header, header);} else
+ #endif
+					{
+						if(strlen(param) < 13)     {do_umount(false); sprintf(header, "http://%s/", local_ip); vshmain_AE35CF2D(header, 0);} else
+						if(strstr(param, ".ps3/")) {do_umount(false); sprintf(header, "http://%s%s", local_ip, param+12); vshmain_AE35CF2D(header, 0);} else
+						if(strstr(param, ".ps3$")) {int view = View_Find("explore_plugin"); if(view) {explore_interface = (explore_plugin_interface *)plugin_GetInterface(view,1); explore_interface->DoUnk6(param+13,0,0);}} else
+						if(strstr(param, ".ps3?")) {do_umount(false); vshmain_AE35CF2D((char*)param+13, 0);} else
+						vshmain_AE35CF2D((char*)param+13, 1);  // example: /browser.ps3*regcam:reg?   More examples: http://www.ps3devwiki.com/ps3/Xmb_plugin#Function_23
 
-					show_msg((char*)param+13);
+						show_msg((char*)param+13);
+					}
  					sprintf(header, "%s<hr>" HTML_BUTTON_FMT, param+13, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
 				}
 				else
@@ -1118,13 +1133,13 @@ again3:
 
 					cellFsMkdir((char*)"/dev_hdd0/packages", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/GAMES", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/GAMES [auto]", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/GAMES " AUTOPLAY_TAG, MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PS3ISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PS3ISO [auto]", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS3ISO " AUTOPLAY_TAG, MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PSXISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PSXISO [auto]", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/PSXISO " AUTOPLAY_TAG, MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PS2ISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PS2ISO [auto]", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS2ISO " AUTOPLAY_TAG, MODE);
 					cellFsMkdir((char*)"/dev_hdd0/PSPISO", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/DVDISO", MODE);
 					cellFsMkdir((char*)"/dev_hdd0/BDISO", MODE);
@@ -1168,8 +1183,6 @@ quit:
 			}
 			if(strstr(param, "rebuild.ps3"))
 			{
-				http_response(conn_s, header, param, 200, param);
-
 				cmd[0] = cmd[1] = 0; cmd[2] = 0x03; cmd[3] = 0xE9; // 00 00 03 E9
 				savefile((char*)"/dev_hdd0/mms/db.err", cmd, 4);
 				goto restart;
@@ -1181,15 +1194,13 @@ quit:
 				#define UPDATE_MGR_PACKET_ID_WRITE_EPROM	0x600C
 				#define RECOVER_MODE_FLAG_OFFSET			0x48C61
 
-				http_response(conn_s, header, param, 200, param);
-
 				{system_call_7(SC_UPDATE_MANAGER_IF, UPDATE_MGR_PACKET_ID_WRITE_EPROM, RECOVER_MODE_FLAG_OFFSET, 0x00, 0, 0, 0, 0);} // set recovery mode
 				goto reboot; // hard reboot
 			}
 			if(strstr(param, "restart.ps3"))
 			{
-				http_response(conn_s, header, param, 200, param);
 restart:
+				http_response(conn_s, header, param, 200, param);
 				working = 0;
 				{ DELETE_TURNOFF } { BEEP2 }
 				if(strstr(param,"?0")==NULL) savefile((char*)WMNOSCAN, NULL, 0);
@@ -1201,8 +1212,8 @@ restart:
 			}
 			if(strstr(param, "reboot.ps3"))
 			{
-				http_response(conn_s, header, param, 200, param);
 reboot:
+				http_response(conn_s, header, param, 200, param);
 				working = 0;
 				{ DELETE_TURNOFF } { BEEP2 }
 
@@ -1236,13 +1247,13 @@ reboot:
 mobile_response:
 				mobile_mode = false;
 
-				if(cellFsStat((char*)MOBILE_HTML, &buf)!=CELL_FS_SUCCEEDED)
+				if(FileExists(MOBILE_HTML)==false)
 					sprintf(param, "/index.ps3%s", param+10);
 				else if(strstr(param, "?g="))
 					sprintf(param, "%s", MOBILE_HTML);
 				else if(strstr(param, "?"))
 					{sprintf(param, "/index.ps3%s", param+10); mobile_mode = true;}
-				else if(cellFsStat((char*)GAMELIST_JS, &buf)!=CELL_FS_SUCCEEDED)
+				else if(FileExists(GAMELIST_JS)==false)
 					sprintf(param, "%s", "index.ps3?mobile");
 				else
 					sprintf(param, "%s", MOBILE_HTML);
@@ -1321,9 +1332,10 @@ mobile_response:
 			}
 			else
 			{
+				struct CellFsStat buf;
 				is_binary=(cellFsStat(param, &buf)==CELL_FS_SUCCEEDED);
 
-				if(!is_binary) {strcpy(header, param);  sprintf(param, "%s/%s", html_base_path, header); is_binary=(cellFsStat(param, &buf)==CELL_FS_SUCCEEDED);} // use html path (if path is omitted)
+				if(!is_binary) {strcpy(header, param); sprintf(param, "%s/%s", html_base_path, header); is_binary=FileExists(param);} // use html path (if path is omitted)
 
 				if(is_binary)
 				{
@@ -1585,15 +1597,15 @@ html_response:
 						if(param[14]=='/') sprintf(templn, "%s", param+14); else
 						{
 							sprintf(templn, "/dev_hdd0/plugins/webftp_server.sprx");
-							if(cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED) sprintf(templn, "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
-							if(cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED) sprintf(templn, "/dev_hdd0/webftp_server.sprx");
-							if(cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED) sprintf(templn, "/dev_hdd0/webftp_server_ps3mapi.sprx");
+							if(FileExists(templn)==false) sprintf(templn, "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+							if(FileExists(templn)==false) sprintf(templn, "/dev_hdd0/webftp_server.sprx");
+							if(FileExists(templn)==false) sprintf(templn, "/dev_hdd0/webftp_server_ps3mapi.sprx");
 
 							pos=strstr(param, "prx=");
 							if(pos) get_value(templn, pos + 4, MAX_PATH_LEN);
 						}
 
-						prx_found = (cellFsStat(templn, &buf)==CELL_FS_SUCCEEDED);
+						prx_found = FileExists(templn);
 #ifdef COBRA_ONLY
 						if(strlen(templn)>0)
 						{
@@ -1740,6 +1752,7 @@ bgm_status:
 						}
 						else if(strstr(param, "?uninstall"))
 						{
+							struct CellFsStat buf;
 							if(cellFsStat((char*)"/dev_hdd0/boot_plugins.txt", &buf)==CELL_FS_SUCCEEDED && buf.st_size<40) cellFsUnlink((char*)"/dev_hdd0/boot_plugins.txt");
 							cellFsUnlink((char*)"/dev_hdd0/webftp_server.sprx");
 							cellFsUnlink((char*)"/dev_hdd0/webftp_server_ps3mapi.sprx");
@@ -1747,12 +1760,18 @@ bgm_status:
 							cellFsUnlink((char*)"/dev_hdd0/plugins/webftp_server.sprx");
 							cellFsUnlink((char*)"/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
 							cellFsUnlink((char*)"/dev_hdd0/plugins/webftp_server_noncobra.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/plugins/wm_vsh_menu.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/tmp/wm_vsh_menu.cfg");
+							cellFsUnlink((char*)"/dev_hdd0/plugins/raw_iso.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/raw_iso.sprx");
+							cellFsUnlink((char*)"/dev_hdd0/tmp/wm_custom_combo");
 							cellFsUnlink((char*)WMCONFIG);
 							del((char*)WMTMP, true);
 							del((char*)"/dev_hdd0/xmlhost", true);
 							del((char*)"/dev_hdd0/tmp/wm_lang", true);
 							del((char*)"/dev_hdd0/tmp/wm_icons", true);
-							http_response(conn_s, header, param, 200, param);
+							del((char*)"/dev_hdd0/tmp/wm_combo", true);
+							del((char*)"/dev_hdd0/plugins/images", true);
 							goto restart;
 						}
 						else if(del(param+11, (strstr(param, "/delete.ps3")!=NULL)))
@@ -2000,7 +2019,7 @@ static void wwwd_thread(uint64_t arg)
 	cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");
 #endif
 
-	{struct CellFsStat buf; from_reboot = (cellFsStat((char*)WMNOSCAN, &buf)==CELL_FS_SUCCEEDED);} //is_rebug=isDir("/dev_flash/rebug");
+	{from_reboot = FileExists(WMNOSCAN);} //is_rebug=isDir("/dev_flash/rebug");
 
 	if(webman_config->blind) enable_dev_blind(NULL);
 

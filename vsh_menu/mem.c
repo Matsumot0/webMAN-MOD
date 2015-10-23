@@ -14,11 +14,16 @@ static uint32_t prx_heap = 0;
 /***********************************************************************
 * create prx heap from memory container 1("app")
 ***********************************************************************/
-void create_heap(int32_t size)
+int32_t create_heap(int32_t size)
 {
   mc_app = vsh_memory_container_by_id(1);
+  if (!mc_app) return(-1);
+
   sys_memory_allocate_from_container(MB(size), mc_app, SYS_MEMORY_PAGE_SIZE_1M, &heap_mem);
+  if (!heap_mem) return(-1);
+
   prx_heap = (uint32_t)heap_mem;
+  return(0);
 }
 
 /***********************************************************************

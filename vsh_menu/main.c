@@ -363,8 +363,13 @@ static void start_VSH_Menu(void)
 
   rsx_fifo_pause(1);
 
+  int32_t ret, mem_size;
+
   // create VSH Menu heap memory from memory container 1("app")
-  create_heap(4);  // 4 MB
+  mem_size = ((((CANVAS_W * CANVAS_H * 4) * 2) + (FONT_CACHE_MAX * 32 * 32)) + MB(2)) / MB(1);
+  ret = create_heap(mem_size);  // 4 MB
+
+  if(ret) return;
 
   // initialize VSH Menu graphic
   init_graphic();

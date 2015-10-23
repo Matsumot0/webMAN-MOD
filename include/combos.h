@@ -47,11 +47,11 @@
 */
 		bool reboot = false;
 
-		struct CellFsStat s;
+		u8 n;
 
 		CellPadData data;
 
-		for(u8 n=0;n<10;n++)
+		for(n=0;n<10;n++)
 		{
 			if(show_info_popup) {show_info_popup = false; goto show_popup;}
 
@@ -75,7 +75,8 @@
 				{
 					if(!(webman_config->combo2 & PLAY_DISC) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] == CELL_PAD_CTRL_START) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_L2))
 					{
-						launch_disc((char*)"game", (char*)"seg_device"); // L2+START
+						char category[16] = "game", seg_name[80] = "seg_device";
+						launch_disc(category, seg_name); // L2+START
 						break;
 					}
 
@@ -96,7 +97,7 @@
 #endif
 							{
 #ifdef WM_CUSTOM_COMBO
-								if(cellFsStat((char*)WM_CUSTOM_COMBO "select_square", &s)==CELL_FS_SUCCEEDED)
+								if(FileExists(WM_CUSTOM_COMBO "select_square"))
 								{
 									sysLv2FsLink(WM_CUSTOM_COMBO "select_square", "/dev_hdd0/tmp/wm_request"); break;
 								}
@@ -142,7 +143,7 @@
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE) // SELECT+L2+TRIANGLE
 							&& (c_firmware>=4.65f) )
 						{
-							bool classic_ps2_enabled = (cellFsStat((char*)PS2_CLASSIC_TOGGLER, &s)==CELL_FS_SUCCEEDED);
+							bool classic_ps2_enabled = FileExists(PS2_CLASSIC_TOGGLER);
 
 							if(classic_ps2_enabled)
 							{
@@ -191,7 +192,7 @@
 
 #ifdef XMB_SCREENSHOT
 							if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == (CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_L2) )
-								saveBMP(); // L2 + R2 + SELECT + START
+								{saveBMP(msg); sys_timer_sleep(2);} // L2 + R2 + SELECT + START
 							else
 #endif
 							{
@@ -318,7 +319,7 @@ show_popup:
 						if(webman_config->fanc && !(webman_config->combo & MANUALFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_UP) ) // SELECT+UP increase TEMP/FAN
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_up", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_up"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_up", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -350,7 +351,7 @@ show_popup:
 						if(webman_config->fanc && !(webman_config->combo & MANUALFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_DOWN) ) // SELECT+DOWN increase TEMP/FAN
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_down", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_down"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_down", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -381,7 +382,7 @@ show_popup:
 						if(webman_config->minfan && !(webman_config->combo & MINDYNFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_LEFT) ) // SELECT+LEFT decrease Minfan
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_left", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_left"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_left", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -400,7 +401,7 @@ show_popup:
 						if(webman_config->minfan && !(webman_config->combo & MINDYNFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_RIGHT) ) // SELECT+RIGHT increase Minfan
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_right", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_right"))
 							{
 									sysLv2FsLink(WM_CUSTOM_COMBO "select_right", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -419,7 +420,7 @@ show_popup:
 						if(!(webman_config->combo & PREV_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_L1) ) // SELECT+L1 (previous title)
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_l1", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_l1"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_l1", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -436,7 +437,7 @@ show_popup:
 						if(!(webman_config->combo & NEXT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_R1) ) // SELECT+R1 (next title)
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_r1", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_r1"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_r1", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -453,7 +454,7 @@ show_popup:
 						if(!(webman_config->combo & UMNT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_CIRCLE) ) // SELECT+O (unmount)
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_circle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_circle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -465,7 +466,7 @@ show_popup:
 						else
 						if(!(webman_config->combo & UMNT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_TRIANGLE) ) // SELECT+TRIANGLE
 						{
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "select_triangle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "select_triangle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_triangle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -550,22 +551,22 @@ show_popup:
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))==(CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE) && View_Find("game_plugin")==0) // L2+R2+O
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_circle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "l2_r2_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_circle", "/dev_hdd0/tmp/wm_request");
 							}
 							else
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_l1_circle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "l2_r2_l1_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_l1_circle", "/dev_hdd0/tmp/wm_request");
 							}
 							else
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_r1_circle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "l2_r2_r1_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_r1_circle", "/dev_hdd0/tmp/wm_request");
 							}
 							else
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "l2_r2_l1_r1_circle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "l2_r2_l1_r1_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_l1_r1_circle", "/dev_hdd0/tmp/wm_request");
 							}
@@ -596,7 +597,7 @@ show_popup:
 						if(!(webman_config->combo & DISABLESH) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE) ) // R2+TRIANGLE Disable CFW Sycalls
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "r2_triangle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "r2_triangle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "r2_triangle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -612,14 +613,14 @@ show_popup:
 						if(!(webman_config->combo2 & CUSTOMCMB) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) ) // R2+SQUARE
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "r2_square", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "r2_square"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "r2_square", "/dev_hdd0/tmp/wm_request"); break;
 							}
 							else
 #endif
 #ifdef WM_REQUEST
-							if(cellFsStat((char*)"/dev_hdd0/tmp/wm_custom_combo", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists("/dev_hdd0/tmp/wm_custom_combo"))
 							{
 								sysLv2FsLink("/dev_hdd0/tmp/wm_custom_combo", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -635,7 +636,7 @@ show_popup:
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) ) // R2+O Show IDPS EID0+LV2
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(cellFsStat((char*)WM_CUSTOM_COMBO "r2_circle", &s)==CELL_FS_SUCCEEDED)
+							if(FileExists(WM_CUSTOM_COMBO "r2_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "r2_circle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -703,3 +704,5 @@ reboot:
 			//sys_timer_sleep(step);
 			sys_timer_usleep(300000);
 		}
+
+		if(n<10) sys_timer_usleep((11-n)*150000);

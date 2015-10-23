@@ -1,5 +1,4 @@
 static char* get_game_info(void);
-static void show_msg(char* msg);
 //void show_msg2(char* msg);
 
 //int (*_cellGcmIoOffsetToAddress)(uint32_t, void**) = NULL;
@@ -110,17 +109,33 @@ static void launch_disc(char *category, char *seg_name)
 	{
 		char explore_command[128]; // info: http://www.ps3devwiki.com/ps3/explore_plugin
 
-		struct CellFsStat s;
-		if(strcmp(seg_name, "seg_device") || cellFsStat((char*)"/dev_bdvd", &s)==CELL_FS_SUCCEEDED)
+		// default segment
+		if(!seg_name[0]) sprintf(seg_name, "seg_device");
+
+		// default category
+		if(!category[0]) sprintf(category, "game");
+
+		if(strcmp(seg_name, "seg_device") || isDir("/dev_bdvd"))
 		{
+			// use segment for media type
+			if(!strcmp(category, "game") && !strcmp(seg_name, "seg_device"))
+			{
+				if(isDir("/dev_bdvd/PS3_GAME") || FileExists("/dev_bdvd/SYSTEM.CNF")) ; else
+				if(isDir("/dev_bdvd/BDMV") )    {sprintf(category, "video"); sprintf(seg_name, "seg_bdmav_device");} else
+				if(isDir("/dev_bdvd/VIDEO_TS")) {sprintf(category, "video"); sprintf(seg_name, "seg_dvdv_device" );} else
+				if(isDir("/dev_bdvd/AVCHD"))    {sprintf(category, "video"); sprintf(seg_name, "seg_avchd_device");} else
+				{return;}
+			}
+
 			explore_interface = (explore_plugin_interface *)plugin_GetInterface(view,1);
 			explore_interface->DoUnk6("close_all_list",0,0);
 			sys_timer_usleep(200000);
-			{sprintf(explore_command, "focus_category %s", (*category) ? category : "game"); explore_interface->DoUnk6((char*)explore_command,0,0);}
+			{sprintf(explore_command, "focus_category %s", category); explore_interface->DoUnk6((char*)explore_command,0,0);}
 			sys_timer_usleep(500000);
 			explore_interface->DoUnk6("close_all_list",0,0);
 			sys_timer_usleep(200000);
-			{sprintf(explore_command, "focus_segment_index %s", (*seg_name) ? seg_name: "seg_device"); explore_interface->DoUnk6((char*)explore_command,0,0);}
+			sprintf(explore_command, "focus_segment_index %s", seg_name);
+			explore_interface->DoUnk6((char*)explore_command,0,0);
 			sys_timer_usleep(500000);
 			explore_interface->DoUnk6("exec_push",0,0);
 		}

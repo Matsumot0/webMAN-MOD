@@ -31,13 +31,11 @@ static bool get_cover(char *icon, char *titleid)
 {
 	if(!titleid[0]) return false;
 
-	struct CellFsStat s;
-
 #ifndef ENGLISH_ONLY
 	if(covers_exist[0])
 	{
-		sprintf(icon, "%s/%s.JPG", COVERS_PATH, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, "%s/%s.PNG", COVERS_PATH, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, "%s/%s.JPG", COVERS_PATH, titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/%s.PNG", COVERS_PATH, titleid); if(FileExists(icon)) return true;
 	}
 #endif
 
@@ -47,41 +45,41 @@ static bool get_cover(char *icon, char *titleid)
 		{
 			sprintf(icon, MM_ROOT_STD "/covers_retro/psx/%c%c%c%c_%c%c%c.%c%c_COV.JPG",
 					titleid[0], titleid[1], titleid[2], titleid[3],
-					titleid[4], titleid[5], titleid[6], titleid[7], titleid[8]); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+					titleid[4], titleid[5], titleid[6], titleid[7], titleid[8]); if(FileExists(icon)) return true;
 		}
 
-		sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STD, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STD, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STD, titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STD, titleid); if(FileExists(icon)) return true;
 	}
 
 	if(covers_exist[2])
 	{
-		sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STL, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STL, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STL, titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STL, titleid); if(FileExists(icon)) return true;
 	}
 
 	if(covers_exist[3])
 	{
-		sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_SSTL, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_SSTL, titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_SSTL, titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_SSTL, titleid); if(FileExists(icon)) return true;
 	}
 
 	if(covers_exist[4])
 	{
-		sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMES", titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMES", titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMES", titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMES", titleid); if(FileExists(icon)) return true;
 	}
 
 	if(covers_exist[5])
 	{
-		sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMEZ", titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMEZ", titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMEZ", titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMEZ", titleid); if(FileExists(icon)) return true;
 	}
 
 	if(covers_exist[6])
 	{
-		sprintf(icon, WMTMP "/%s.JPG", titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
-		sprintf(icon, WMTMP "/%s.PNG", titleid); if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+		sprintf(icon, WMTMP "/%s.JPG", titleid); if(FileExists(icon)) return true;
+		sprintf(icon, WMTMP "/%s.PNG", titleid); if(FileExists(icon)) return true;
 	}
 
 	icon[0]=0;
@@ -92,23 +90,22 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 {
 	//this function is called only from get_default_icon
 
-	struct CellFsStat s;
 	int flen;
 
 	if(!extcmp(file, ".BIN.ENC", 8))
 	{
 		sprintf(icon, "%s/%s.png", param, file);
-		if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+		if(FileExists(icon)) return;
 		sprintf(icon, "%s/%s.PNG", param, file);
-		if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+		if(FileExists(icon)) return;
 
 		flen=strlen(icon)-12;
 		if(flen>0 && icon[flen]=='.')
 		{
 			icon[flen]=0; strcat(icon, ".png");
-			if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+			if(FileExists(icon)) return;
 			icon[flen]=0; strcat(icon, ".PNG");
-			if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+			if(FileExists(icon)) return;
 		}
 	}
 
@@ -129,19 +126,19 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 
 		//file name + .jpg
 		strcat(icon, ".jpg");
-		if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+		if(FileExists(icon)) return;
 
 		flen=strlen(icon);
 
 		//file name + .png
 		icon[flen-4]=0; // remove file extension
 		strcat(icon, ".png");
-		if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+		if(FileExists(icon)) return;
 
 		//file name + .JPG
 		icon[flen-4]=0; // remove file extension
 		strcat(icon, ".JPG");
-		if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+		if(FileExists(icon)) return;
 
 		//file name + .PNG
 		icon[flen-4]=0; // remove file extension
@@ -149,7 +146,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 	}
 
 	//copy remote file
-	if(cellFsStat(icon, &s)!=CELL_FS_SUCCEEDED)
+	if(FileExists(icon)==false)
 	{
 #ifdef COBRA_ONLY
 		if(ns<0) {icon[0]=0; return;}
@@ -164,7 +161,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 			sprintf(tempstr, "%s/%s.jpg", param, icon);
 
 			get_name(icon, file, 1); strcat(icon, ".jpg"); //wmtmp
-			if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+			if(FileExists(icon)) return;
 		}
 
 #ifndef LITE_EDITION
@@ -176,7 +173,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 		if(remote_stat(ns, tempstr, &is_directory, &file_size, &mtime, &ctime, &atime, &abort_connection)!=0)
 		{
 			icon[strlen(icon)-4]=0; strcat(icon, ".png");
-            if(cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+            if(FileExists(icon)) return;
 
 			tempstr[strlen(tempstr)-4]=0; strcat(tempstr, ".png");
 
@@ -218,8 +215,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 
 static bool get_cover_from_name(char *icon, char *name, char *titleid)
 {
-	struct CellFsStat s;
-	if(icon[0]!=0 && cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return true;
+	if(icon[0]!=0 && FileExists(icon)) return true;
 
 	if(get_cover(icon, titleid)) return true;
 
@@ -248,10 +244,8 @@ static bool get_cover_from_name(char *icon, char *name, char *titleid)
 
 static void get_default_icon(char *icon, char *param, char *file, int isdir, char *titleid, int ns, int abort_connection)
 {
-	struct CellFsStat s;
-
 	// continue using cover or default icon0.png
-	if(icon[0]!=0 && cellFsStat(icon, &s)==CELL_FS_SUCCEEDED)
+	if(icon[0]!=0 && FileExists(icon))
 	{
 		if(!extcasecmp(icon, ".png", 4) || !extcasecmp(icon, ".jpg", 4)) return;
 		icon[0]=0;
@@ -262,13 +256,13 @@ static void get_default_icon(char *icon, char *param, char *file, int isdir, cha
 	// get icon from folder && copy remote icon
 	get_iso_icon(icon, param, file, isdir, ns, abort_connection);
 
-	if(icon[0]!=0 && cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+	if(icon[0]!=0 && FileExists(icon)) return;
 
 	//use the cached PNG from wmtmp if available
 	get_name(icon, file, 1);
 	strcat(icon, ".PNG");
 
-	if(icon[0] && cellFsStat(icon, &s)==CELL_FS_SUCCEEDED) return;
+	if(icon[0] && FileExists(icon)) return;
 
 	if(webman_config->nocov && get_cover_from_name(icon, file, titleid)) return; // show mm cover as last option (if it's disabled)
 
@@ -344,9 +338,7 @@ static int add_net_game(int ns, netiso_read_dir_result_data *data, int v3_entry,
 		else
 			{get_name(templn, data[v3_entry].name, 1); strcat(templn, ".SFO\0");}
 
-		struct CellFsStat buf;
-
-		if(data[v3_entry].is_directory && cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED)
+		if(data[v3_entry].is_directory && FileExists(templn)==false)
 		{
 			sprintf(tempstr, "%s/%s/PS3_GAME/PARAM.SFO", param, data[v3_entry].name);
 
@@ -376,9 +368,7 @@ static int add_net_game(int ns, netiso_read_dir_result_data *data, int v3_entry,
 	else
 		{get_name(enc_dir_name, data[v3_entry].name, 0); utf8enc(templn, enc_dir_name);}
 
-	struct CellFsStat buf;
-
-	{get_name(enc_dir_name, data[v3_entry].name, 1); strcat(enc_dir_name, ".PNG"); if((icon[0]==0 || webman_config->nocov) && cellFsStat((char*)enc_dir_name, &buf)==CELL_FS_SUCCEEDED) strcpy(icon, enc_dir_name);}
+	{get_name(enc_dir_name, data[v3_entry].name, 1); strcat(enc_dir_name, ".PNG"); if((icon[0]==0 || webman_config->nocov) && FileExists(enc_dir_name)) strcpy(icon, enc_dir_name);}
 
 	if(data[v3_entry].is_directory && IS_ISO_FOLDER)
 	{
@@ -474,7 +464,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 	cellRtcGetCurrentTick(&pTick);
 	int upd_time=0;
 
-	if(cellFsStat((char*)WMTMP "/games.html", &buf)==CELL_FS_SUCCEEDED)
+	if(FileExists(WMTMP "/games.html"))
 		upd_time=buf.st_mtime;
 
 	CellRtcDateTime rDate;
@@ -730,7 +720,7 @@ next_html_entry:
 							sprintf(templn, "%s/%s/PS3_GAME/PARAM.SFO", param, entry.d_name);
 						}
 
-						if(is_iso || (f1<2 && cellFsStat(templn, &buf)==CELL_FS_SUCCEEDED))
+						if(is_iso || (f1<2 && FileExists(templn)))
 						{
 							icon[0]=tempID[0]=0;
 
@@ -749,7 +739,7 @@ next_html_entry:
 								{
 									int fs=0;
 									get_name(templn, entry.d_name, 1); strcat(templn, ".SFO\0");
-									if(f0!=NTFS && cellFsStat(templn, &buf)!=CELL_FS_SUCCEEDED)
+									if(f0!=NTFS && FileExists(templn)==false)
 									{
 										get_name(tempstr, entry.d_name, 0);
 										sprintf(templn, "%s/%s.SFO", param, tempstr);
@@ -814,7 +804,7 @@ next_html_entry:
 								if(flen > 4 && icon[flen-4]=='.')
 								{
 									icon[flen-3]='p'; icon[flen-2]='n'; icon[flen-1]='g';
-									if(cellFsStat(icon, &buf)!=CELL_FS_SUCCEEDED)
+									if(FileExists(icon)==false)
 									{
 										icon[flen-3]='P'; icon[flen-2]='N'; icon[flen-1]='G';
 									}
@@ -825,7 +815,7 @@ next_html_entry:
 									icon[flen-5]='p'; icon[flen-4]='n'; icon[flen-3]='g'; flen -= 2; icon[flen]=0;
 								}
 
-								if(cellFsStat(icon, &buf)!=CELL_FS_SUCCEEDED)
+								if(FileExists(icon)==false)
 									{icon[flen-3]='j'; icon[flen-2]='p'; icon[flen-1]='g';}
 							}
 

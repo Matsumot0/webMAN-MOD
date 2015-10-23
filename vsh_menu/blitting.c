@@ -33,13 +33,13 @@ static int32_t get_font_object(void)
 	uint64_t pat[2] = {0x3800001090810080ULL, 0x90A100849161008CULL};
 
 
-  while(pm_start < 0x700000)
-  {
-    if((*(uint64_t*)pm_start == pat[0]) && (*(uint64_t*)(pm_start+8) == pat[1]))
-    {
+	while(pm_start < 0x700000)
+	{
+		if((*(uint64_t*)pm_start == pat[0]) && (*(uint64_t*)(pm_start+8) == pat[1]))
+		{
 			// get font object
-		  font_obj = (int32_t)((int32_t)((*(int32_t*)(pm_start + 0x4C) & 0x0000FFFF) <<16) +
-		  	                   (int16_t)( *(int32_t*)(pm_start + 0x54) & 0x0000FFFF));
+			font_obj = (int32_t)((int32_t)((*(int32_t*)(pm_start + 0x4C) & 0x0000FFFF) <<16) +
+					   (int16_t)( *(int32_t*)(pm_start + 0x54) & 0x0000FFFF));
 
 		  // get font library pointer
 		  font_lib_ptr = (void*)(*(int32_t*)font_obj);
@@ -51,10 +51,10 @@ static int32_t get_font_object(void)
 		  return 0;
 		}
 
-    pm_start+=4;
-  }
+		pm_start+=4;
+	}
 
-  return -1;
+	return -1;
 }
 
 /***********************************************************************
@@ -240,30 +240,30 @@ static int32_t utf8_to_ucs4(uint8_t *utf8, uint32_t *ucs4)
 	}
 	else if((c1 & 0xE0) == 0xC0)          // 2 byte sequence
 	{
-    len = 2;
-    c2 = (uint32_t)*utf8;
+		len = 2;
+		c2 = (uint32_t)*utf8;
 
-    if((c2 & 0xC0) == 0x80)
-		  *ucs4 = ((c1  & 0x1F) << 6) | (c2 & 0x3F);
-	  else
+		if((c2 & 0xC0) == 0x80)
+			*ucs4 = ((c1  & 0x1F) << 6) | (c2 & 0x3F);
+		else
 			len = *ucs4 = 0;
 	}
 	else if((c1 & 0xF0) == 0xE0)          // 3 bytes sequence
 	{
-    len = 3;
-    c2 = (uint32_t)*utf8;
-    utf8++;
+		len = 3;
+		c2 = (uint32_t)*utf8;
+		utf8++;
 
-    if((c2 & 0xC0) == 0x80)
-	{
-		c3 = (uint32_t)*utf8;
+		if((c2 & 0xC0) == 0x80)
+		{
+			c3 = (uint32_t)*utf8;
 
-		if((c3 & 0xC0) == 0x80)
-		    *ucs4 = ((c1  & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
+			if((c3 & 0xC0) == 0x80)
+				*ucs4 = ((c1  & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
+			else
+				len = *ucs4 = 0;
+		}
 		else
-		    len = *ucs4 = 0;
-	}
-    else
 			len = *ucs4 = 0;
 	}
 	else if((c1 & 0xF8) == 0xF0)          // 4 bytes sequence
@@ -353,7 +353,7 @@ void init_graphic()
 int32_t load_png_bitmap(int32_t idx, const char *path)
 {
 	if(idx > PNG_MAX) return -1;
-  ctx.png[idx] = load_png(path);
+	ctx.png[idx] = load_png(path);
 	return 0;
 }
 
@@ -389,7 +389,7 @@ void flip_frame()
 		  *(uint64_t*)(OFFSET(canvas_x + (k*2), canvas_y + (i))) = canvas[k + i * CANVAS_WW];
 
 	// after flip, clear frame buffer with background
-  memcpy((uint8_t *)ctx.canvas, (uint8_t *)ctx.bg, CANVAS_W * CANVAS_H * 4);
+	memcpy((uint8_t *)ctx.canvas, (uint8_t *)ctx.bg, CANVAS_W * CANVAS_H * 4);
 }
 
 /***********************************************************************
@@ -442,22 +442,10 @@ void set_font(float_t font_w, float_t font_h, float_t weight, int32_t distance)
 ***********************************************************************/
 void draw_background()
 {
-	uint32_t i, tmp_x = 0, tmp_y = 0;
-
 	const uint32_t CANVAS_SIZE = CANVAS_W * CANVAS_H;
 
-	for(i = 0; i < CANVAS_SIZE; i++)
-	{
+	for(uint32_t i = 0; i < CANVAS_SIZE; i++)
 		ctx.canvas[i] = mix_color(ctx.bg[i], ctx.bg_color);
-
-		tmp_x++;
-
-		if(tmp_x == CANVAS_W)
-		{
-			tmp_x = 0;
-			tmp_y++;
-		}
-	}
 }
 
 /***********************************************************************
@@ -469,8 +457,8 @@ void draw_background()
 ***********************************************************************/
 int32_t print_text(int32_t x, int32_t y, const char *str)
 {
-  int32_t i, k, len = 0;
-  uint32_t code = 0;                                              // char unicode
+	int32_t i, k, len = 0;
+	uint32_t code = 0;                                              // char unicode
 	int32_t t_x = x, t_y = y;                                       // temp x/y
 	int32_t o_x = x, o_y = y + bitmap->horizontal_layout.baseLineY; // origin x/y
 	Glyph *glyph;                                                   // char glyph
@@ -479,23 +467,23 @@ int32_t print_text(int32_t x, int32_t y, const char *str)
 
 	memset(&glyph, 0, sizeof(Glyph));
 
-	// center text(only 1 line)
+	// center text (only 1 line)
 	if(x == -1)
 	{
-	  while(1)                                  // get render length
-	  {
-		  utf8 += utf8_to_ucs4(utf8, &code);
+		while(1)                                  // get render length
+		{
+			utf8 += utf8_to_ucs4(utf8, &code);
 
-		  if(code == 0)
-		    break;
+			if(code == 0)
+			break;
 
-		  glyph = get_glyph(code);
-		  len += glyph->metrics.Horizontal.advance + bitmap->distance;
-	  }
+			glyph = get_glyph(code);
+			len += glyph->metrics.Horizontal.advance + bitmap->distance;
+		}
 
-	  o_x = t_x = (CANVAS_W - len - bitmap->distance) / 2;
-	  utf8 = (uint8_t*)str;
-  }
+		o_x = t_x = (CANVAS_W - len - bitmap->distance) / 2;
+		utf8 = (uint8_t*)str;
+	}
 
 	// render text
 	while(1)

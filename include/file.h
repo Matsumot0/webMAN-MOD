@@ -64,6 +64,12 @@ static int isDir(const char* path)
 		return 0;
 }
 
+static bool FileExists(const char* path)
+{
+	struct CellFsStat s;
+	return (cellFsStat(path, &s)==CELL_FS_SUCCEEDED);
+}
+
 static int savefile(char *file, char *mem, u64 size)
 {
 	u64 written; int fd=0;

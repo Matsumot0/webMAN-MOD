@@ -251,8 +251,6 @@ static void string_to_lv2(char* path, u64 addr)
 
 static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u8 is_binary, bool mount_ps3, bool forced_mount)
 {
-	struct CellFsStat buf;
-
 	//unmount game
 	if(strstr(param, "ps3/unmount"))
 	{
@@ -313,8 +311,13 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 			{
 				CellPadData pad_data = pad_read();
 				bool atag = (strcasestr(param, AUTOPLAY_TAG)!=NULL) || (webman_config->autoplay);
-				bool r2 = (pad_data.len>0 && pad_data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2));
-				if((atag && !r2) || (!atag && r2)) {sys_timer_sleep(1); launch_disc((char*)"game", (char*)"seg_device");} // L2 + X or R2 + X
+#ifdef REMOVE_SYSCALLS
+				bool l2 = (pad_data.len>0 && (pad_data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_L2));
+#else
+				bool l2 = (pad_data.len>0 && (pad_data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2)));
+#endif
+				char category[16] = "game", seg_name[80] = "seg_device";
+				if((atag && !l2) || (!atag && l2)) {sys_timer_sleep(1); launch_disc(category, seg_name);} // L2 + X
 			}
 
 			is_busy=false;
@@ -325,7 +328,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 			htmlenc(templn, param+plen, 0);
 			sprintf(tempstr, "%s/PS3_GAME/ICON0.PNG", param+plen);
 
-			if(cellFsStat(tempstr, &buf)!=CELL_FS_SUCCEEDED)
+			if(FileExists(tempstr)==false)
 			{
 				char fpath[MAX_PATH_LEN], fname[MAX_PATH_LEN], tempID[10]; tempstr[0]=0;
 
@@ -345,6 +348,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 #ifdef SWAP_KERNEL
 				if(strstr(param+plen, "/lv2_kernel"))
 				{
+					struct CellFsStat buf;
 					if(cellFsStat(param+plen, &buf)!=CELL_FS_SUCCEEDED)
 						sprintf(target, STR_ERROR);
 					else
@@ -358,7 +362,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 						strcpy(strrchr(tempstr, '/'), "/stage2.bin");
 
 						sprintf(target, "/dev_blind/sys/stage2.bin");
-						if(cellFsStat(target, &buf)!=CELL_FS_SUCCEEDED)
+						if(FileExists(target)==false)
 							filecopy(tempstr, target, COPY_WHOLE_FILE);
 
 						// copy: /dev_flash/sys/lv2_self
@@ -366,7 +370,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 						if(cellFsStat(target, &buf)!=CELL_FS_SUCCEEDED || buf.st_size != size)
 							filecopy(param+plen, target, COPY_WHOLE_FILE);
 
-						if(cellFsStat(target, &buf)==CELL_FS_SUCCEEDED)
+						if(FileExists(target))
 						{
 							u64 lv2_offset=0x15DE78; // 4.xx CFW LV1 memory location for: /flh/os/lv2_kernel.self
 							/*
@@ -452,7 +456,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 				else if(strstr(param+plen, "/webftp_server"))
 				{
 					sprintf(target, "/dev_hdd0/plugins/webftp_server.sprx");
-					if(cellFsStat((char*)target, &buf)!=CELL_FS_SUCCEEDED) sprintf(target, "/dev_hdd0/webftp_server.sprx");
+					if(FileExists(target)==false) sprintf(target, "/dev_hdd0/webftp_server.sprx");
 				}
 				else if(strstr(param+plen, "/boot_plugins_"))
 					sprintf(target, "/dev_hdd0/boot_plugins.txt");
@@ -546,7 +550,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 #ifdef COPY_PS3
 		if(plen==IS_COPY && !copy_in_progress)
 		{
-			if(cellFsStat((char*)param+plen, &buf)!=CELL_FS_SUCCEEDED)
+			if(FileExists(param+plen)==false)
 				sprintf(templn, "%s", STR_ERROR);
 			else
 			{
@@ -671,17 +675,16 @@ static void do_umount(bool clean)
 
 static void mount_autoboot(void)
 {
-	struct CellFsStat s;
 	char path[MAX_PATH_LEN];
 
 	// get autoboot path
 	if(webman_config->autob &&
-      ((cobra_mode && strstr(webman_config->autoboot_path, "/net")!=NULL) || cellFsStat((char *)webman_config->autoboot_path, &s)==CELL_FS_SUCCEEDED)) // autoboot
+      ((cobra_mode && strstr(webman_config->autoboot_path, "/net")!=NULL) || FileExists(webman_config->autoboot_path))) // autoboot
 		strcpy(path, (char *) webman_config->autoboot_path);
 	else
 	{   // get last game path
 		sprintf(path, WMTMP "/last_game.txt");
-		if(webman_config->lastp && cellFsStat(path, &s)==CELL_FS_SUCCEEDED)
+		if(webman_config->lastp && FileExists(path))
 		{
 			int fd=0;
 			if(cellFsOpen(path, CELL_FS_O_RDONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
@@ -705,7 +708,7 @@ static void mount_autoboot(void)
 	if(strlen(path)>10 || (cobra_mode && strstr(path, "/net")!=NULL))
 	{
 		waitfor((char*)path, 2*(webman_config->boots+webman_config->bootd));
-		do_mount=((cobra_mode && strstr(path, "/net")!=NULL) || cellFsStat(path, &s)==CELL_FS_SUCCEEDED);
+		do_mount=((cobra_mode && strstr(path, "/net")!=NULL) || FileExists(path));
 	}
 
 	if(do_mount)
@@ -1333,7 +1336,6 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 		}
 	}
 
-	struct CellFsStat s;
 	char titleID[10];
 
 	char _path[MAX_PATH_LEN];
@@ -1460,7 +1462,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 												"/dev_hdd0/game/IRISMAN00/sprx_iso" };
 
 			for(n = 0; n < 4; n++)
-				if(cellFsStat(raw_iso_sprx[n], &s)==CELL_FS_SUCCEEDED) {found = true; break;}
+				if(FileExists(raw_iso_sprx[n])) {found = true; break;}
 
 			if(found)
 			{
@@ -1495,7 +1497,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 	{
 		char temp[MAX_PATH_LEN];
 
-		if(cellFsStat(PS2_CLASSIC_PLACEHOLDER, &s)==CELL_FS_SUCCEEDED)
+		if(FileExists(PS2_CLASSIC_PLACEHOLDER))
 		{
 			sprintf(temp, "PS2 Classic\n%s", strrchr(_path, '/') + 1);
 			copy_in_progress=true; copied_count = 0;
@@ -1510,14 +1512,14 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 			cellFsUnlink(PS2_CLASSIC_ISO_PATH);
 			if(filecopy(_path, (char*)PS2_CLASSIC_ISO_PATH, COPY_WHOLE_FILE) == 0)
 			{
-				if(cellFsStat(PS2_CLASSIC_ISO_ICON ".bak", &s)!=CELL_FS_SUCCEEDED)
+				if(FileExists(PS2_CLASSIC_ISO_ICON ".bak")==false)
 					filecopy((char*)PS2_CLASSIC_ISO_ICON, (char*)(PS2_CLASSIC_ISO_ICON ".bak"), COPY_WHOLE_FILE);
 
 				sprintf(temp, "%s.png", _path);
-				if(cellFsStat(temp, &s)!=CELL_FS_SUCCEEDED) sprintf(temp, "%s.PNG", _path);
+				if(FileExists(temp)==false) sprintf(temp, "%s.PNG", _path);
 
 				cellFsUnlink(PS2_CLASSIC_ISO_ICON);
-				if(cellFsStat(temp, &s)==CELL_FS_SUCCEEDED)
+				if(FileExists(temp))
 					filecopy(temp, (char*)PS2_CLASSIC_ISO_ICON, COPY_WHOLE_FILE);
 				else
 					filecopy((char*)(PS2_CLASSIC_ISO_ICON ".bak"), (char*)PS2_CLASSIC_ISO_ICON, COPY_WHOLE_FILE);
@@ -1621,7 +1623,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 				for(u8 n=1;n<16;n++)
 				{
 					sprintf(templn, "%s.%i", path2, n);
-					if(cellFsStat(templn, &s)==CELL_FS_SUCCEEDED)
+					if(FileExists(templn))
 					{
 						iso_num++;
 						strcpy(iso_list[n], templn);
@@ -1651,7 +1653,8 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 						{
 							get_name(iso_list[15], _path, 0); strcat(iso_list[15], ".SFO\0");
 
-							if(cellFsStat(iso_list[15], &s)!=CELL_FS_SUCCEEDED)
+							// cache PARAM.SFO
+							if(FileExists(iso_list[15])==false)
 							{
 								for(u8 n=0;n<10;n++)
 								{
@@ -1659,8 +1662,10 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 									sys_timer_usleep(500000);
 								}
 							}
+
+							// cache ICON0.PNG
 							iso_list[15][strlen(iso_list[15])-4]=0; strcat(iso_list[15], ".PNG");
-							if(cellFsStat(iso_list[15], &s)!=CELL_FS_SUCCEEDED)
+							if(FileExists(iso_list[15])==false)
 							{
 								for(u8 n=0;n<10;n++)
 								{
@@ -1744,7 +1749,9 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 						sprintf(iso_list[15], WMTMP "/%s", (strrchr(_path, '/')+1));
 						if(!strstr(mynet_iso->path, "/***PS3***")) iso_list[15][strlen(iso_list[15])-4]=0;
 						strcat(iso_list[15], ".SFO\0");
-						if(cellFsStat(iso_list[15], &s)!=CELL_FS_SUCCEEDED)
+
+						// cache PARAM.SFO
+						if(FileExists(iso_list[15])==false)
 						{
 							for(u8 n=0;n<30;n++)
 							{
@@ -1752,8 +1759,10 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 								sys_timer_usleep(500000);
 							}
 						}
-                        iso_list[15][strlen(iso_list[15])-4]=0; strcat(iso_list[15], ".PNG");
-						if(cellFsStat(iso_list[15], &s)!=CELL_FS_SUCCEEDED)
+
+						// cache ICON0.PNG
+						iso_list[15][strlen(iso_list[15])-4]=0; strcat(iso_list[15], ".PNG");
+						if(FileExists(iso_list[15])==false)
 						{
 							for(u8 n=0;n<30;n++)
 							{
@@ -1788,7 +1797,8 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 					{
 						get_name(iso_list[15], (strrchr(_path, '/')+1), 1); strcat(iso_list[15], ".SFO\0");
 
-						if(cellFsStat(iso_list[15], &s)!=CELL_FS_SUCCEEDED)
+						// cache PARAM.SFO
+						if(FileExists(iso_list[15])==false)
 						{
 							for(u8 n=0;n<5;n++)
 							{
@@ -1796,8 +1806,10 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 								sys_timer_usleep(500000);
 							}
 						}
+
+						// cache ICON0.PNG
 						iso_list[15][strlen(iso_list[15])-4]=0; strcat(iso_list[15], ".PNG");
-						if(cellFsStat(iso_list[15], &s)!=CELL_FS_SUCCEEDED)
+						if(FileExists(iso_list[15])==false)
 						{
 							for(u8 n=0;n<5;n++)
 							{
@@ -1850,7 +1862,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 						for(u8 e=0; e<8; e++)
 						{
 							cobra_iso_list[0][flen-4]=0; strcat(cobra_iso_list[0], extensions[e]);
-							if(cellFsStat(cobra_iso_list[0], &s)==CELL_FS_SUCCEEDED) break;
+							if(FileExists(cobra_iso_list[0])) break;
 						}
 
 						unsigned int num_tracks=0;
@@ -2156,7 +2168,6 @@ patch:
 
 	char expplg[128];
 	char app_sys[128];
-	struct CellFsStat buf2;
 
 	char path[MAX_PATH_LEN];
 
@@ -2286,14 +2297,14 @@ patch:
 	else
         sprintf(expplg, "%s/none", app_sys);
 
-	if(do_eject && cellFsStat(expplg, &buf2)==CELL_FS_SUCCEEDED)
+	if(do_eject && FileExists(expplg))
 		add_to_map( (char*)"/dev_flash/vsh/module/explore_plugin.sprx", expplg);
 
 
 	//---------------
 	// New libfs.sprx
 	//---------------
-	if((do_eject>0) && (c_firmware>=4.20f) && cellFsStat((char*)NEW_LIBFS_PATH, &buf2)==CELL_FS_SUCCEEDED)
+	if((do_eject>0) && (c_firmware>=4.20f) && FileExists(NEW_LIBFS_PATH))
 		add_to_map((char*) ORG_LIBFS_PATH, (char*)NEW_LIBFS_PATH);
 
 	//-----------------------------------------------//
@@ -2356,15 +2367,21 @@ exit_mount:
 
 	if(!ret && !isDir("/dev_bdvd")) {char msg[MAX_PATH_LEN]; sprintf(msg, "%s %s", STR_ERROR, _path); show_msg(msg);}
 #ifdef REMOVE_SYSCALLS
-    else if(strcasestr(_path, "[online]")) remove_cfw_syscalls();
+	else
+	{
+		CellPadData pad_data = pad_read();
+		bool otag = (strcasestr(_path, "[online]")!=NULL);
+		bool r2 = (pad_data.len>0 && (pad_data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_R2));
+		if((!r2 && otag) || (r2 && !otag)) remove_cfw_syscalls();
+	}
 #endif
 
 #ifdef COBRA_ONLY
 	{
-		if(ret && (strstr(_path, ".PUP.ntfs[BD") || cellFsStat((char*)"/dev_bdvd/PS3UPDAT.PUP", &s)==CELL_FS_SUCCEEDED))
+		if(ret && (strstr(_path, ".PUP.ntfs[BD") || FileExists("/dev_bdvd/PS3UPDAT.PUP")))
 			sys_map_path((char*)"/dev_bdvd/PS3/UPDATE", (char*)"/dev_bdvd"); //redirect root of bdvd to /dev_bdvd/PS3/UPDATE
 
-		if(ret && (strstr(_path, "/net") && cellFsStat((char*)"/dev_bdvd/PKG", &s)==CELL_FS_SUCCEEDED))
+		if(ret && (strstr(_path, "/net") && FileExists("/dev_bdvd/PKG")))
 			sys_map_path((char*)"/app_home", (char*)"/dev_bdvd/PKG"); //redirect net_host/PKG to app_home
 
 		sys_map_path((char*)"/dev_bdvd/PS3_UPDATE", (char*)"/dev_bdvd"); //redirect firmware update to root of bdvd

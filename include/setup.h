@@ -364,8 +364,6 @@ static void setup_parse_settings(char *param)
 
 static void setup_form(char *buffer, char *templn)
 {
-	struct CellFsStat buf; int fd;
-
 	sprintf(templn, "<form action=\"/setup.ps3\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
 					"<table width=\"820\" border=\"0\" cellspacing=\"2\" cellpadding=\"0\">"
 					"<tr><td width=\"250\"><u>%s:</u><br>", STR_SCAN1); strcat(buffer, templn);
@@ -378,9 +376,9 @@ static void setup_form(char *buffer, char *templn)
 	add_check_box("u6", "1", drives[5], NULL, (webman_config->usb6), buffer);
 	add_check_box("u7", "1", drives[6], NULL, (webman_config->usb7), buffer);
 
-	if(cellFsStat(drives[11], &buf)==CELL_FS_SUCCEEDED) add_check_box("x0", "1", drives[11], NULL, (webman_config->dev_sd), buffer);
-	if(cellFsStat(drives[12], &buf)==CELL_FS_SUCCEEDED) add_check_box("x1", "1", drives[12], NULL, (webman_config->dev_ms), buffer);
-	if(cellFsStat(drives[13], &buf)==CELL_FS_SUCCEEDED) add_check_box("x2", "1", drives[13], NULL, (webman_config->dev_cf), buffer);
+	if(isDir(drives[11])) add_check_box("x0", "1", drives[11], NULL, (webman_config->dev_sd), buffer);
+	if(isDir(drives[12])) add_check_box("x1", "1", drives[12], NULL, (webman_config->dev_ms), buffer);
+	if(isDir(drives[13])) add_check_box("x2", "1", drives[13], NULL, (webman_config->dev_cf), buffer);
 
 	//Scan for content
 	sprintf(templn, "<td nowrap valign=top><u>%s:</u><br>", STR_SCAN2); strcat(buffer, templn);
@@ -537,6 +535,8 @@ static void setup_form(char *buffer, char *templn)
 	add_option_item("2", "2", (profile==2) , buffer);
 	add_option_item("3", "3", (profile==3) , buffer);
 	add_option_item("4", "4", (profile==4) , buffer);
+
+	int fd;
 
 	//default user account
 	strcat(buffer, "</select> : hdd0/home/<select name=\"uacc\">");

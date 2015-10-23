@@ -59,10 +59,6 @@ static void poll_thread(uint64_t poll)
 	int delta=0;
 	char msg[200];
 
-#ifdef WM_REQUEST
-	CellFsStat stat;
-#endif
-
 	old_fan=0;
 	while(working)
 	{
@@ -220,7 +216,7 @@ static void poll_thread(uint64_t poll)
 #ifdef WM_REQUEST
 		// Poll requests via local file
 		if((sec & 1) && (gTick.tick>rTick.tick)) continue; // slowdown polling if ingame
-		if(cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &stat)==CELL_FS_SUCCEEDED)
+		if(FileExists("/dev_hdd0/tmp/wm_request"))
 		{
 			loading_html++;
 			sys_ppu_thread_t id;
