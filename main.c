@@ -416,6 +416,10 @@ static char wm_icons[12][60]={WM_ICONS_PATH "icon_wm_album_ps3.png", //024.png  
                               WM_ICONS_PATH "icon_wm_eject.png"      //icon/icon_home.png  [11]
                              };
 
+#ifndef ENGLISH_ONLY
+static bool use_custom_icon_path = false, use_icon_region = false;
+#endif
+
 static bool covers_exist[7];
 static char local_ip[16] = "127.0.0.1";
 
@@ -656,6 +660,10 @@ static void handleclient(u64 conn_s_p)
 													covers_exist[4]=isDir("/dev_hdd0/GAMES/covers");
 													covers_exist[5]=isDir("/dev_hdd0/GAMEZ/covers");
 													covers_exist[6]=isDir(WMTMP);
+
+#ifndef ENGLISH_ONLY
+		if(!covers_exist[0]) {use_custom_icon_path = strstr(COVERS_PATH, "%s"); use_icon_region = strstr(COVERS_PATH, "%s/%s");} else {use_icon_region = use_custom_icon_path = false;}
+#endif
 
 		for(u8 i=0; i<12; i++)
 		{
@@ -1043,30 +1051,53 @@ again3:
 				}
 
 				u8 klic_polling_status = klic_polling;
-				char buffer[0x200], kl[0x120], curkl[0x20]; memset(kl, 0, 0x120);
+				char buffer[0x300], kl[0x120], prev[0x300];
+
+				if(strstr(param, "auto")) klic_polling = 2; else
+				if(strstr(param, "off"))  klic_polling = 0; else
+				if(strstr(param, "?log")) klic_polling = klic_polling ? 0 : 1;
+
+				if((klic_polling_status == 0) && (klic_polling == 2))
+				{
+					if(View_Find("game_plugin") == 0) http_response(conn_s, header, param, 200, "KLIC: Waiting for game..."); show_msg((char*)"KLIC: Waiting for game...");
+
+					// wait until game start
+					while((klic_polling == 2) && View_Find("game_plugin") == 0) {sys_timer_usleep(500000);}
+				}
 
 				if(View_Find("game_plugin"))
 				{
-					if(strstr(param, "auto")) klic_polling = 2; else
-					if(strstr(param, "off"))  klic_polling = 0; else
-					if(strstr(param, "?log")) klic_polling = klic_polling ? 0 : 1;
-
-					sprintf(curkl, "%s", ((klic_polling_status) ? (klic_polling ? "Auto-Log: Running" : "Auto-Log: Stopped") : ((klic_polling == 1)? "Added to Log" : (klic_polling == 2)? "Auto-Log: Started" : "Enable Auto-Log")));
-
 					hex_dump(kl,npklic_struct_offset,0x10);
-					get_game_info(); sprintf(buffer, "%s %s</H2>%s%s<br>%s%s<p><a href=\"/%s\"><font color=#ccc>%s</font></a><hr>" HTML_BUTTON_FMT, _game_TitleID, _game_Title, "KLicensee: ", hex_dump(kl,npklic_struct_offset,0x10), "Content ID: ", (char*)(npklic_struct_offset-0xA4), (klic_polling_status>0 && klic_polling>0) ? "klic.ps3?off" : ((klic_polling_status | klic_polling) == 0) ? "klic.ps3?auto" : "dev_hdd0/klic.log", curkl, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3");
+					get_game_info(); sprintf(buffer, "%s %s</H2>"
+													 "%s%s<br>"
+													 "%s%s<br>"
+													 "%s%s<p>",
+													 _game_TitleID, _game_Title,
+													 "KLicensee: ", hex_dump(kl,npklic_struct_offset,0x10),
+													 "Content ID: ", (char*)(npklic_struct_offset-0xA4),
+													 "File: ", (char*)(npklic_struct_offset+0x10));
 				}
 				else
-					{sprintf(buffer, "ERROR: <a href=\"play.ps3\"><font color=#ccc>Not in-game!</font></a><hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3"); klic_polling = false; show_msg((char*)"KLIC ERROR: Not in-game!");}
+					{sprintf(buffer, "ERROR: <a href=\"play.ps3\"><font color=#ccc>%s</font></a><p>", "KLIC: Not in-game!"); klic_polling = false; show_msg((char*)"KLIC: Not in-game!");}
+
+				sprintf(prev, "%s", ((klic_polling_status) ? (klic_polling ? "Auto-Log: Running" : "Auto-Log: Stopped") : ((klic_polling == 1)? "Added to Log" : (klic_polling == 2)? "Auto-Log: Started" : "Enable Auto-Log")));
+
+				sprintf(kl, "<a href=\"/%s\"><font color=#ccc>%s</font></a><hr>" HTML_BUTTON_FMT,
+							(klic_polling_status>0 && klic_polling>0) ? "klic.ps3?off" :
+							((klic_polling_status | klic_polling) == 0) ? "klic.ps3?auto" : "dev_hdd0/klic.log", prev,
+							HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3"); strcat(buffer, kl);
 
 				is_binary=0;
 				http_response(conn_s, header, param, 200, buffer);
 
 				if(kl[0]>0 && klic_polling>0)
 				{
-					get_game_info(); sprintf(header, "%s [%s]\r\n", _game_Title, _game_TitleID);
+					get_game_info(); sprintf(header, "%s [%s]", _game_Title, _game_TitleID);
 
-					sprintf(buffer, "%s%s%s\n%s%s", header, "KLicensee: ", kl, "Content ID: ", (char*)(npklic_struct_offset-0xA4));
+					sprintf(buffer, "%s\n\n%s", header, (char*)(npklic_struct_offset+0x10));
+					show_msg(buffer);
+
+					sprintf(buffer, "%s%s\n%s%s", "KLicensee: ", kl, "Content ID: ", (char*)(npklic_struct_offset-0xA4));
 					show_msg(buffer);
 
 					if(klic_polling_status==0)
@@ -1075,11 +1106,10 @@ again3:
 
 						while((klic_polling>0) && View_Find("game_plugin"))
 						{
-							if(compare && memcmp(curkl, (char*)npklic_struct_offset, 0x10)==0) {sys_timer_usleep(10000); continue;}
+							hex_dump(kl, (int)npklic_struct_offset, 0x10);
+							sprintf(buffer, "%s %s %s %s\r\n", kl, (char*)(npklic_struct_offset-0xA4), header, (char*)(npklic_struct_offset+0x10));
 
-							strncpy(curkl, (char*)npklic_struct_offset, 0x10); hex_dump(kl,(int)curkl,0x10);
-
-							sprintf(buffer, "%s %s %s", kl, (char*)(npklic_struct_offset-0xA4), header);
+							if(compare && !strcmp(buffer, prev)) {sys_timer_usleep(10000); continue;}
 
 							if(cellFsOpen("/dev_hdd0/klic.log", CELL_FS_O_RDWR|CELL_FS_O_CREAT|CELL_FS_O_APPEND, &fd, NULL, 0) == CELL_OK)
 							{
@@ -1088,7 +1118,7 @@ again3:
 								cellFsClose(fd);
 							}
 
-							if(klic_polling==1) break; compare = true;
+							if(klic_polling==1) break; compare = true; strcpy(prev, buffer);
 						}
 
 						klic_polling = 0;

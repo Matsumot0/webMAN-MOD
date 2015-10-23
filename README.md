@@ -76,6 +76,7 @@ Requirements for GNU/Linux:
 - NzV for Ps3mapi, Mamba prxloader
 - OsirisX for PS3XPAD
 - Mysis, who wrote some useful libs and reverse engineering VSH Exports functions: http://www.ps3devwiki.com/ps3/VSH#Exports
+- 3141card for his VSH Menu POC & Littlebalup for his enhancement/new features :)
 - PSX-SCENE, PSX-PLACE, PLAYSTATIONHAX, PS3HAX & other scene websites/users, who translated, helped in the testing process
 
 

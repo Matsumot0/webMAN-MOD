@@ -82,6 +82,10 @@ static bool get_cover(char *icon, char *titleid)
 		sprintf(icon, WMTMP "/%s.PNG", titleid); if(FileExists(icon)) return true;
 	}
 
+#ifndef ENGLISH_ONLY
+	if(use_custom_icon_path) {{if(!use_icon_region) sprintf(icon, COVERS_PATH, titleid); else sprintf(icon, COVERS_PATH, (titleid[2]=='U')?"US":(titleid[2]=='J')?"JA":"EN", titleid);} return true;}
+#endif
+
 	icon[0]=0;
     return false;
 }
@@ -495,6 +499,14 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 		}
 	}
 
+#ifndef ENGLISH_ONLY
+	char onerror_prefix[24]=" onerror=\"this.src='", onerror_suffix[30]="';\"";  // wm_icons[default_icon]
+	if(!use_custom_icon_path) onerror_prefix[0]=onerror_suffix[0]=0;
+#else
+	#define onerror_prefix ""
+    #define onerror_suffix ""
+#endif
+
 	if(loading_games)
 	{
 		int abort_connection=0;
@@ -549,7 +561,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 							 !webman_config->usb3 && !webman_config->usb6 && !webman_config->usb7)) continue;
 
 //
-			int ns=-2; u8 uprofile=profile;
+			int ns=-2; u8 uprofile=profile, default_icon=0;
 			for(u8 f1=filter1; f1<11; f1++) // paths: 0="GAMES", 1="GAMEZ", 2="PS3ISO", 3="BDISO", 4="DVDISO", 5="PS2ISO", 6="PSXISO", 7="PSXGAMES", 8="PSPISO", 9="ISO", 10="video"
 			{
 #ifndef COBRA_ONLY
@@ -638,6 +650,10 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 #endif
 				if(!is_net && cellFsOpendir( param, &fd) != CELL_FS_SUCCEEDED) goto continue_reading_folder_html; //continue;
 
+#ifndef ENGLISH_ONLY
+				default_icon = (f1 < 4) ? 5 : (f1 == 4) ? 9 : (f1 == 5) ? 7 : (f1 < 8 ) ? 6 : (f1 < 10 ) ? 8 : 5;
+#endif
+
 				while((!is_net && cellFsReaddir(fd, &entry, &read_e) == 0 && read_e > 0)
 					|| (is_net && v3_entry<v3_entries)
 					)
@@ -668,10 +684,10 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 								icon, w, h, templn, neth, param, enc_dir_name);
 						}
 						else
-							sprintf(tempstr, "%c%c%c%c<div class=\"gc\"><div class=\"ic\"><a href=\"/mount.ps3%s%s/%s?random=%x\"><img src=\"%s\" class=\"gi\"></a></div><div class=\"gn\"><a href=\"%s%s/%s\">%s</a></div></div>",
+							sprintf(tempstr, "%c%c%c%c<div class=\"gc\"><div class=\"ic\"><a href=\"/mount.ps3%s%s/%s?random=%x\"><img src=\"%s\"%s%s%s class=\"gi\"></a></div><div class=\"gn\"><a href=\"%s%s/%s\">%s</a></div></div>",
 								ename[0], ename[1], ename[2], ename[3],
 								neth, param, enc_dir_name, (u16)pTick.tick,
-								icon,
+								icon, onerror_prefix, default_icon ? wm_icons[default_icon] : "", onerror_suffix,
 								neth, param, enc_dir_name,
 								templn);
 
@@ -846,9 +862,9 @@ next_html_entry:
 								do
 								{
 									{
-										sprintf(tempstr, "%c%c%c%c<div class=\"gc\"><div class=\"ic\"><a href=\"/mount.ps3%s%s/%s?random=%x\"><img src=\"%s\" class=\"gi\"></a></div><div class=\"gn\"><a href=\"%s%s/%s\">%s</a></div></div>",
+										sprintf(tempstr, "%c%c%c%c<div class=\"gc\"><div class=\"ic\"><a href=\"/mount.ps3%s%s/%s?random=%x\"><img src=\"%s\"%s%s%s class=\"gi\"></a></div><div class=\"gn\"><a href=\"%s%s/%s\">%s</a></div></div>",
 											ename[0], ename[1], ename[2], ename[3],
-											param, "", enc_dir_name, (u16)pTick.tick, icon, param, "", enc_dir_name, templn);
+											param, "", enc_dir_name, (u16)pTick.tick, icon, onerror_prefix, default_icon ? wm_icons[default_icon] : "", onerror_suffix, param, "", enc_dir_name, templn);
 									}
 
 									flen-=4; if(flen<32) break;

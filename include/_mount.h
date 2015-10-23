@@ -2336,10 +2336,13 @@ patch:
 #endif //#ifndef COBRA_ONLY
 
 exit_mount:
+
+	delete_history(false);
+
 	// wait few seconds until the game is mounted
 	if(ret && extcmp(_path, ".BIN.ENC", 8))
 	{
-		waitfor((char*)"/dev_bdvd", ((strstr(_path0, "/dev_hdd0")) ? 6 : 15));
+		waitfor((char*)"/dev_bdvd", ((strstr(_path0, "/dev_hdd0")) ? 6 : (strstr(_path0, "/net")) ? 20 : 15));
 		if(!isDir("/dev_bdvd")) ret = false;
 	}
 
@@ -2362,8 +2365,6 @@ exit_mount:
 		getTitleID(filename, titleID, 1);
 	}
 #endif
-
-	delete_history(false);
 
 	if(!ret && !isDir("/dev_bdvd")) {char msg[MAX_PATH_LEN]; sprintf(msg, "%s %s", STR_ERROR, _path); show_msg(msg);}
 #ifdef REMOVE_SYSCALLS

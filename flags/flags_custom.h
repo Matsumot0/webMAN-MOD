@@ -1,4 +1,4 @@
-#define ENGLISH_ONLY	1	// uncomment for english only version
+//#define ENGLISH_ONLY	1	// uncomment for english only version
 
 //// EDITIONS ////
 
