@@ -9,10 +9,9 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 	else if(sz<0xC00000000ULL) {sprintf(sf, "%s", STR_MEGABYTE); sz>>=20;}
 	else {sprintf(sf, "%s", STR_GIGABYTE); sz>>=30;}
 
-	urlenc(tempstr, templn); strncpy(templn, tempstr, MAX_LINE_LEN);
-	strcpy(tempstr, name);
+	urlenc(tempstr, templn, 1); strncpy(templn, tempstr, MAX_LINE_LEN);
 
-	htmlenc(name, tempstr, 0);
+	if(is_net) {strcpy(tempstr, name); htmlenc(name, tempstr, 0);} else strcpy(tempstr, name);
 
 	flen=strlen(name);
 
@@ -81,7 +80,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 	else
 		sprintf(fsize, "<label title=\"%'llu %s\"> %'llu %s</label>", sbytes, STR_BYTE, sz, sf);
 
-	snprintf(ename, 6, "%s    ", name); urlenc(templn, tempstr);
+	snprintf(ename, 6, "%s    ", name); if(!strstr(templn, ":")) urlenc(templn, tempstr, 1);
 
 	sprintf(tempstr, "%c%c%c%c%c%c<tr>"
                      "<td><a %shref=\"%s\">%s</a></td>",

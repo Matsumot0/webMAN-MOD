@@ -83,7 +83,7 @@ static bool get_cover(char *icon, char *titleid)
 	}
 
 #ifndef ENGLISH_ONLY
-	if(use_custom_icon_path) {{if(!use_icon_region) sprintf(icon, COVERS_PATH, titleid); else sprintf(icon, COVERS_PATH, (titleid[2]=='U')?"US":(titleid[2]=='J')?"JA":"EN", titleid);} return true;}
+	if(use_custom_icon_path) {{if(use_icon_region) sprintf(icon, COVERS_PATH, (titleid[2]=='U')?"US":(titleid[2]=='J')?"JA":"EN", titleid); else sprintf(icon, COVERS_PATH, titleid);} return true;}
 #endif
 
 	icon[0]=0;
@@ -308,7 +308,7 @@ static int get_title_and_id_from_sfo(char *templn, char *tempID, char *entry_nam
 
 	if(!templn[0])
 	{
-		get_name(templn, entry_name, 2); if(f0!=NTFS) utf8enc(data, templn); //use file name as title
+		get_name(templn, entry_name, 2); if(f0!=NTFS) utf8enc(data, templn, 1); //use file name as title
 	}
 
 	return ( (ret==CELL_FS_SUCCEEDED) ? 0 : 1 );
@@ -370,7 +370,7 @@ static int add_net_game(int ns, netiso_read_dir_result_data *data, int v3_entry,
 		get_title_and_id_from_sfo(templn, tempID, data[v3_entry].name, icon, tempstr, 0);
 	}
 	else
-		{get_name(enc_dir_name, data[v3_entry].name, 0); utf8enc(templn, enc_dir_name);}
+		{get_name(enc_dir_name, data[v3_entry].name, 0); utf8enc(templn, enc_dir_name, 1);}
 
 	{get_name(enc_dir_name, data[v3_entry].name, 1); strcat(enc_dir_name, ".PNG"); if((icon[0]==0 || webman_config->nocov) && FileExists(enc_dir_name)) strcpy(icon, enc_dir_name);}
 
@@ -393,11 +393,11 @@ static int add_net_game(int ns, netiso_read_dir_result_data *data, int v3_entry,
 		else
 			get_default_icon(icon, param, tempstr, data[v3_entry].is_directory, tempID, ns, abort_connection);
 
-		urlenc(enc_dir_name, tempstr);
+		urlenc(enc_dir_name, tempstr, 0);
 	}
 	else
 	{
-		urlenc(enc_dir_name, data[v3_entry].name);
+		urlenc(enc_dir_name, data[v3_entry].name, 0);
 		get_default_icon(icon, param, data[v3_entry].name, data[v3_entry].is_directory, tempID, ns, abort_connection);
 	}
 
@@ -650,9 +650,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 #endif
 				if(!is_net && cellFsOpendir( param, &fd) != CELL_FS_SUCCEEDED) goto continue_reading_folder_html; //continue;
 
-#ifndef ENGLISH_ONLY
 				default_icon = (f1 < 4) ? 5 : (f1 == 4) ? 9 : (f1 == 5) ? 7 : (f1 < 8 ) ? 6 : (f1 < 10 ) ? 8 : 5;
-#endif
 
 				while((!is_net && cellFsReaddir(fd, &entry, &read_e) == 0 && read_e > 0)
 					|| (is_net && v3_entry<v3_entries)
@@ -670,7 +668,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 
 						snprintf(ename, 6, "%s    ", templn);
 
-						strcpy(tempstr, icon); urlenc(icon, tempstr);
+						strcpy(tempstr, icon); urlenc(icon, tempstr, 0);
 
 						if(mobile_mode)
 						{
@@ -681,7 +679,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 
 							sprintf(tempstr, "%c%c%c%c{img:'%s',width:%i,height:%i,desc:'%s',url:'%s%s/%s'},",
 								ename[0], ename[1], ename[2], ename[3],
-								icon, w, h, templn, neth, param, enc_dir_name);
+								icon ? icon : wm_icons[default_icon], w, h, templn, neth, param, enc_dir_name);
 						}
 						else
 							sprintf(tempstr, "%c%c%c%c<div class=\"gc\"><div class=\"ic\"><a href=\"/mount.ps3%s%s/%s?random=%x\"><img src=\"%s\"%s%s%s class=\"gi\"></a></div><div class=\"gn\"><a href=\"%s%s/%s\">%s</a></div></div>",
@@ -839,12 +837,12 @@ next_html_entry:
 
 							if(webman_config->tid && tempID[0]>'@' && strlen(templn) < 50 && strstr(templn, " [")==NULL) {strcat(templn, " ["); strcat(templn, tempID); strcat(templn, "]");}
 
-							urlenc(enc_dir_name, entry.d_name);
+							urlenc(enc_dir_name, entry.d_name, 0);
 							templn[64]=0; flen=strlen(templn);
 
 							snprintf(ename, 6, "%s    ", templn);
 
-							strcpy(tempstr, icon); urlenc(icon, tempstr);
+							strcpy(tempstr, icon); urlenc(icon, tempstr, 0);
 
 							if(mobile_mode)
 							{

@@ -98,7 +98,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.12 MOD"						// webMAN version
+#define WM_VERSION			"1.43.13 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -377,6 +377,11 @@ static void select_ps1emu(void);
 
 #ifdef GET_KLICENSEE
 int npklic_struct_offset = 0; u8 klic_polling = 0;
+
+#define KLICENSEE_SIZE          0x10
+#define KLICENSEE_OFFSET        (npklic_struct_offset)
+#define KLIC_PATH_OFFSET        (npklic_struct_offset+0x10)
+#define KLIC_CONTENT_ID_OFFSET  (npklic_struct_offset-0xA4)
 #endif
 
 int extcmp(const char *s1, const char *s2, size_t n);
@@ -569,6 +574,7 @@ static void prepare_html(char *buffer, char *templn, char *param, u8 is_ps3_http
 					".gc{float:left;overflow:hidden;position:relative;text-align:center;width:280px;height:260px;margin:3px;border:1px dashed grey;}"
 					".ic{position:absolute;top:5px;right:5px;left:5px;bottom:40px;}"
 					".propfont{font-family:\"Courier New\",Courier,monospace;}"
+					".dlg {position:absolute;top:40%;left:30%;width:40%;height:90px;z-index:5;border:5px solid #ccc;padding:10px;color:#fff;text-align:center;background-image:-webkit-gradient(linear, 0 0, 0 100%, color-stop(0, #999), color-stop(0.02, #666), color-stop(1, #222));background-image:-moz-linear-gradient(top, #999, #666 2%, #222);display:none;}"
 					"body,a.s,td,th{color:#F0F0F0;white-space:nowrap;");
 
 	if(is_ps3_http==2)
@@ -1059,7 +1065,7 @@ again3:
 
 				if((klic_polling_status == 0) && (klic_polling == 2))
 				{
-					if(View_Find("game_plugin") == 0) http_response(conn_s, header, param, 200, "KLIC: Waiting for game..."); show_msg((char*)"KLIC: Waiting for game...");
+					if(View_Find("game_plugin") == 0) http_response(conn_s, header, param, 200, "/KLIC: Waiting for game...");
 
 					// wait until game start
 					while((klic_polling == 2) && View_Find("game_plugin") == 0) {sys_timer_usleep(500000);}
@@ -1067,15 +1073,15 @@ again3:
 
 				if(View_Find("game_plugin"))
 				{
-					hex_dump(kl,npklic_struct_offset,0x10);
+					hex_dump(kl, KLICENSEE_OFFSET, KLICENSEE_SIZE);
 					get_game_info(); sprintf(buffer, "%s %s</H2>"
 													 "%s%s<br>"
 													 "%s%s<br>"
 													 "%s%s<p>",
 													 _game_TitleID, _game_Title,
-													 "KLicensee: ", hex_dump(kl,npklic_struct_offset,0x10),
-													 "Content ID: ", (char*)(npklic_struct_offset-0xA4),
-													 "File: ", (char*)(npklic_struct_offset+0x10));
+													 "KLicensee: ", hex_dump(kl, KLICENSEE_OFFSET, KLICENSEE_SIZE),
+													 "Content ID: ", (char*)(KLIC_CONTENT_ID_OFFSET),
+													 "File: ", (char*)(KLIC_PATH_OFFSET));
 				}
 				else
 					{sprintf(buffer, "ERROR: <a href=\"play.ps3\"><font color=#ccc>%s</font></a><p>", "KLIC: Not in-game!"); klic_polling = false; show_msg((char*)"KLIC: Not in-game!");}
@@ -1094,22 +1100,23 @@ again3:
 				{
 					get_game_info(); sprintf(header, "%s [%s]", _game_Title, _game_TitleID);
 
-					sprintf(buffer, "%s\n\n%s", header, (char*)(npklic_struct_offset+0x10));
+					sprintf(buffer, "%s\n\n%s", header, (char*)(KLIC_PATH_OFFSET));
 					show_msg(buffer);
 
-					sprintf(buffer, "%s%s\n%s%s", "KLicensee: ", kl, "Content ID: ", (char*)(npklic_struct_offset-0xA4));
-					show_msg(buffer);
+					if(klic_polling==1)
+					{
+						sprintf(buffer, "%s%s\n%s%s", "KLicensee: ", kl, "Content ID: ", (char*)(KLIC_CONTENT_ID_OFFSET));
+						show_msg(buffer);
+					}
 
 					if(klic_polling_status==0)
 					{
-						bool compare = false;
-
 						while((klic_polling>0) && View_Find("game_plugin"))
 						{
-							hex_dump(kl, (int)npklic_struct_offset, 0x10);
-							sprintf(buffer, "%s %s %s %s\r\n", kl, (char*)(npklic_struct_offset-0xA4), header, (char*)(npklic_struct_offset+0x10));
+							hex_dump(kl, (int)KLICENSEE_OFFSET, KLICENSEE_SIZE);
+							sprintf(buffer, "%s %s %s %s\r\n", kl, (char*)(KLIC_CONTENT_ID_OFFSET), header, (char*)(KLIC_PATH_OFFSET));
 
-							if(compare && !strcmp(buffer, prev)) {sys_timer_usleep(10000); continue;}
+							if(klic_polling==2 && !strcmp(buffer, prev)) {sys_timer_usleep(10000); continue;}
 
 							if(cellFsOpen("/dev_hdd0/klic.log", CELL_FS_O_RDWR|CELL_FS_O_CREAT|CELL_FS_O_APPEND, &fd, NULL, 0) == CELL_OK)
 							{
@@ -1118,7 +1125,7 @@ again3:
 								cellFsClose(fd);
 							}
 
-							if(klic_polling==1) break; compare = true; strcpy(prev, buffer);
+							if(klic_polling==1) break; strcpy(prev, buffer);
 						}
 
 						klic_polling = 0;
@@ -1507,7 +1514,12 @@ html_response:
 					t2=t2>>24;
 
 					sprintf(templn, " [<a href=\"/cpursx.ps3\">CPU: %i°C | RSX: %i°C</a>]<hr>"
-									"<form action=\"\">", t1, t2); strcat(buffer, templn);
+									"<div id=\"rxml\" class=\"dlg\"><H1>%s XML ...</H1></div>"
+									"<div id=\"rhtm\" class=\"dlg\"><H1>%s HTML ...</H1></div>"
+#ifdef COPY_PS3
+									"<div id=\"rcpy\" class=\"dlg\"><H1><a href=\"/copy.ps3$abort\">&#9746;</a> %s ...</H1></div>"
+#endif
+									"<form action=\"\">", t1, t2, STR_REFRESH, STR_REFRESH, STR_COPYING); strcat(buffer, templn);
 
 					if((webman_config->homeb) && (strlen(webman_config->home_url)>0))
 					{sprintf(templn, HTML_BUTTON_FMT, HTML_BUTTON, STR_HOME, HTML_ONCLICK, webman_config->home_url); strcat(buffer, templn);}
@@ -1527,7 +1539,7 @@ html_response:
                     ); strcat(buffer, templn);
 #ifdef COPY_PS3
 					if(((strstr(param, "/dev_") && strlen(param)>12 && !strstr(param,"?")) || strstr(param, "/dev_bdvd")) && !strstr(param,".ps3/") && !strstr(param,".ps3?"))
-					{sprintf(templn, "%s%s\" onclick='window.location.href=\"/copy.ps3%s\";'\">", HTML_BUTTON, STR_COPY, param); strcat(buffer, templn);}
+					{sprintf(templn, "%s%s\" onclick='rcpy.style.display=\"block\";location.href=\"/copy.ps3%s\";'\">", HTML_BUTTON, STR_COPY, param); strcat(buffer, templn);}
 #ifndef LITE_EDITION
 					if((strstr(param, "/dev_") && !strstr(param,"?")) && !strstr(param,"/dev_flash") && !strstr(param,".ps3/") && !strstr(param,".ps3?"))
 					{sprintf(templn,"<script type=\"text/javascript\">"
@@ -1548,8 +1560,8 @@ html_response:
 									 HTML_BUTTON_FMT
 									 HTML_BUTTON_FMT
 									 "</form><hr>",
-									 HTML_BUTTON, STR_REFRESH, SUFIX2(profile), HTML_ONCLICK, "/refresh.ps3",
-									 HTML_BUTTON, STR_REFRESH, SUFIX2(profile), HTML_ONCLICK, "/index.ps3?html",
+									 HTML_BUTTON, STR_REFRESH, SUFIX2(profile), "onclick=\"rxml.style.display='block';location.href=", "/refresh.ps3",
+									 HTML_BUTTON, STR_REFRESH, SUFIX2(profile), "onclick=\"rhtm.style.display='block';location.href=", "/index.ps3?html",
 									 HTML_BUTTON, STR_SHUTDOWN, HTML_ONCLICK, "/shutdown.ps3",
 									 HTML_BUTTON, STR_RESTART, HTML_ONCLICK, "/restart.ps3"); strcat(buffer, templn);
 				}

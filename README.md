@@ -49,13 +49,17 @@ We would like to integrate all existing features available on the PS3 Scene like
 - Extended Content Profile Grouping (v1.33.07)
 - PS3 Manager API Support
 - Integrated Mysis video_rec plugin
-- support for .ntfs[BDFILE] (fake ISO created by IRISMAN)
+- support for *.ntfs[BDFILE]* (fake ISO created by IRISMAN)
 - support to mount NTFS games using raw_iso.sprx (rawseciso by Estwald)
 - Optional Video subfolder to "Bluray™ and DVD" folder (Display RetroXMB videos, videos on USB devices and Data Disc icon)
 - "slider" webGUI (mobile friendly).
 - Display of Play time & startup time to SELECT+START and /cpursx.ps3 (Use SELECT+START+R2 to display Game ID, Title, play time and more in-Game info)
-- Include a virtual pad feature, you can control your console via http://st.aldostools.org on web browser or with webPAD software (windows only)
-
+- Include a virtual pad feature, you can control your console via http://pad.aldostools.org on web browser or with webPAD software (windows only)
+- dev_bdvd/PS3_UPDATE now is redirected when the plugin is loaded (and when a game is mounted) [This is intended to prevent an accidental update if a game disc is inserted in the drive]
+- VSH Menu for webMAN now can be installed optionally (Holding R1 when launching the Updater)
+- Added /play.ps3 to launch XMB Functions (e.g: /play.ps3?col=network&seg=seg_premo) <- this will start Remote Play server from XMB.
+- Once a game is mounted via html, if you click on the displayed icon the game will be launched on the PS3. This is nice to start the game once it's mounted from your mobile This option uses the new command /play.ps3
+- support for auto-play /BDISO and /DVDISO
 
 ## How to build
 Requirements for Windows:
@@ -72,11 +76,11 @@ Requirements for GNU/Linux:
 - Cobra team, for their work and sharing cobra source code in public
 - Deank as the creator of webMAN
 - aldostools for all his works on this project!
-- Zar my mate since the first day :)
+- Zar my mate since the first day
 - NzV for Ps3mapi, Mamba prxloader
 - OsirisX for PS3XPAD
 - Mysis, who wrote some useful libs and reverse engineering VSH Exports functions: http://www.ps3devwiki.com/ps3/VSH#Exports
-- 3141card for his VSH Menu POC & Littlebalup for his enhancement/new features :)
+- 3141card for VSH Menu POC & Littlebalup for his enhancement/new features
 - PSX-SCENE, PSX-PLACE, PLAYSTATIONHAX, PS3HAX & other scene websites/users, who translated, helped in the testing process
 
 

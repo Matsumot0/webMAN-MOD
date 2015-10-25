@@ -4,13 +4,13 @@
 #define HTML_DIR				"&lt;dir&gt;"
 #define HTML_BUTTON_FMT			"%s%s\" %s'%s';\">"
 #define HTML_BUTTON				" <input type=\"button\" value=\""
-#define HTML_ONCLICK			"onclick=\"window.location.href="
+#define HTML_ONCLICK			"onclick=\"location.href="
 #define HTML_INPUT(n, v, m, s)	"<input name=\"" n "\" type=\"text\" value=\"" v "\" maxlength=\"" m "\" size=\"" s "\">"
 
 static char h2a(char hex);
-static void urlenc(char *dst, char *src);
-static void utf8enc(char *dst, char *src);
+static void urlenc(char *dst, char *src, u8 rel_mode);
 static void htmlenc(char *dst, char *src, u8 cpy2src);
+static void utf8enc(char *dst, char *src, u8 cpy2src);
 
 static void add_radio_button(const char *name, const char *value, const char *id, const char *label, const char *sufix, bool checked, char *buffer);
 static void add_check_box(const char *name, const char *value, const char *label, const char *sufix, bool checked, char *buffer);
@@ -32,13 +32,14 @@ static char h2a(char hex)
 	return c;
 }
 
-static void urlenc(char *dst, char *src)
+static void urlenc(char *dst, char *src, u8 rel_mode)
 {
 	size_t j=0;
     size_t n=strlen(src);
 	for(size_t i=0; i<n; i++,j++)
 	{
-		if(src[i]==' ') {dst[j++] = '%'; dst[j++] = '2'; dst[j] = '0';}
+		     if(src[i]==' ') {dst[j++] = '%'; dst[j++] = '2'; dst[j] = '0';}
+		else if(src[i]==':' && rel_mode) {dst[j++] = '%'; dst[j++] = '3'; dst[j] = 'A';}
 		else if(src[i] & 0x80)
 		{
 			dst[j++] = '%';
@@ -50,32 +51,6 @@ static void urlenc(char *dst, char *src)
 		else dst[j] = src[i];
 	}
 	dst[j] = '\0';
-}
-
-static void utf8enc(char *dst, char *src)
-{
-	size_t j=0, n=strlen(src); u16 c;
-	for(size_t i=0; i<n; i++)
-	{
-		c=(src[i]&0xFF);
-
-		if(!(c & 0xff80)) dst[j++]=c;
-		else //if(!(c & 0xf800))
-		{
-			dst[j++]=0xC0|(c>>6);
-			dst[j++]=0x80|(0x3F&c);
-		}
-/*
-		else
-		{
-			dst[j++]=0xE0|(0x0F&(c>>12));
-			dst[j++]=0x80|(0x3F&(c>>06));
-			dst[j++]=0x80|(0x3F&(c    ));
-		}
-*/
-	}
-	dst[j] = '\0';
-	strncpy(src, dst, MAX_LINE_LEN);
 }
 
 static void htmlenc(char *dst, char *src, u8 cpy2src)
@@ -98,8 +73,34 @@ static void htmlenc(char *dst, char *src, u8 cpy2src)
 	if(cpy2src) strncpy(src, dst, MAX_LINE_LEN);
 }
 
+static void utf8enc(char *dst, char *src, u8 cpy2src)
+{
+	size_t j=0, n=strlen(src); u16 c;
+	for(size_t i=0; i<n; i++)
+	{
+		c=(src[i]&0xFF);
+
+		if(!(c & 0xff80)) dst[j++]=c;
+		else //if(!(c & 0xf800))
+		{
+			dst[j++]=0xC0|(c>>6);
+			dst[j++]=0x80|(0x3F&c);
+		}
 /*
-static void utf8dec(char *dst, char *src)
+		else
+		{
+			dst[j++]=0xE0|(0x0F&(c>>12));
+			dst[j++]=0x80|(0x3F&(c>>06));
+			dst[j++]=0x80|(0x3F&(c    ));
+		}
+*/
+	}
+	dst[j] = '\0';
+
+	if(cpy2src) strncpy(src, dst, MAX_LINE_LEN);
+}
+/*
+static void utf8dec(char *dst, char *src, u8 cpy2src))
 {
 	size_t j=0;
 	size_t n=strlen(src); u8 c;
@@ -114,9 +115,10 @@ static void utf8dec(char *dst, char *src)
 			dst[j++]=(((src[i++] & 0xF)<<12)+((src[i++] & 0x3F)<<6)+(c & 0x3F));
 	}
 	dst[j] = '\0';
+
+	if(cpy2src) strncpy(src, dst, MAX_LINE_LEN);
 }
 */
-
 static void add_radio_button(const char *name, const char *value, const char *id, const char *label, const char *sufix, bool checked, char *buffer)
 {
 	char templn[MAX_LINE_LEN];

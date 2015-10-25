@@ -325,7 +325,21 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 		}
 		else
 		{
-			htmlenc(templn, param+plen, 0);
+			char _path[MAX_PATH_LEN];
+
+			// mount url
+			urlenc(templn, param+plen, 0);
+
+			// mount label
+			if(strstr(templn,"/net"))
+			{
+				utf8enc(_path, param+plen, 0);
+			}
+			else
+			{
+				sprintf(_path, "%s", param+plen);
+			}
+
 			sprintf(tempstr, "%s/PS3_GAME/ICON0.PNG", param+plen);
 
 			if(FileExists(tempstr)==false)
@@ -339,7 +353,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 				get_default_icon(tempstr, fpath, fname, 0, tempID, -1, 0);
 			}
 
-			urlenc(enc_dir_name, tempstr);
+			urlenc(enc_dir_name, tempstr, 0);
 
 #ifdef COPY_PS3
 			if(plen==IS_COPY)
@@ -503,13 +517,13 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 			else
 #endif // #ifdef COPY_PS3
 			if(!extcmp(param, ".BIN.ENC", 8))
-				sprintf(tempstr, "%s: %s<hr><img src=\"%s\"><hr>%s", STR_GAMETOM, templn, enc_dir_name, mounted?STR_PS2LOADED:STR_ERROR);
+				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><img src=\"%s\" height=%i><hr>%s", STR_GAMETOM, templn, _path, enc_dir_name, 300, mounted?STR_PS2LOADED:STR_ERROR);
 			else if(strstr(param, "/PSPISO") || strstr(param, "/ISO/"))
-				sprintf(tempstr, "%s: %s<hr><img src=\"%s\" height=%i><hr>%s", STR_GAMETOM, templn, enc_dir_name, strcasestr(enc_dir_name,".png")?200:300, mounted?STR_PSPLOADED:STR_ERROR);
+				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><img src=\"%s\" height=%i><hr>%s", STR_GAMETOM, templn, _path, enc_dir_name, strcasestr(enc_dir_name,".png")?200:300, mounted?STR_PSPLOADED:STR_ERROR);
 			else if(strstr(param, "/BDISO") || strstr(param, "/DVDISO") || !extcmp(param, ".ntfs[BDISO]", 12) || !extcmp(param, ".ntfs[DVDISO]", 13))
-				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><a href=\"/play.ps3\"><img src=\"%s\" border=0></a><hr><a href=\"/dev_bdvd\">%s</a>", STR_MOVIETOM, templn, templn, enc_dir_name, mounted?STR_MOVIELOADED:STR_ERROR);
+				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><a href=\"/play.ps3\"><img src=\"%s\" border=0></a><hr><a href=\"/dev_bdvd\">%s</a>", STR_MOVIETOM, templn, _path, enc_dir_name, mounted?STR_MOVIELOADED:STR_ERROR);
 			else
-				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><a href=\"/play.ps3\"><img src=\"%s\" border=0></a><hr><a href=\"/dev_bdvd\">%s</a>", STR_GAMETOM, templn, templn, enc_dir_name, mounted?STR_GAMELOADED:STR_ERROR);
+				sprintf(tempstr, "%s: <a href=\"%s\">%s</a><hr><a href=\"/play.ps3\"><img src=\"%s\" border=0></a><hr><a href=\"/dev_bdvd\">%s</a>", STR_GAMETOM, templn, _path, enc_dir_name, mounted?STR_GAMELOADED:STR_ERROR);
 
 			strcat(buffer, tempstr);
 
@@ -535,7 +549,7 @@ static void game_mount(char *buffer, char *templn, char *param, char *tempstr, u
 						if(is_iso || strstr(entry.d_name, "[PS2")!=NULL)
 						{
 							if(pcount==0) strcat(buffer, "<br><HR>");
-							urlenc(enc_dir_name, entry.d_name);
+							urlenc(enc_dir_name, entry.d_name, 0);
 							sprintf(templn, "<a href=\"/mount.ps2%s/%s\">%s</a><br>", target, enc_dir_name, entry.d_name);
 
 							tlen+=strlen(tempstr);
