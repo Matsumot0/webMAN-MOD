@@ -70,6 +70,76 @@ static void make_fb_xml(char *myxml)
 	savefile((char*)FB_XML, (char*)myxml, strlen(myxml));
 }
 
+static void set_buffer_sizes(int footprint)
+{
+	if(footprint==1) //MIN
+	{
+#ifndef LITE_EDITION
+		BUFFER_SIZE_ALL = ( 320*KB);
+#else
+		BUFFER_SIZE_ALL = ( _256KB_);
+#endif
+		BUFFER_SIZE_FTP	= ( _128KB_);
+		//BUFFER_SIZE	= ( _128KB_);
+		BUFFER_SIZE_PSX	= (  _32KB_);
+		BUFFER_SIZE_PSP	= (  _32KB_);
+		BUFFER_SIZE_PS2	= (  _64KB_);
+		BUFFER_SIZE_DVD	= (  _64KB_);
+	}
+	else
+	if(footprint==2) //MAX
+	{
+		BUFFER_SIZE_ALL = ( 1280*KB);
+		BUFFER_SIZE_FTP	= ( _256KB_);
+		//BUFFER_SIZE	= ( 512*KB);
+		BUFFER_SIZE_PSX	= ( _256KB_);
+		BUFFER_SIZE_PSP	= (  _64KB_);
+		BUFFER_SIZE_PS2	= ( _128KB_);
+		BUFFER_SIZE_DVD	= ( _192KB_);
+
+		if((webman_config->cmask & PS1)) BUFFER_SIZE_PSX	= (_64KB_);
+		if((webman_config->cmask & PS2)) BUFFER_SIZE_PS2	= (_64KB_);
+		if((webman_config->cmask & (BLU | DVD)) == (BLU | DVD)) BUFFER_SIZE_DVD = (_64KB_);
+	}
+	else
+	if(footprint==3) //MIN+
+	{
+		BUFFER_SIZE_ALL = ( 512*KB);
+		BUFFER_SIZE_FTP	= ( _128KB_);
+		//BUFFER_SIZE	= ( 320*KB);
+		BUFFER_SIZE_PSX	= (  _32KB_);
+		BUFFER_SIZE_PSP	= (  _32KB_);
+		BUFFER_SIZE_PS2	= (  _64KB_);
+		BUFFER_SIZE_DVD	= (  _64KB_);
+	}
+	else
+	if(footprint==4) //MAX+
+	{
+		BUFFER_SIZE_ALL = ( 1280*KB);
+		BUFFER_SIZE_FTP	= ( _128KB_);
+		//BUFFER_SIZE	= ( 1088*KB);
+		BUFFER_SIZE_PSX	= (  _32KB_);
+		BUFFER_SIZE_PSP	= (  _32KB_);
+		BUFFER_SIZE_PS2	= (  _64KB_);
+		BUFFER_SIZE_DVD	= (  _64KB_);
+	}
+	else	//STANDARD
+	{
+		BUFFER_SIZE_ALL = ( 896*KB);
+		BUFFER_SIZE_FTP	= ( _128KB_);
+		//BUFFER_SIZE	= ( 448*KB);
+		BUFFER_SIZE_PSX	= ( 160*KB);
+		BUFFER_SIZE_PSP	= (  _32KB_);
+		BUFFER_SIZE_PS2	= (  _64KB_);
+		BUFFER_SIZE_DVD	= ( _192KB_);
+
+		if((webman_config->cmask & PS1)) BUFFER_SIZE_PSX	= (_32KB_);
+		if((webman_config->cmask & (BLU | DVD)) == (BLU | DVD)) BUFFER_SIZE_DVD = (_64KB_);
+	}
+
+	BUFFER_SIZE = BUFFER_SIZE_ALL - (BUFFER_SIZE_PSX + BUFFER_SIZE_PSP + BUFFER_SIZE_PS2 + BUFFER_SIZE_DVD);
+}
+
 static bool update_mygames_xml(u64 conn_s_p)
 {
 	char xml[48]; sprintf(xml, MY_GAMES_XML);
@@ -441,7 +511,7 @@ next_xml_entry:
 									if((uprofile==0 && flen>17)) {for(u8 u=1;u<5;u++) if(strstr(entry.d_name + flen - 17, SUFIX3(u))) continue;}
 								}
 
-								if((strstr(param, "/PS3ISO") && f0!=NTFS) || (f0==NTFS && f1==2 && !extcmp(entry.d_name, ".ntfs[PS3ISO]", 13)))
+								if((f1==2) && ((f0!=NTFS) || (f0==NTFS && !extcmp(entry.d_name, ".ntfs[PS3ISO]", 13))))
 								{
 									get_name(templn, entry.d_name, 1); strcat(templn, ".SFO\0");
 									if(f0!=NTFS && FileExists(templn)==false)
@@ -487,41 +557,44 @@ next_xml_entry:
 								}
 							}
 		//title_foundx:
-							if(!is_iso && f1<2 && (icon[0]==0 || webman_config->nocov)) sprintf(icon, "%s/%s/PS3_GAME/ICON0.PNG", param, entry.d_name);
-
-							get_cover_from_name(icon, entry.d_name, tempID);
-
-							if(is_iso)
+							if(webman_config->nocov<2)
 							{
-								if(icon[0]==0 || FileExists(icon)==false)
+								if(!is_iso && f1<2 && (icon[0]==0 || webman_config->nocov)) sprintf(icon, "%s/%s/PS3_GAME/ICON0.PNG", param, entry.d_name);
+
+								get_cover_from_name(icon, entry.d_name, tempID);
+
+								if(is_iso)
 								{
-									sprintf(icon, "%s/%s", param, entry.d_name);
+									if(icon[0]==0 || FileExists(icon)==false)
+									{
+										sprintf(icon, "%s/%s", param, entry.d_name);
 
-									flen = strlen(icon);
+										flen = strlen(icon);
 #ifdef COBRA_ONLY
-									if(flen > 13 && (!extcmp(icon, ".ntfs[PS3ISO]", 13) || !extcmp(icon, ".ntfs[DVDISO]", 13) || !extcmp(icon, ".ntfs[PSXISO]", 13) || !extcmp(icon, ".ntfs[BDFILE]", 13))) {flen -= 13; icon[flen]=0;} else
-									if(flen > 12 &&  !extcmp(icon, ".ntfs[BDISO]" , 12)) {flen -= 12; icon[flen]=0;}
+										if(flen > 13 && (!extcmp(icon, ".ntfs[PS3ISO]", 13) || !extcmp(icon, ".ntfs[DVDISO]", 13) || !extcmp(icon, ".ntfs[PSXISO]", 13) || !extcmp(icon, ".ntfs[BDFILE]", 13))) {flen -= 13; icon[flen]=0;} else
+										if(flen > 12 &&  !extcmp(icon, ".ntfs[BDISO]" , 12)) {flen -= 12; icon[flen]=0;}
 #endif
-									if(flen > 4 && icon[flen-4]=='.')
-									{
-										icon[flen-3]='p'; icon[flen-2]='n'; icon[flen-1]='g';
-										if(FileExists(icon)==false)
+										if(flen > 4 && icon[flen-4]=='.')
 										{
-											icon[flen-3]='P'; icon[flen-2]='N'; icon[flen-1]='G';
+											icon[flen-3]='p'; icon[flen-2]='n'; icon[flen-1]='g';
+											if(FileExists(icon)==false)
+											{
+												icon[flen-3]='P'; icon[flen-2]='N'; icon[flen-1]='G';
+											}
 										}
-									}
-									else
-									if(flen > 5 && icon[flen-2]=='.')
-									{
-										icon[flen-5]='p'; icon[flen-4]='n'; icon[flen-3]='g'; flen -= 2; icon[flen]=0;
-									}
+										else
+										if(flen > 5 && icon[flen-2]=='.')
+										{
+											icon[flen-5]='p'; icon[flen-4]='n'; icon[flen-3]='g'; flen -= 2; icon[flen]=0;
+										}
 
-									if(FileExists(icon)==false)
-										{icon[flen-3]='j'; icon[flen-2]='p'; icon[flen-1]='g';}
+										if(FileExists(icon)==false)
+											{icon[flen-3]='j'; icon[flen-2]='p'; icon[flen-1]='g';}
+									}
 								}
+								else if((webman_config->nocov<=1) && (icon[0]==0 || FileExists(icon)==false))
+									sprintf(icon, "%s/%s/PS3_GAME/ICON0.PNG", param, entry.d_name);
 							}
-							else if(icon[0]==0 || FileExists(icon)==false)
-								sprintf(icon, "%s/%s/PS3_GAME/ICON0.PNG", param, entry.d_name);
 
 							get_default_icon(icon, param, entry.d_name, 0, tempID, ns, abort_connection);
 
@@ -568,7 +641,7 @@ next_xml_entry:
 continue_reading_folder_xml:
 
 			if((uprofile>0) && (f1<9)) {subfolder=uprofile=0; goto read_folder_xml;}
-			if(is_net && ls && li<27) {li++; goto subfolder_letter_xml;} else if(li<99 && !(IS_PSP_FOLDER)) {li=99; goto subfolder_letter_xml;}
+			if(is_net && ls && li<27) {li++; goto subfolder_letter_xml;} else if(li<99 && f1<7) {li=99; goto subfolder_letter_xml;}
 //
 		}
 		if(is_net && ns>=0) {shutdown(ns, SHUT_RDWR); socketclose(ns); ns=-2;}

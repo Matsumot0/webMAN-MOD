@@ -110,15 +110,28 @@ static void ps3mapi_find_peek_poke(char *buffer, char *templn, char *param)
 		if(bits16) fvalue=(fvalue<<48);
 		if(bits32) fvalue=(fvalue<<32);
 
-		for(j = address; j < upper_memory-8; j++) {
-			value = (lv1?peek_lv1(j):peekq(j));
+		if(lv1)
+			for(j = address; j < upper_memory; j++)
+			{
+				value = peek_lv1(j);
 
-			if(bits8 ) value&=0xff00000000000000ULL;
-			if(bits16) value&=0xffff000000000000ULL;
-			if(bits32) value&=0xffffffff00000000ULL;
+				if(bits32) value&=0xffffffff00000000ULL; else
+				if(bits16) value&=0xffff000000000000ULL; else
+				if(bits8 ) value&=0xff00000000000000ULL;
 
-			if(value==fvalue) {found=true; break;}
-		}
+				if(value==fvalue) {found=true; break;}
+			}
+		else
+			for(j = address; j < upper_memory; j++)
+			{
+				value = peekq(j);
+
+				if(bits32) value&=0xffffffff00000000ULL; else
+				if(bits16) value&=0xffff000000000000ULL; else
+				if(bits8 ) value&=0xff00000000000000ULL;
+
+				if(value==fvalue) {found=true; break;}
+			}
 
 		if(!found)
 		{
@@ -136,8 +149,8 @@ static void ps3mapi_find_peek_poke(char *buffer, char *templn, char *param)
 		value  = convertH(v+1);
 		fvalue = peekq(address);
 
-		if(bits32) value = ((uint64_t)(value<<32) | (uint64_t)(fvalue & 0xffffffffULL));
-		if(bits16) value = ((uint64_t)(value<<48) | (uint64_t)(fvalue & 0xffffffffffffULL));
+		if(bits32) value = ((uint64_t)(value<<32) | (uint64_t)(fvalue & 0xffffffffULL)); else
+		if(bits16) value = ((uint64_t)(value<<48) | (uint64_t)(fvalue & 0xffffffffffffULL)); else
 		if(bits8)  value = ((uint64_t)(value<<56) | (uint64_t)(fvalue & 0xffffffffffffffULL));
 
 		pokeq(address, value);
@@ -149,8 +162,8 @@ static void ps3mapi_find_peek_poke(char *buffer, char *templn, char *param)
 		value = convertH(v+1);
 		fvalue = peek_lv1(address);
 
-		if(bits32) value = ((uint64_t)(value<<32) | (uint64_t)(fvalue & 0xffffffffULL));
-		if(bits16) value = ((uint64_t)(value<<48) | (uint64_t)(fvalue & 0xffffffffffffULL));
+		if(bits32) value = ((uint64_t)(value<<32) | (uint64_t)(fvalue & 0xffffffffULL)); else
+		if(bits16) value = ((uint64_t)(value<<48) | (uint64_t)(fvalue & 0xffffffffffffULL)); else
 		if(bits8)  value = ((uint64_t)(value<<56) | (uint64_t)(fvalue & 0xffffffffffffffULL));
 
 		poke_lv1(address, value);

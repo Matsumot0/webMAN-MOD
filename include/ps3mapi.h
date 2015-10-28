@@ -1,6 +1,8 @@
-#ifdef PS3MAPI
+uint64_t ps3mapi_key = 0;
 
 ///////////// PS3MAPI BEGIN //////////////
+
+#define SYSCALL8_OPCODE_PS3MAPI						0x7777
 
 #define PS3MAPI_SERVER_VERSION						0x0120
 #define PS3MAPI_SERVER_MINVERSION					0x0120
@@ -9,8 +11,6 @@
 #define PS3MAPI_WEBUI_MINVERSION					0x0120
 
 #define PS3MAPI_CORE_MINVERSION						0x0111
-
-#define SYSCALL8_OPCODE_PS3MAPI			 			0x7777
 
 #define PS3MAPI_OPCODE_GET_CORE_VERSION				0x0011
 #define PS3MAPI_OPCODE_GET_CORE_MINVERSION			0x0012
@@ -40,7 +40,18 @@
 #define PS3MAPI_OPCODE_PCHECK_SYSCALL8 				0x0094
 #define PS3MAPI_OPCODE_REMOVE_HOOK					0x0101
 
+#define PS3MAPI_OPCODE_SUPPORT_SC8_PEEK_POKE		0x1000
+#define PS3MAPI_OPCODE_LV2_PEEK						0x1006
+#define PS3MAPI_OPCODE_LV2_POKE						0x1007
+#define PS3MAPI_OPCODE_LV1_PEEK						0x1008
+#define PS3MAPI_OPCODE_LV1_POKE						0x1009
+
+#define PS3MAPI_OPCODE_SET_ACCESS_KEY				0x2000
+#define PS3MAPI_OPCODE_REQUEST_ACCESS				0x2001
+
 ///////////// PS3MAPI END //////////////
+
+#ifdef PS3MAPI
 
 static int Char2Int(char input);
 static void Hex2Bin(const char* src, char* target);
@@ -656,7 +667,7 @@ static void add_plugins_list(char *buffer, char *templn)
 {
 	if(!strstr(buffer, "<datalist id=\"plugins\">"))
 	{
-		strcat(buffer, "<datalist id=\"plugins\">");
+		strcat(buffer, "<div style=\"display:none\"><datalist id=\"plugins\">");
 		int fd, cnt = 0; char paths[10][48] = {"/dev_hdd0", "/dev_hdd0/plugins", "/dev_hdd0/plugins/ps3xpad", "/dev_hdd0/plugins/ps3_menu", "/dev_usb000", "/dev_usb001", "/dev_hdd0/game/UPDWEBMOD/USRDIR", "/dev_hdd0/game/UPDWEBMOD/USRDIR/official", "/dev_hdd0/tmp"};
 
 		for(u8 i = 0; i < 9; i++)
@@ -675,7 +686,7 @@ static void add_plugins_list(char *buffer, char *templn)
 			cellFsClosedir(fd);
 		}
 
-		strcat(buffer, "</datalist>");
+		strcat(buffer, "</datalist></div>");
 	}
 }
 
@@ -786,7 +797,7 @@ loadvshplug_err_arg:
 							"<td width=\"120\" style=\"text-align:left; float:left;\">%s</td>"
 							"<form action=\"/vshplugin.ps3mapi\" method=\"get\" enctype=\"application/x-www-form-urlencoded\" target=\"_self\">"
 							"<td width=\"500\" style=\"text-align:left; float:left;\">"
-							HTML_INPUT("prx\" list=\"plugins", "", "128", "75") "<input name=\"load_slot\" type=\"hidden\" value=\"%i\"></td>"
+							HTML_INPUT("prx\" style=\"width:555px\" list=\"plugins", "", "128", "75") "<input name=\"load_slot\" type=\"hidden\" value=\"%i\"></td>"
 							"<td width=\"100\" style=\"text-align:right; float:right;\"><input type=\"submit\" %s/></td></form></tr>",
 							slot, "NULL", slot, (slot) ? "value=\" Load \"" : "value=\" Reserved \" disabled=\"disabled\"" );
 		}
@@ -919,11 +930,11 @@ loadgameplug_err_arg:
 
 		char tmp_name[30];
 		char tmp_filename[256];
-		u32 mod_list[54];
+		u32 mod_list[64];
 		memset(mod_list, 0, sizeof(mod_list));
 		{system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_ALL_PROC_MODULE_PID, (u64)pid, (u64)(u32)mod_list);}
 
-		for(unsigned int slot = 0; slot < 54; slot++)
+		for(unsigned int slot = 0; slot <= 60; slot++)
 		{
 			memset(tmp_name, 0, sizeof(tmp_name));
 			memset(tmp_filename, 0, sizeof(tmp_filename));

@@ -80,7 +80,7 @@ static void init_graphic(void)
 	w = getDisplayWidth();                // display width
 }
 
-static void saveBMP(char *path)
+static void saveBMP(char *path, bool notify_bmp)
 {
 	if(!strstr(path, ".bmp"))
 	{
@@ -174,7 +174,7 @@ static void saveBMP(char *path)
 	// continue rsx rendering
 	rsx_fifo_pause(0);
 
-	show_msg(path);
+	if(notify_bmp) show_msg(path);
 }
 
 /*

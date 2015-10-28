@@ -617,7 +617,7 @@ pasv_again:
 										while(working)
 										{
 											//sys_timer_usleep(1668);
-											if(cellFsRead(fd, (void *)buffer2, BUFFER_SIZE_FTP, &read_e)==CELL_FS_SUCCEEDED)
+											if(cellFsRead(fd, (void *)buffer2, BUFFER_SIZE_FTP, &read_e) == CELL_FS_SUCCEEDED)
 											{
 												if(read_e>0)
 												{
@@ -663,7 +663,7 @@ pasv_again:
 
 						absPath(filename, param, cwd);
 
-						if(cellFsUnlink(filename) == 0)
+						if(cellFsUnlink(filename) == CELL_FS_SUCCEEDED)
 						{
 							ssend(conn_s_ftp, FTP_OK_250);
 						}
@@ -685,7 +685,7 @@ pasv_again:
 
 						absPath(filename, param, cwd);
 
-						if(cellFsMkdir((char*)filename, MODE) == 0)
+						if(cellFsMkdir((char*)filename, MODE) == CELL_FS_SUCCEEDED)
 						{
 							sprintf(buffer, "257 \"%s\" OK\r\n", param);
 							ssend(conn_s_ftp, buffer);
@@ -708,7 +708,11 @@ pasv_again:
 
 						absPath(filename, param, cwd);
 
-						if(cellFsRmdir(filename) == 0)
+#ifndef LITE_EDITION
+						if(del(filename, true) == CELL_FS_SUCCEEDED)
+#else
+						if(cellFsRmdir(filename) == CELL_FS_SUCCEEDED)
+#endif
 						{
 							ssend(conn_s_ftp, FTP_OK_250);
 						}
@@ -759,7 +763,7 @@ pasv_again:
 										//sys_timer_usleep(1668);
 										if((read_e = (u64)recv(data_s, buffer2, BUFFER_SIZE_FTP, MSG_WAITALL)) > 0)
 										{
-											if(cellFsWrite(fd, buffer2, read_e, NULL)!=CELL_FS_SUCCEEDED) {rr=FAILED;break;}
+											if(cellFsWrite(fd, buffer2, read_e, NULL) != CELL_FS_SUCCEEDED) {rr=FAILED;break;}
 										}
 										else
 											break;
@@ -796,7 +800,7 @@ pasv_again:
 					if(split == 1)
 					{
 						absPath(filename, param, cwd);
-						if(cellFsStat(filename, &buf)==CELL_FS_SUCCEEDED)
+						if(cellFsStat(filename, &buf) == CELL_FS_SUCCEEDED)
 						{
 							sprintf(buffer, "213 %llu\r\n", (unsigned long long)buf.st_size);
 							ssend(conn_s_ftp, buffer);
@@ -823,7 +827,7 @@ pasv_again:
 					if(split == 1)
 					{
 						absPath(filename, param, cwd);
-						if(cellFsStat(filename, &buf)==CELL_FS_SUCCEEDED)
+						if(cellFsStat(filename, &buf) == CELL_FS_SUCCEEDED)
 						{
 							cellRtcSetTime_t(&rDate, buf.st_mtime);
 							sprintf(buffer, "213 %04i%02i%02i%02i%02i%02i\r\n", rDate.year, rDate.month, rDate.day, rDate.hour, rDate.minute, rDate.second);

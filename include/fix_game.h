@@ -156,7 +156,7 @@ static void fix_game_folder(char *path)
 	if(cellFsOpendir(path, &fd) == CELL_FS_SUCCEEDED)
 	{
 		plevel++;
-		CellFsDirent dir; u64 read = sizeof(CellFsDirent); struct CellFsStat s;
+		CellFsDirent dir; uint64_t read = sizeof(CellFsDirent); struct CellFsStat s;
 
 #ifdef COPY_PS3
 		sprintf(current_file, "%s", path);

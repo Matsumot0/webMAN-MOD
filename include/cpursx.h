@@ -176,11 +176,13 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 
 	sprintf( templn, "<hr></font><h2><a class=\"s\" href=\"/setup.ps3\">"
 						"Firmware : %i.%02i %s<br>"
+						"%s<br>"
 						"PSID LV2 : %016llX%016llX<hr>"
 						"IDPS EID0: %016llX%016llX<br>"
 						"IDPS LV2 : %016llX%016llX<br>"
 						"MAC Addr : %02X:%02X:%02X:%02X:%02X:%02X - %s %s</h2></a></b>",
 					(int)c_firmware, ((u32)(c_firmware * 1000.0f) % 1000) / 10, param,
+					(syscalls_removed) ? STR_CFWSYSALRD : "",
 					PSID[0], PSID[1],
 					eid0_idps[0], eid0_idps[1],
 					IDPS[0], IDPS[1],

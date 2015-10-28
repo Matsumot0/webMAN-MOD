@@ -3,14 +3,17 @@
 #define SC_PEEK_LV1 					(8)
 #define SC_POKE_LV1 					(9)
 
+#define SYSCALL8_OPCODE_PS3MAPI			0x7777
+#define PS3MAPI_OPCODE_LV1_POKE			0x1009
+
 static inline uint64_t peekq(uint64_t addr);
-static inline void pokeq( uint64_t addr, uint64_t val);
+static void pokeq( uint64_t addr, uint64_t val);
 static inline uint64_t peek_lv1(uint64_t addr);
-static inline void poke_lv1( uint64_t addr, uint64_t val);
+static void poke_lv1( uint64_t addr, uint64_t val);
 
 static void lv2poke32(u64 addr, u32 value);
 
-uint64_t convertH(char *val);
+static uint64_t convertH(char *val);
 
 /*
 static u32 lv2peek32(u64 addr);
@@ -23,36 +26,41 @@ static u32 lv2peek32(u64 addr)
 
 static void lv2poke32(u64 addr, u32 value)
 {
-    pokeq(addr, (((u64) value) <<32) | (peekq(addr) & 0xffffffffULL));
+	pokeq(addr, (((u64) value) <<32) | (peekq(addr) & 0xffffffffULL));
 }
 
-static inline uint64_t peek_lv1(uint64_t addr)
+static uint64_t peek_lv1(uint64_t addr)
 {
 	system_call_1(SC_PEEK_LV1, (uint64_t) addr);
 	return (uint64_t) p1;
 }
 
-static inline void poke_lv1( uint64_t addr, uint64_t val)
+static void poke_lv1( uint64_t addr, uint64_t value)
 {
-	system_call_2(SC_POKE_LV1, addr, val);
+	if(!syscalls_removed)
+		{system_call_2(SC_POKE_LV1, addr, value);}
+	else
+		{system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_LV1_POKE, addr, value);} // use ps3mapi extension to support poke lv1
 }
 
 static inline uint64_t peekq(uint64_t addr) //lv2
 {
-	system_call_1(SC_PEEK_LV2, addr);
-	return_to_user_prog(uint64_t);
+	system_call_1(SC_PEEK_LV1, addr + 0x1000000ULL); //old: system_call_1(SC_PEEK_LV2, addr);
+	return (uint64_t) p1;
 }
 
-static inline void pokeq( uint64_t addr, uint64_t val) //lv2
+static void pokeq( uint64_t addr, uint64_t value) //lv2
 {
-	system_call_2(SC_POKE_LV2, addr, val);
+	if(!syscalls_removed)
+		{system_call_2(SC_POKE_LV1, addr + 0x1000000ULL, value);} //old: system_call_2(SC_POKE_LV2, addr, val);
+	else
+		{system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_LV1_POKE, addr + 0x1000000ULL, value);} // use ps3mapi extension to support poke lv2
 }
 
-uint64_t convertH(char *val)
+static uint64_t convertH(char *val)
 {
-	uint8_t buff;
 	uint64_t ret=0;
-	int i, n=0;
+	uint8_t buff, i, n=0;
 
 	for(i = 0; i < 16+n; i++)
 	{

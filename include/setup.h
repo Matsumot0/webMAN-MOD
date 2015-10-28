@@ -129,11 +129,11 @@ static void setup_parse_settings(char *param)
 #endif
 	if(strstr(param, "wmdn")) webman_config->wmdn=1;
 	if(strstr(param, "tid=1")) webman_config->tid=1;
+	if(!strstr(param, "sfo=1")) webman_config->nosfo=1;
 	if(strstr(param, "pl=1")) webman_config->poll=1;
 	if(strstr(param, "ft=1")) webman_config->ftpd=1;
 	if(strstr(param, "np=1")) webman_config->nopad=1;
-	if(strstr(param, "nc=1")) webman_config->nocov=1;
-
+	if(strstr(param, "nc=1")) {webman_config->nocov=1; if(strstr(param, "ic=2")) webman_config->nocov=2;}
 #ifdef FIX_GAME
 	if(strstr(param, "fm=0")) webman_config->fixgame=FIX_GAME_AUTO;
 	if(strstr(param, "fm=1")) webman_config->fixgame=FIX_GAME_QUICK;
@@ -369,21 +369,21 @@ static void setup_form(char *buffer, char *templn)
 					"<tr><td width=\"250\"><u>%s:</u><br>", STR_SCAN1); strcat(buffer, templn);
 
 	//Scan these devices
-	add_check_box("u0", "1", drives[1], NULL, (webman_config->usb0), buffer);
-	add_check_box("u1", "1", drives[2], NULL, (webman_config->usb1), buffer);
-	add_check_box("u2", "1", drives[3], NULL, (webman_config->usb2), buffer);
-	add_check_box("u3", "1", drives[4], NULL, (webman_config->usb3), buffer);
-	add_check_box("u6", "1", drives[5], NULL, (webman_config->usb6), buffer);
-	add_check_box("u7", "1", drives[6], NULL, (webman_config->usb7), buffer);
+	add_check_box("u0", "1", drives[1], _BR_, (webman_config->usb0), buffer);
+	add_check_box("u1", "1", drives[2], _BR_, (webman_config->usb1), buffer);
+	add_check_box("u2", "1", drives[3], _BR_, (webman_config->usb2), buffer);
+	add_check_box("u3", "1", drives[4], _BR_, (webman_config->usb3), buffer);
+	add_check_box("u6", "1", drives[5], _BR_, (webman_config->usb6), buffer);
+	add_check_box("u7", "1", drives[6], _BR_, (webman_config->usb7), buffer);
 
-	if(isDir(drives[11])) add_check_box("x0", "1", drives[11], NULL, (webman_config->dev_sd), buffer);
-	if(isDir(drives[12])) add_check_box("x1", "1", drives[12], NULL, (webman_config->dev_ms), buffer);
-	if(isDir(drives[13])) add_check_box("x2", "1", drives[13], NULL, (webman_config->dev_cf), buffer);
+	if(isDir(drives[11])) add_check_box("x0", "1", drives[11], _BR_, (webman_config->dev_sd), buffer);
+	if(isDir(drives[12])) add_check_box("x1", "1", drives[12], _BR_, (webman_config->dev_ms), buffer);
+	if(isDir(drives[13])) add_check_box("x2", "1", drives[13], _BR_, (webman_config->dev_cf), buffer);
 
 	//Scan for content
 	sprintf(templn, "<td nowrap valign=top><u>%s:</u><br>", STR_SCAN2); strcat(buffer, templn);
 
-	add_check_box("ps3", "1", "PLAYSTATION\xC2\xAE\x33"    , NULL     , !(webman_config->cmask & PS3), buffer);
+	add_check_box("ps3", "1", "PLAYSTATION\xC2\xAE\x33"    , _BR_     , !(webman_config->cmask & PS3), buffer);
 	add_check_box("ps2", "1", "PLAYSTATION\xC2\xAE\x32"    , " ("     , !(webman_config->cmask & PS2), buffer);
 	add_check_box("p2l", "1", STR_PS2L                     , ")<br>"  ,  (webman_config->ps2l)       , buffer);
 #ifdef COBRA_ONLY
@@ -401,20 +401,20 @@ static void setup_form(char *buffer, char *templn)
 	//general settings
 	strcat(buffer, "</td></tr></table><hr color=\"#0099FF\"/>");
 
-	add_check_box("lp", "1", STR_LPG    , NULL, (webman_config->lastp), buffer);
-	add_check_box("ab", "1", STR_AUTOB  , NULL, (webman_config->autob), buffer);
-	add_check_box("dy", "1", STR_DELAYAB, NULL, (webman_config->delay), buffer);
+	add_check_box("lp", "1", STR_LPG    , _BR_, (webman_config->lastp), buffer);
+	add_check_box("ab", "1", STR_AUTOB  , _BR_, (webman_config->autob), buffer);
+	add_check_box("dy", "1", STR_DELAYAB, _BR_, (webman_config->delay), buffer);
 
-	add_check_box("bl", "1"   ,  STR_DEVBL,    NULL, (webman_config->blind), buffer);
-	add_check_box("wn", "wmdn",  STR_NOWMDN,   NULL, (webman_config->wmdn) , buffer);
-	add_check_box("rf", "refr",  STR_CONTSCAN, NULL, (webman_config->refr) , buffer);
+	add_check_box("bl", "1"   ,  STR_DEVBL,    _BR_, (webman_config->blind), buffer);
+	add_check_box("wn", "wmdn",  STR_NOWMDN,   _BR_, (webman_config->wmdn) , buffer);
+	add_check_box("rf", "refr",  STR_CONTSCAN, _BR_, (webman_config->refr) , buffer);
 
-	add_check_box("pl", "1", STR_USBPOLL,  NULL, (webman_config->poll) , buffer);
-	add_check_box("ft", "1", STR_FTPSVC,   NULL, (webman_config->ftpd) , buffer);
-	add_check_box("np", "1", STR_COMBOS,   NULL, (webman_config->nopad), buffer);
+	add_check_box("pl", "1", STR_USBPOLL,  _BR_, (webman_config->poll) , buffer);
+	add_check_box("ft", "1", STR_FTPSVC,   _BR_, (webman_config->ftpd) , buffer);
+	add_check_box("np", "1", STR_COMBOS,   _BR_, (webman_config->nopad), buffer);
 
 #ifdef LITE_EDITION
-	add_check_box("ip", "bind",  STR_ACCESS,   NULL, (webman_config->bind) , buffer);
+	add_check_box("ip", "bind",  STR_ACCESS,   _BR_, (webman_config->bind) , buffer);
 #else
 	add_check_box("ip", "bind",  STR_ACCESS,  " : ", (webman_config->bind) , buffer);
 	sprintf(templn, HTML_INPUT("aip", "%s", "15", "16") "<br>", webman_config->allow_ip); strcat(buffer, templn);
@@ -422,25 +422,33 @@ static void setup_form(char *buffer, char *templn)
 
 #ifdef COBRA_ONLY
 	if((c_firmware!=4.53f))
-		add_check_box("nsp", "1", STR_NOSPOOF, NULL, (webman_config->nospoof), buffer);
+		add_check_box("nsp", "1", STR_NOSPOOF, _BR_, (webman_config->nospoof), buffer);
 #endif
 
 #ifdef NOSINGSTAR
-	add_check_box("ss", "1", STR_NOSINGSTAR,   NULL, (webman_config->noss), buffer);
+	add_check_box("ss", "1", STR_NOSINGSTAR,   _BR_, (webman_config->noss), buffer);
 #endif
 
 	//game listing
 	strcat(buffer, "<hr color=\"#0099FF\"/>");
-	add_check_box("ng" , "1", STR_NOGRP, NULL, (webman_config->nogrp), buffer);
-	add_check_box("ns" , "1", STR_NOSETUP,  NULL, (webman_config->noset), buffer);
-	add_check_box("nc" , "1", STR_MMCOVERS, NULL, (webman_config->nocov), buffer);
-	add_check_box("tid", "1", STR_TITLEID,  NULL, (webman_config->tid),   buffer);
+	add_check_box("ng" , "1", STR_NOGRP,     _BR_, (webman_config->nogrp), buffer);
+	add_check_box("ns" , "1", STR_NOSETUP,   _BR_, (webman_config->noset), buffer);
+	add_check_box("nc" , "1", STR_MMCOVERS, " • ", (webman_config->nocov), buffer);
+
+	// icon0
+	strcat(buffer, "<select name=\"ic\">");
+	add_option_item("1" , "ICON0.PNG"		 , (webman_config->nocov<2), buffer);
+	add_option_item("2" , "No ICON0.PNG"	 , (webman_config->nocov>1), buffer);
+	strcat(buffer, "</select><br>");
+
+	add_check_box("tid", "1", STR_TITLEID, " • ", (webman_config->tid),   buffer);
+	add_check_box("sfo", "1", "PARAM.SFO",  _BR_,!(webman_config->nosfo), buffer);
 
 	//game mounting
 #ifdef COBRA_ONLY
-	add_check_box("bus", "1", STR_RESET_USB, NULL, (webman_config->bus), buffer);
+	add_check_box("bus", "1", STR_RESET_USB, _BR_, (webman_config->bus), buffer);
 #endif
-	add_check_box("apd", "1", STR_AUTO_PLAY, NULL, (webman_config->autoplay), buffer);
+	add_check_box("apd", "1", STR_AUTO_PLAY, _BR_, (webman_config->autoplay), buffer);
 
 #ifdef FIX_GAME
 	if(c_firmware>=4.20f && c_firmware<4.76f)
@@ -483,17 +491,17 @@ static void setup_form(char *buffer, char *templn)
 	//Wait for any USB device to be ready
 	sprintf(templn, "<hr color=\"#0099FF\"/><u> %s:</u><br>", STR_ANYUSB); strcat(buffer, templn);
 
-	add_radio_button("b", "0", "b_0", "0 sec" , NULL, (webman_config->bootd==0), buffer);
-	add_radio_button("b", "5", "b_1", "5 sec" , NULL, (webman_config->bootd==5), buffer);
-	add_radio_button("b", "9", "b_2", "10 sec", NULL, (webman_config->bootd==9), buffer);
+	add_radio_button("b", "0", "b_0", "0 sec" , _BR_, (webman_config->bootd==0), buffer);
+	add_radio_button("b", "5", "b_1", "5 sec" , _BR_, (webman_config->bootd==5), buffer);
+	add_radio_button("b", "9", "b_2", "10 sec", _BR_, (webman_config->bootd==9), buffer);
 
 	//Wait additionally for each selected USB device to be ready
 	sprintf(templn, "<hr color=\"#0099FF\"/><u> %s:</u><br>", STR_ADDUSB); strcat(buffer, templn);
 
-	add_radio_button("s", "0",  "s_0", "0 sec" , NULL, (webman_config->boots==0), buffer);
-	add_radio_button("s", "3",  "s_1", "3 sec" , NULL, (webman_config->boots==3), buffer);
-	add_radio_button("s", "5",  "s_2", "5 sec",  NULL, (webman_config->boots==5), buffer);
-	add_radio_button("s", "10", "s_3", "10 sec", NULL, (webman_config->boots==10), buffer);
+	add_radio_button("s", "0",  "s_0", "0 sec" , _BR_, (webman_config->boots==0), buffer);
+	add_radio_button("s", "3",  "s_1", "3 sec" , _BR_, (webman_config->boots==3), buffer);
+	add_radio_button("s", "5",  "s_2", "5 sec" , _BR_, (webman_config->boots==5), buffer);
+	add_radio_button("s", "10", "s_3", "10 sec", _BR_, (webman_config->boots==10), buffer);
 
 #ifdef SPOOF_CONSOLEID
 	//Change idps and psid in lv2 memory at system startup
@@ -524,7 +532,7 @@ static void setup_form(char *buffer, char *templn)
 	#ifdef REMOVE_SYSCALLS
 	add_check_box("spp", "1", STR_DELCFWSYS, " ", (webman_config->spp & 1), buffer);
 	#endif
-	add_check_box("shh", "1", "Offline", NULL, (webman_config->spp & 2), buffer);
+	add_check_box("shh", "1", "Offline", _BR_, (webman_config->spp & 2), buffer);
 #endif
 	strcat(buffer, "<hr color=\"#0099FF\"/>");
 
@@ -567,7 +575,7 @@ static void setup_form(char *buffer, char *templn)
 	add_radio_button("fp", "1", "fo_1", "Min (320KB)"     , ", " , (webman_config->foot==1), buffer);
 	add_radio_button("fp", "3", "fo_3", "Min+ (512KB)"    , ", " , (webman_config->foot==3), buffer);
 	add_radio_button("fp", "2", "fo_2", "Max (1280KB)"    , ", " , (webman_config->foot==2), buffer);
-	add_radio_button("fp", "4", "fo_4", "Max+ (1280KB)"   , NULL , (webman_config->foot==4), buffer);
+	add_radio_button("fp", "4", "fo_4", "Max+ (1280KB)"   , _BR_ , (webman_config->foot==4), buffer);
 
 #ifndef ENGLISH_ONLY
 	//language
@@ -703,10 +711,14 @@ static void setup_form(char *buffer, char *templn)
 		cellFsClose(fd);
 		sprintf(templn, "&nbsp; &nbsp;" HTML_INPUT("ccbo\" list=\"cmds", "%s", "255", "50") "<br>", command); strcat(buffer, templn);
 
-		strcat(buffer, "<datalist id=\"cmds\">");
+		strcat(buffer, "<div style=\"display:none\"><datalist id=\"cmds\">");
 		strcat(buffer, "<option>GET /browser.ps3$block_servers</option>");
+#ifdef XMB_SCREENSHOT
+		strcat(buffer, "<option>GET /browser.ps3$screenshot_xmb</option>");
+#endif
+		strcat(buffer, "<option>GET /cpursx.ps3?mode</option>");
 		strcat(buffer, "<option>GET /klic.ps3?log</option>");
-		strcat(buffer, "</datalist>");
+		strcat(buffer, "</datalist></div>");
 	}
 #endif
 
@@ -777,7 +789,7 @@ static void reset_settings()
 	//webman_config->delay=0;      //don't delay loading of AUTOBOOT.ISO/last-game (Disc Auto-start)
 
 	//webman_config->bootd=0;      //don't wait for any USB device to be ready
-	webman_config->boots=3;      //wait 3 additional seconds for each selected USB device to be ready
+	webman_config->boots=3;        //wait 3 additional seconds for each selected USB device to be ready
 
 	//webman_config->nogrp=0;      //group content on XMB
 	//webman_config->wmdn=0;       //enable start up message (webMAN Loaded!)
@@ -791,11 +803,11 @@ static void reset_settings()
 #endif
 
 	webman_config->poll=1;       //disable USB polling
-	//webman_config->nopad=0;      //enable all PAD shortcuts
-	//webman_config->nocov=0;      //enable multiMAN covers
+	//webman_config->nopad=0;    //enable all PAD shortcuts
+	//webman_config->nocov=0;    //enable multiMAN covers    (0=Use MM covers, 1=Use ICON0.PNG, 2=No game icons)
 
 	webman_config->fanc=1;       //fan control enabled
-	//webman_config->temp0=0;      //auto
+	//webman_config->temp0=0;    //auto
 	webman_config->temp1=MY_TEMP;
 	webman_config->manu=35;      //manual temp
 	webman_config->ps2temp=37;   //ps2 temp

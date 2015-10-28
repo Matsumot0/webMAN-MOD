@@ -192,7 +192,7 @@
 
 #ifdef XMB_SCREENSHOT
 							if(data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == (CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_L2) )
-								{saveBMP(msg); sys_timer_sleep(2);} // L2 + R2 + SELECT + START
+								{saveBMP(msg, true); sys_timer_sleep(2);} // L2 + R2 + SELECT + START
 							else
 #endif
 							{

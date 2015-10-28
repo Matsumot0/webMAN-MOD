@@ -98,7 +98,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.13 MOD"						// webMAN version
+#define WM_VERSION			"1.43.14 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -107,8 +107,6 @@ SYS_MODULE_STOP(wwwd_stop);
 #define WMTMP				"/dev_hdd0/tmp/wmtmp"				// webMAN work/temp folder
 #define WM_ICONS_PATH		"/dev_hdd0/tmp/wm_icons/"			// webMAN icons path
 #define WMNOSCAN			"/dev_hdd0/tmp/wm_noscan"			// webMAN config file
-
-#define AUTOPLAY_TAG		"[auto]"
 
 #ifdef WM_REQUEST
  #ifdef WEB_CHAT
@@ -275,6 +273,8 @@ static volatile u8 working = 1;
 static u8 cobra_mode=0;
 static u8 max_mapped=0;
 
+static bool syscalls_removed = false;
+
 static float c_firmware=0.0f;
 static u8 dex_mode=0;
 
@@ -350,7 +350,8 @@ typedef struct
 	uint8_t dev_cf;
 	uint8_t ps1emu;
 	uint8_t autoplay;
-	char padding[77];
+	uint8_t nosfo;
+	char padding[76];
 } __attribute__((packed)) WebmanCfg;
 
 #define AUTOBOOT_PATH            "/dev_hdd0/PS3ISO/AUTOBOOT.ISO"
@@ -404,6 +405,8 @@ static char smonth[12][4]={"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug
 
 static char drives[14][12]={"/dev_hdd0", "/dev_usb000", "/dev_usb001", "/dev_usb002", "/dev_usb003", "/dev_usb006", "/dev_usb007", "/net0", "/net1", "/net2", "/ext", "/dev_sd", "/dev_ms", "/dev_cf"};
 static char paths [11][12]={"GAMES", "GAMEZ", "PS3ISO", "BDISO", "DVDISO", "PS2ISO", "PSXISO", "PSXGAMES", "PSPISO", "ISO", "video"};
+
+#define AUTOPLAY_TAG		"[auto]"
 
 static char wm_icons[12][60]={WM_ICONS_PATH "icon_wm_album_ps3.png", //024.png  [0]
                               WM_ICONS_PATH "icon_wm_album_psx.png", //026.png  [1]
@@ -656,20 +659,7 @@ static void handleclient(u64 conn_s_p)
 
 		cellFsMkdir((char*)WMTMP, MODE);
 
-		//identify covers folders to be scanned
-#ifndef ENGLISH_ONLY
-													covers_exist[0]=isDir(COVERS_PATH);
-#endif
-		sprintf(param, "%s/covers", MM_ROOT_STD) ;	covers_exist[1]=isDir(param);
-		sprintf(param, "%s/covers", MM_ROOT_STL) ;	covers_exist[2]=isDir(param);
-		sprintf(param, "%s/covers", MM_ROOT_SSTL);	covers_exist[3]=isDir(param);
-													covers_exist[4]=isDir("/dev_hdd0/GAMES/covers");
-													covers_exist[5]=isDir("/dev_hdd0/GAMEZ/covers");
-													covers_exist[6]=isDir(WMTMP);
-
-#ifndef ENGLISH_ONLY
-		if(!covers_exist[0]) {use_custom_icon_path = strstr(COVERS_PATH, "%s"); use_icon_region = strstr(COVERS_PATH, "%s/%s");} else {use_icon_region = use_custom_icon_path = false;}
-#endif
+		check_cover_folders(param);
 
 		for(u8 i=0; i<12; i++)
 		{
@@ -1011,7 +1001,7 @@ again3:
 				if(View_Find("game_plugin")==0)
 				{   // in-XMB
  #ifdef XMB_SCREENSHOT
-					if(strstr(param, "$screenshot_xmb")) {sprintf(header, "%s", param+27); saveBMP(header); sprintf(param+13, "<a href=\"%s\">%s</a>", header, header);} else
+					if(strstr(param, "$screenshot_xmb")) {sprintf(header, "%s", param+27); saveBMP(header, false); sprintf(param+13, "<a href=\"%s\">%s</a>", header, header);} else
  #endif
 					{
 						if(strlen(param) < 13)     {do_umount(false); sprintf(header, "http://%s/", local_ip); vshmain_AE35CF2D(header, 0);} else
@@ -1065,7 +1055,7 @@ again3:
 
 				if((klic_polling_status == 0) && (klic_polling == 2))
 				{
-					if(View_Find("game_plugin") == 0) http_response(conn_s, header, param, 200, "/KLIC: Waiting for game...");
+					if(View_Find("game_plugin") == 0) http_response(conn_s, header, param, 200, (char*)"/KLIC: Waiting for game...");
 
 					// wait until game start
 					while((klic_polling == 2) && View_Find("game_plugin") == 0) {sys_timer_usleep(500000);}
@@ -1609,6 +1599,8 @@ html_response:
 				}
 				else
 				{
+					if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+
 					is_busy=true;
 
 					if(strstr(param, "refresh.ps3") && init_running==0)
@@ -1660,8 +1652,8 @@ html_response:
 							pos=strstr(param, "slot="); slot = 6; // default (last slot)
 							if(pos)
 							{
-								get_value(templn, pos + 5, 2);
-								slot=RANGE((unsigned int)val(templn), 1, 6);
+								get_value(param, pos + 5, 2);
+								slot=RANGE((unsigned int)val(param), 1, 6);
 							}
 						}
 
@@ -1903,6 +1895,8 @@ bgm_status:
 
 						if(game_listing(buffer, templn, param, conn_s, tempstr, mobile_mode) == false)
 						{
+							if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+
 							is_busy=false;
 							if(sysmem) sys_memory_free(sysmem);
 							loading_html--;
@@ -1910,6 +1904,8 @@ bgm_status:
 							break;
                         }
 					}
+
+					if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
 
 					is_busy=false;
 				}
@@ -1957,76 +1953,6 @@ send_response:
 		}
 	}
 */
-
-static void set_buffer_sizes(int footprint)
-{
-	if(footprint==1) //MIN
-	{
-#ifndef LITE_EDITION
-		BUFFER_SIZE_ALL = ( 320*KB);
-#else
-		BUFFER_SIZE_ALL = ( _256KB_);
-#endif
-		BUFFER_SIZE_FTP	= ( _128KB_);
-		//BUFFER_SIZE	= ( _128KB_);
-		BUFFER_SIZE_PSX	= (  _32KB_);
-		BUFFER_SIZE_PSP	= (  _32KB_);
-		BUFFER_SIZE_PS2	= (  _64KB_);
-		BUFFER_SIZE_DVD	= (  _64KB_);
-	}
-	else
-	if(footprint==2) //MAX
-	{
-		BUFFER_SIZE_ALL = ( 1280*KB);
-		BUFFER_SIZE_FTP	= ( _256KB_);
-		//BUFFER_SIZE	= ( 512*KB);
-		BUFFER_SIZE_PSX	= ( _192KB_);
-		BUFFER_SIZE_PSP	= (  _64KB_);
-		BUFFER_SIZE_PS2	= ( _128KB_);
-		BUFFER_SIZE_DVD	= ( _256KB_);
-
-		if((webman_config->cmask & PS1)) BUFFER_SIZE_PSX	= (_64KB_);
-		if((webman_config->cmask & PS2)) BUFFER_SIZE_PS2	= (_64KB_);
-		if((webman_config->cmask & (BLU | DVD)) == (BLU | DVD)) BUFFER_SIZE_DVD = (_64KB_);
-	}
-	else
-	if(footprint==3) //MIN+
-	{
-		BUFFER_SIZE_ALL = ( 512*KB);
-		BUFFER_SIZE_FTP	= ( _128KB_);
-		//BUFFER_SIZE	= ( 320*KB);
-		BUFFER_SIZE_PSX	= (  _32KB_);
-		BUFFER_SIZE_PSP	= (  _32KB_);
-		BUFFER_SIZE_PS2	= (  _64KB_);
-		BUFFER_SIZE_DVD	= (  _64KB_);
-	}
-	else
-	if(footprint==4) //MAX+
-	{
-		BUFFER_SIZE_ALL = ( 1280*KB);
-		BUFFER_SIZE_FTP	= ( _128KB_);
-		//BUFFER_SIZE	= ( 1088*KB);
-		BUFFER_SIZE_PSX	= (  _32KB_);
-		BUFFER_SIZE_PSP	= (  _32KB_);
-		BUFFER_SIZE_PS2	= (  _64KB_);
-		BUFFER_SIZE_DVD	= (  _64KB_);
-	}
-	else	//STANDARD
-	{
-		BUFFER_SIZE_ALL = ( 896*KB);
-		BUFFER_SIZE_FTP	= ( _128KB_);
-		//BUFFER_SIZE	= ( 448*KB);
-		BUFFER_SIZE_PSX	= ( 160*KB);
-		BUFFER_SIZE_PSP	= (  _32KB_);
-		BUFFER_SIZE_PS2	= (  _64KB_);
-		BUFFER_SIZE_DVD	= ( _192KB_);
-
-		if((webman_config->cmask & PS1)) BUFFER_SIZE_PSX	= (_32KB_);
-		if((webman_config->cmask & (BLU | DVD)) == (BLU | DVD)) BUFFER_SIZE_DVD = (_64KB_);
-	}
-
-	BUFFER_SIZE = BUFFER_SIZE_ALL - (BUFFER_SIZE_PSX + BUFFER_SIZE_PSP + BUFFER_SIZE_PS2 + BUFFER_SIZE_DVD);
-}
 
 static void wwwd_thread(uint64_t arg)
 {
