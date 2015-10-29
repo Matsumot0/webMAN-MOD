@@ -1,5 +1,3 @@
-uint64_t ps3mapi_key = 0;
-
 ///////////// PS3MAPI BEGIN //////////////
 
 #define SYSCALL8_OPCODE_PS3MAPI						0x7777

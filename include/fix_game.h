@@ -283,7 +283,7 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 					if(patch_update)
 					{
 						sprintf(update_path, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN", titleID); // has update on hdd0?
-						if(FileExists(update_path)) {fix_update=true; fix_ver=false;}
+						if(file_exists(update_path)) {fix_update=true; fix_ver=false;}
 					}
 
 					if(fix_ver)
@@ -384,7 +384,7 @@ static void fix_game(char *game_path, char *titleID, uint8_t fix_type)
 {
 	memset(titleID, 0, 10);
 
-	if(FileExists(game_path))
+	if(file_exists(game_path))
 	{
 		fix_in_progress=true; fix_aborted=false;
 
@@ -401,7 +401,7 @@ static void fix_game(char *game_path, char *titleID, uint8_t fix_type)
 			char filename[MAX_PATH_LEN]; int fs;
 
 			sprintf(filename, "%s/PARAM.SFO", game_path);
-			if(FileExists(filename)==false) sprintf(filename, "%s/PS3_GAME/PARAM.SFO", game_path);
+			if(file_exists(filename)==false) sprintf(filename, "%s/PS3_GAME/PARAM.SFO", game_path);
 
 			if(cellFsOpen(filename,	CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 			{
@@ -431,7 +431,7 @@ static void fix_game(char *game_path, char *titleID, uint8_t fix_type)
 
 					sprintf(filename, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN",	titleID); // has update	on hdd0?
 
-					if(FileExists(filename))
+					if(file_exists(filename))
 					{
 						// fix PARAM.SFO on	hdd0
 						sprintf(filename, "/dev_hdd0/game/%s/PARAM.SFO", titleID);

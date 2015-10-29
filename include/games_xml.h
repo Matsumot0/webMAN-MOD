@@ -150,9 +150,9 @@ static bool update_mygames_xml(u64 conn_s_p)
 
 		mount_autoboot();
 
-		if(FileExists(xml))
+		if(file_exists(xml))
 		{
-			if(FileExists(FB_XML)) return false;
+			if(file_exists(FB_XML)) return false;
 		}
 	}
 
@@ -215,7 +215,7 @@ static bool update_mygames_xml(u64 conn_s_p)
 		sys_memory_free(sysmem);
 #endif
 		// start a new thread for refresh content at start up
-		if(!webman_config->refr || FileExists(xml)==false)
+		if(!webman_config->refr || file_exists(xml)==false)
 		{
 			sys_ppu_thread_t id3;
 			sys_ppu_thread_create(&id3, handleclient, (u64)REFRESH_CONTENT, -0x1d8, 0x20000, 0, "wwwd2");
@@ -239,7 +239,7 @@ static bool update_mygames_xml(u64 conn_s_p)
 		if(!(webman_config->cmask & PS2))
 		{
 			strcpy(myxml_ps2, "<View id=\"seg_wm_ps2_items\"><Attributes>");
-			if(webman_config->ps2l && FileExists("/dev_hdd0/game/PS2U10000"))
+			if(webman_config->ps2l && file_exists("/dev_hdd0/game/PS2U10000"))
 			{
 				sprintf(templn, "<Table key=\"ps2_classic_launcher\">"
 								XML_PAIR("icon","/dev_hdd0/game/PS2U10000/ICON0.PNG")
@@ -253,7 +253,7 @@ static bool update_mygames_xml(u64 conn_s_p)
 		if(!(webman_config->cmask & PSP))
 		{
 			strcpy(myxml_psp, "<View id=\"seg_wm_psp_items\"><Attributes>");
-			if(webman_config->pspl && FileExists("/dev_hdd0/game/PSPC66820"))
+			if(webman_config->pspl && file_exists("/dev_hdd0/game/PSPC66820"))
 			{
 				sprintf(templn, "<Table key=\"cobra_psp_launcher\">"
 								XML_PAIR("icon","/dev_hdd0/game/PSPC66820/ICON0.PNG")
@@ -494,7 +494,7 @@ next_xml_entry:
 							sprintf(templn, "%s/%s/PS3_GAME/PARAM.SFO", param, entry.d_name);
 						}
 
-						if(is_iso || (f1<2 && FileExists(templn)))
+						if(is_iso || (f1<2 && file_exists(templn)))
 						{
 							msiz=0;
 							if(!is_iso)
@@ -514,7 +514,7 @@ next_xml_entry:
 								if((f1==2) && ((f0!=NTFS) || (f0==NTFS && !extcmp(entry.d_name, ".ntfs[PS3ISO]", 13))))
 								{
 									get_name(templn, entry.d_name, 1); strcat(templn, ".SFO\0");
-									if(f0!=NTFS && FileExists(templn)==false)
+									if(f0!=NTFS && file_exists(templn)==false)
 									{
 										get_name(tempstr, entry.d_name, 0);
 										sprintf(templn, "%s/%s.SFO", param, tempstr);
@@ -565,7 +565,7 @@ next_xml_entry:
 
 								if(is_iso)
 								{
-									if(icon[0]==0 || FileExists(icon)==false)
+									if(icon[0]==0 || file_exists(icon)==false)
 									{
 										sprintf(icon, "%s/%s", param, entry.d_name);
 
@@ -577,7 +577,7 @@ next_xml_entry:
 										if(flen > 4 && icon[flen-4]=='.')
 										{
 											icon[flen-3]='p'; icon[flen-2]='n'; icon[flen-1]='g';
-											if(FileExists(icon)==false)
+											if(file_exists(icon)==false)
 											{
 												icon[flen-3]='P'; icon[flen-2]='N'; icon[flen-1]='G';
 											}
@@ -588,11 +588,11 @@ next_xml_entry:
 											icon[flen-5]='p'; icon[flen-4]='n'; icon[flen-3]='g'; flen -= 2; icon[flen]=0;
 										}
 
-										if(FileExists(icon)==false)
+										if(file_exists(icon)==false)
 											{icon[flen-3]='j'; icon[flen-2]='p'; icon[flen-1]='g';}
 									}
 								}
-								else if((webman_config->nocov<=1) && (icon[0]==0 || FileExists(icon)==false))
+								else if((webman_config->nocov<=1) && (icon[0]==0 || file_exists(icon)==false))
 									sprintf(icon, "%s/%s/PS3_GAME/ICON0.PNG", param, entry.d_name);
 							}
 
@@ -650,11 +650,11 @@ continue_reading_folder_xml:
 	if( !(webman_config->nogrp))
 	{
 		if(!(webman_config->cmask & PS3)) {strcat(myxml_ps3, "</Attributes><Items>");}
-		if(!(webman_config->cmask & PS2)) {strcat(myxml_ps2, "</Attributes><Items>"); if(webman_config->ps2l && FileExists(PS2_CLASSIC_PLACEHOLDER)) strcat(myxml_ps2, QUERY_XMB("ps2_classic_launcher", "xcb://127.0.0.1/query?limit=1&cond=Ae+Game:Game.titleId PS2U10000"));}
+		if(!(webman_config->cmask & PS2)) {strcat(myxml_ps2, "</Attributes><Items>"); if(webman_config->ps2l && file_exists(PS2_CLASSIC_PLACEHOLDER)) strcat(myxml_ps2, QUERY_XMB("ps2_classic_launcher", "xcb://127.0.0.1/query?limit=1&cond=Ae+Game:Game.titleId PS2U10000"));}
 
 #ifdef COBRA_ONLY
 		if(!(webman_config->cmask & PS1)) {strcat(myxml_psx, "</Attributes><Items>");}
-		if(!(webman_config->cmask & PSP)) {strcat(myxml_psp, "</Attributes><Items>"); if(webman_config->pspl && FileExists("/dev_hdd0/game/PSPC66820")) strcat(myxml_psp, QUERY_XMB("cobra_psp_launcher", "xcb://127.0.0.1/query?limit=1&cond=Ae+Game:Game.titleId PSPC66820"));}
+		if(!(webman_config->cmask & PSP)) {strcat(myxml_psp, "</Attributes><Items>"); if(webman_config->pspl && file_exists("/dev_hdd0/game/PSPC66820")) strcat(myxml_psp, QUERY_XMB("cobra_psp_launcher", "xcb://127.0.0.1/query?limit=1&cond=Ae+Game:Game.titleId PSPC66820"));}
 		if(!(webman_config->cmask & DVD) || !(webman_config->cmask & BLU)) {strcat(myxml_dvd, "</Attributes><Items>"); if(webman_config->rxvid) strcat(myxml_dvd, QUERY_XMB("rx_video", "#seg_wm_bdvd"));}
 #endif
 	}
@@ -694,14 +694,14 @@ continue_reading_folder_xml:
 
 	// --- add eject & setup/xmbm+ menu
 #ifdef ENGLISH_ONLY
-	bool add_xmbm_plus = FileExists("/dev_hdd0/game/XMBMANPLS/USRDIR/FEATURES/webMAN.xml");
+	bool add_xmbm_plus = file_exists("/dev_hdd0/game/XMBMANPLS/USRDIR/FEATURES/webMAN.xml");
 #else
 	bool add_xmbm_plus = false;
 
 	while(true)
 	{
 		sprintf(templn, "/dev_hdd0/game/XMBMANPLS/USRDIR/FEATURES/webMAN%s.xml", lang_code);
-		add_xmbm_plus = FileExists(templn);
+		add_xmbm_plus = file_exists(templn);
 		if(add_xmbm_plus || lang_code[0]==0) break; lang_code[0]=0;
 	}
 #endif

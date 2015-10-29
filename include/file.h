@@ -64,7 +64,7 @@ static int isDir(const char* path)
 		return 0;
 }
 
-static bool FileExists(const char* path)
+static bool file_exists(const char* path)
 {
 	struct CellFsStat s;
 	return (cellFsStat(path, &s)==CELL_FS_SUCCEEDED);

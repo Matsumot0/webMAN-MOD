@@ -3,18 +3,18 @@ static bool toggle_rebug_mode(void)
 {
 	enable_dev_blind((char*)"REBUG Mode Switcher activated!");
 
-	if(FileExists(VSH_MODULE_PATH "vsh.self.swp"))
+	if(file_exists(VSH_MODULE_PATH "vsh.self.swp"))
 	{
 		show_msg((char*)"Normal Mode detected!\r\nSwitch to REBUG Mode Debug XMB...");
 		sys_timer_sleep(3);
 
-		if(FileExists(VSH_ETC_PATH "index.dat.swp"))
+		if(file_exists(VSH_ETC_PATH "index.dat.swp"))
 		{
 			cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.nrm");
 			cellFsRename(VSH_ETC_PATH "index.dat.swp", VSH_ETC_PATH "index.dat");
 		}
 
-		if(FileExists(VSH_ETC_PATH "version.txt.swp"))
+		if(file_exists(VSH_ETC_PATH "version.txt.swp"))
 		{
 			cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.nrm");
 			cellFsRename(VSH_ETC_PATH "version.txt.swp", VSH_ETC_PATH "version.txt");
@@ -26,8 +26,8 @@ static bool toggle_rebug_mode(void)
 		return true; // vsh reboot
 	}
 	else
-	if((FileExists(VSH_MODULE_PATH "vsh.self.nrm"))
-	&& (FileExists(VSH_MODULE_PATH "vsh.self.cexsp")))
+	if((file_exists(VSH_MODULE_PATH "vsh.self.nrm"))
+	&& (file_exists(VSH_MODULE_PATH "vsh.self.cexsp")))
 	{
 		show_msg((char*)"REBUG Mode Debug XMB detected!\r\nSwitch to Retail XMB...");
 		sys_timer_sleep(3);
@@ -38,7 +38,7 @@ static bool toggle_rebug_mode(void)
 		return true; // vsh reboot
 	}
 	else
-	if(FileExists(VSH_MODULE_PATH "vsh.self.dexsp"))
+	if(file_exists(VSH_MODULE_PATH "vsh.self.dexsp"))
 	{
 		show_msg((char*)"REBUG Mode Retail XMB detected!\r\nSwitch to Debug XMB...");
 		sys_timer_sleep(3);
@@ -55,18 +55,18 @@ static bool toggle_normal_mode(void)
 {
 	enable_dev_blind((char*)"Normal Mode Switcher activated!");
 
-	if((FileExists(VSH_MODULE_PATH "vsh.self.nrm"))
-	&& (FileExists(VSH_MODULE_PATH "vsh.self.cexsp")))
+	if((file_exists(VSH_MODULE_PATH "vsh.self.nrm"))
+	&& (file_exists(VSH_MODULE_PATH "vsh.self.cexsp")))
 	{
 		show_msg((char*)"REBUG Mode Debug XMB detected!\r\nSwitch to Normal Mode...");
 
-		if(FileExists(VSH_ETC_PATH "index.dat.nrm"))
+		if(file_exists(VSH_ETC_PATH "index.dat.nrm"))
 		{
 			cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
 			cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
 		}
 
-		if(FileExists(VSH_ETC_PATH "version.txt.nrm"))
+		if(file_exists(VSH_ETC_PATH "version.txt.nrm"))
 		{
 			cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
 			cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
@@ -78,17 +78,17 @@ static bool toggle_normal_mode(void)
 		return true; // vsh reboot
 	}
 	else
-	if(FileExists(VSH_MODULE_PATH "vsh.self.dexsp"))
+	if(file_exists(VSH_MODULE_PATH "vsh.self.dexsp"))
 	{
 		show_msg((char*)"REBUG Mode Retail XMB detected!\r\nSwitch to Normal Mode...");
 
-		if(FileExists(VSH_ETC_PATH "index.dat.nrm"))
+		if(file_exists(VSH_ETC_PATH "index.dat.nrm"))
 		{
 			cellFsRename(VSH_ETC_PATH "index.dat", VSH_ETC_PATH "index.dat.swp");
 			cellFsRename(VSH_ETC_PATH "index.dat.nrm", VSH_ETC_PATH "index.dat");
 		}
 
-		if(FileExists(VSH_ETC_PATH "version.txt.nrm"))
+		if(file_exists(VSH_ETC_PATH "version.txt.nrm"))
 		{
 			cellFsRename(VSH_ETC_PATH "version.txt", VSH_ETC_PATH "version.txt.swp");
 			cellFsRename(VSH_ETC_PATH "version.txt.nrm", VSH_ETC_PATH "version.txt");
@@ -101,7 +101,7 @@ static bool toggle_normal_mode(void)
 		return true; // vsh reboot
 	}
 	else
-	if(FileExists(VSH_MODULE_PATH "vsh.self.swp"))
+	if(file_exists(VSH_MODULE_PATH "vsh.self.swp"))
 	{
 		show_msg((char*)"Normal Mode detected!\r\nNo need to switch!");
 		sys_timer_sleep(3);
@@ -114,7 +114,7 @@ static void toggle_debug_menu(void)
 {
 	enable_dev_blind((char*)"Debug Menu Switcher activated!");
 
-	if(FileExists(VSH_MODULE_PATH "sysconf_plugin.sprx.dex"))
+	if(file_exists(VSH_MODULE_PATH "sysconf_plugin.sprx.dex"))
 	{
 		show_msg((char*)"CEX QA Menu is active!\r\nSwitch to DEX Debug Menu...");
 
@@ -122,7 +122,7 @@ static void toggle_debug_menu(void)
 		cellFsRename(VSH_MODULE_PATH "sysconf_plugin.sprx.dex", VSH_MODULE_PATH "sysconf_plugin.sprx");
 	}
 	else
-	if(FileExists(VSH_MODULE_PATH "sysconf_plugin.sprx.cex"))
+	if(file_exists(VSH_MODULE_PATH "sysconf_plugin.sprx.cex"))
 	{
 		show_msg((char*)"DEX Debug Menu is active!\r\nSwitch to CEX QA Menu...");
 
@@ -139,8 +139,8 @@ static bool toggle_cobra(void)
 {
 	enable_dev_blind((char*)"COBRA Toggle activated!");
  #ifdef REX_ONLY
-	if( (FileExists(REBUG_COBRA_PATH "stage2.cex")) /* &&
-		(FileExists(REBUG_COBRA_PATH "stage2.dex")) */)
+	if( (file_exists(REBUG_COBRA_PATH "stage2.cex")) /* &&
+		(file_exists(REBUG_COBRA_PATH "stage2.dex")) */)
 	{
 		show_msg((char*)"REBUG COBRA is active!\r\nDeactivating COBRA...");
 
@@ -148,8 +148,8 @@ static bool toggle_cobra(void)
 		cellFsRename(REBUG_COBRA_PATH "stage2.dex", REBUG_COBRA_PATH "stage2.dex.bak");
 		return true; // vsh reboot
 	}
-	else if((FileExists(REBUG_COBRA_PATH "stage2.cex.bak")) /* &&
-			(FileExists(REBUG_COBRA_PATH "stage2.dex.bak")) */)
+	else if((file_exists(REBUG_COBRA_PATH "stage2.cex.bak")) /* &&
+			(file_exists(REBUG_COBRA_PATH "stage2.dex.bak")) */)
 	{
 		show_msg((char*)"REBUG COBRA is inactive!\r\nActivating COBRA...");
 
@@ -158,7 +158,7 @@ static bool toggle_cobra(void)
 		return true; // vsh reboot
 	}
  #else
-	if(FileExists(HABIB_COBRA_PATH "stage2.cex"))
+	if(file_exists(HABIB_COBRA_PATH "stage2.cex"))
 	{
 		show_msg((char*)"COBRA is active!\r\nDeactivating COBRA...");
 
@@ -166,7 +166,7 @@ static bool toggle_cobra(void)
 
 		return true; // vsh reboot
 	}
-	else if(FileExists(HABIB_COBRA_PATH "stage2_disabled.cex"))
+	else if(file_exists(HABIB_COBRA_PATH "stage2_disabled.cex"))
 	{
 		show_msg((char*)"COBRA is inactive!\r\nActivating COBRA...");
 
@@ -175,13 +175,13 @@ static bool toggle_cobra(void)
 		return true; // vsh reboot
 	}
 
-	if(FileExists(SYS_COBRA_PATH "stage2.bin"))
+	if(file_exists(SYS_COBRA_PATH "stage2.bin"))
 	{
 		show_msg((char*)"COBRA is active!\r\nDeactivating COBRA...");
 
 		cellFsRename(SYS_COBRA_PATH "stage2.bin", SYS_COBRA_PATH "stage2_disabled.bin");
 
-		if(FileExists(COLDBOOT_PATH ".normal"))
+		if(file_exists(COLDBOOT_PATH ".normal"))
 		{
 			cellFsRename(COLDBOOT_PATH          , COLDBOOT_PATH ".cobra");
 			cellFsRename(COLDBOOT_PATH ".normal", COLDBOOT_PATH);
@@ -189,13 +189,13 @@ static bool toggle_cobra(void)
 
 		return true; // vsh reboot
 	}
-	else if(FileExists(SYS_COBRA_PATH "stage2_disabled.bin"))
+	else if(file_exists(SYS_COBRA_PATH "stage2_disabled.bin"))
 	{
 		show_msg((char*)"COBRA is inactive!\r\nActivating COBRA...");
 
 		cellFsRename(SYS_COBRA_PATH "stage2_disabled.bin", SYS_COBRA_PATH "stage2.bin");
 
-		if(FileExists(COLDBOOT_PATH ".cobra"))
+		if(file_exists(COLDBOOT_PATH ".cobra"))
 		{
 			cellFsRename(COLDBOOT_PATH         , COLDBOOT_PATH ".normal");
 			cellFsRename(COLDBOOT_PATH ".cobra", COLDBOOT_PATH);
@@ -213,7 +213,7 @@ static void toggle_ps2emu(void)
 {
 	enable_dev_blind((char*)"Swapping ps2emu activated!");
  #ifdef REX_ONLY
-	if(FileExists(REBUG_TOOLBOX "ps2_netemu.self"))
+	if(file_exists(REBUG_TOOLBOX "ps2_netemu.self"))
 	{
 		struct CellFsStat s;
 		uint64_t size1, size2;
@@ -233,8 +233,8 @@ static void toggle_ps2emu(void)
 
 		// ---- Swap ps2_netemu.self ----
 		size1 = size2 = 0;
-		if( FileExists(PS2_EMU_PATH  "ps2_netemu.self")) size1 = s.st_size;
-		if( FileExists(REBUG_TOOLBOX "ps2_netemu.self")) size2 = s.st_size;
+		if( file_exists(PS2_EMU_PATH  "ps2_netemu.self")) size1 = s.st_size;
+		if( file_exists(REBUG_TOOLBOX "ps2_netemu.self")) size2 = s.st_size;
 
 		show_msg((size1==size2) ?   (char*)"Restoring original Cobra ps2emu...":
 									(char*)"Switching to custom ps2emu...");
@@ -246,8 +246,8 @@ static void toggle_ps2emu(void)
 
 		// ---- Swap ps2_gxemu.self ----
 		size1 = size2 = 0;
-		if( FileExists(PS2_EMU_PATH  "ps2_gxemu.self")) size1 = s.st_size;
-		if( FileExists(REBUG_TOOLBOX "ps2_gxemu.self")) size2 = s.st_size;
+		if( file_exists(PS2_EMU_PATH  "ps2_gxemu.self")) size1 = s.st_size;
+		if( file_exists(REBUG_TOOLBOX "ps2_gxemu.self")) size2 = s.st_size;
 
 		if(size1>0 && size2>0)
 			filecopy((size1==size2) ?   (char*)REBUG_TOOLBOX "ps2_gxemu.self.cobra":
@@ -256,8 +256,8 @@ static void toggle_ps2emu(void)
 
 		// ---- Swap ps2_emu.self ----
 		size1 = size2 = 0;
-		if( FileExists(PS2_EMU_PATH  "ps2_emu.self")) size1 = s.st_size;
-		if( FileExists(REBUG_TOOLBOX "ps2_emu.self")) size2 = s.st_size;
+		if( file_exists(PS2_EMU_PATH  "ps2_emu.self")) size1 = s.st_size;
+		if( file_exists(REBUG_TOOLBOX "ps2_emu.self")) size2 = s.st_size;
 
 		if(size1>0 && size2>0)
 			filecopy((size1==size2) ?   (char*)REBUG_TOOLBOX "ps2_emu.self.cobra":
@@ -266,7 +266,7 @@ static void toggle_ps2emu(void)
 	}
 	else
  #endif //#ifdef REX_ONLY
-	if(FileExists(PS2_EMU_PATH "ps2_netemu.self.swap"))
+	if(file_exists(PS2_EMU_PATH "ps2_netemu.self.swap"))
 	{
 		show_msg((char*)"Switch to custom ps2emu...");
 
@@ -279,7 +279,7 @@ static void toggle_ps2emu(void)
 		cellFsRename(PS2_EMU_PATH "ps2_emu.self"        , PS2_EMU_PATH "ps2_emu.tmp");
 		cellFsRename(PS2_EMU_PATH "ps2_emu.self.swap"   , PS2_EMU_PATH "ps2_emu.self");
 	}
-	else if(FileExists(PS2_EMU_PATH "ps2_netemu.self.sp"))
+	else if(file_exists(PS2_EMU_PATH "ps2_netemu.self.sp"))
 	{
 		show_msg((char*)"Switching to custom ps2emu...");
 
@@ -292,7 +292,7 @@ static void toggle_ps2emu(void)
 		cellFsRename(PS2_EMU_PATH "ps2_emu.self"      , PS2_EMU_PATH "ps2_emu.tmp");
 		cellFsRename(PS2_EMU_PATH "ps2_emu.self.sp"   , PS2_EMU_PATH "ps2_emu.self");
 	}
-	else if(FileExists(PS2_EMU_PATH "ps2_netemu.tmp"))
+	else if(file_exists(PS2_EMU_PATH "ps2_netemu.tmp"))
 	{
 		show_msg((char*)"Restoring original ps2emu...");
 

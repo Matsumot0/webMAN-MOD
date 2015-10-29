@@ -108,6 +108,18 @@ SYS_MODULE_STOP(wwwd_stop);
 #define WM_ICONS_PATH		"/dev_hdd0/tmp/wm_icons/"			// webMAN icons path
 #define WMNOSCAN			"/dev_hdd0/tmp/wm_noscan"			// webMAN config file
 
+
+///////////// PS3MAPI BEGIN //////////////
+
+#define SYSCALL8_OPCODE_PS3MAPI						0x7777
+
+#define PS3MAPI_OPCODE_SET_ACCESS_KEY				0x2000
+#define PS3MAPI_OPCODE_REQUEST_ACCESS				0x2001
+
+static uint64_t ps3mapi_key = 0;
+
+///////////// PS3MAPI END //////////////
+
 #ifdef WM_REQUEST
  #ifdef WEB_CHAT
   #define DELETE_TURNOFF	{do_umount(false); cellFsUnlink((char*)"/dev_hdd0/tmp/turnoff"); cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request"); cellFsUnlink((char*)WMCHATFILE);}
@@ -396,6 +408,11 @@ static u64 backup[6];
 static u8 wmconfig[sizeof(WebmanCfg)];
 static WebmanCfg *webman_config = (WebmanCfg*) wmconfig;
 
+static bool is_mamba = false;
+static uint16_t cobra_version = 0;
+
+static bool is_mounting = false;
+
 static bool gmobile_mode = false;
 
 static char ftp_password[20]="";
@@ -467,7 +484,6 @@ static void do_umount_iso(void);
 
 static bool from_reboot = false;
 static bool is_busy = false;
-static bool is_mounting = false;
 
 #ifdef COPY_PS3
 static char current_file[MAX_PATH_LEN];
@@ -663,10 +679,10 @@ static void handleclient(u64 conn_s_p)
 
 		for(u8 i=0; i<12; i++)
 		{
-			if(FileExists(wm_icons[i])==false)
+			if(file_exists(wm_icons[i])==false)
 			{
 				sprintf(param, "/dev_flash/vsh/resource/explore/icon/%s", wm_icons[i] + 23); strcpy(wm_icons[i], param);
-				if(FileExists(param)) continue;
+				if(file_exists(param)) continue;
 				else
 				if(i==0 || i==5) strcpy(wm_icons[i] + 32, "user/024.png\0"); else //ps3
 				if(i==1 || i==6) strcpy(wm_icons[i] + 32, "user/026.png\0"); else //psx
@@ -984,7 +1000,7 @@ again3:
 					else
 					{
 						// $toggle_classic_ps2_mode
-						classic_ps2_enabled = FileExists(PS2_CLASSIC_TOGGLER);
+						classic_ps2_enabled = file_exists(PS2_CLASSIC_TOGGLER);
 					}
 
 					if(classic_ps2_enabled)
@@ -1274,13 +1290,13 @@ reboot:
 mobile_response:
 				mobile_mode = false;
 
-				if(FileExists(MOBILE_HTML)==false)
+				if(file_exists(MOBILE_HTML)==false)
 					sprintf(param, "/index.ps3%s", param+10);
 				else if(strstr(param, "?g="))
 					sprintf(param, "%s", MOBILE_HTML);
 				else if(strstr(param, "?"))
 					{sprintf(param, "/index.ps3%s", param+10); mobile_mode = true;}
-				else if(FileExists(GAMELIST_JS)==false)
+				else if(file_exists(GAMELIST_JS)==false)
 					sprintf(param, "%s", "index.ps3?mobile");
 				else
 					sprintf(param, "%s", MOBILE_HTML);
@@ -1362,7 +1378,7 @@ mobile_response:
 				struct CellFsStat buf;
 				is_binary=(cellFsStat(param, &buf)==CELL_FS_SUCCEEDED);
 
-				if(!is_binary) {strcpy(header, param); sprintf(param, "%s/%s", html_base_path, header); is_binary=FileExists(param);} // use html path (if path is omitted)
+				if(!is_binary) {strcpy(header, param); sprintf(param, "%s/%s", html_base_path, header); is_binary=file_exists(param);} // use html path (if path is omitted)
 
 				if(is_binary)
 				{
@@ -1599,8 +1615,9 @@ html_response:
 				}
 				else
 				{
+#ifdef COBRA_ONLY
 					if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-
+#endif
 					is_busy=true;
 
 					if(strstr(param, "refresh.ps3") && init_running==0)
@@ -1631,15 +1648,15 @@ html_response:
 						if(param[14]=='/') sprintf(templn, "%s", param+14); else
 						{
 							sprintf(templn, "/dev_hdd0/plugins/webftp_server.sprx");
-							if(FileExists(templn)==false) sprintf(templn, "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
-							if(FileExists(templn)==false) sprintf(templn, "/dev_hdd0/webftp_server.sprx");
-							if(FileExists(templn)==false) sprintf(templn, "/dev_hdd0/webftp_server_ps3mapi.sprx");
+							if(file_exists(templn)==false) sprintf(templn, "/dev_hdd0/plugins/webftp_server_ps3mapi.sprx");
+							if(file_exists(templn)==false) sprintf(templn, "/dev_hdd0/webftp_server.sprx");
+							if(file_exists(templn)==false) sprintf(templn, "/dev_hdd0/webftp_server_ps3mapi.sprx");
 
 							pos=strstr(param, "prx=");
 							if(pos) get_value(templn, pos + 4, MAX_PATH_LEN);
 						}
 
-						prx_found = FileExists(templn);
+						prx_found = file_exists(templn);
 #ifdef COBRA_ONLY
 						if(strlen(templn)>0)
 						{
@@ -1895,8 +1912,9 @@ bgm_status:
 
 						if(game_listing(buffer, templn, param, conn_s, tempstr, mobile_mode) == false)
 						{
-							if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-
+#ifdef COBRA_ONLY
+							if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 							is_busy=false;
 							if(sysmem) sys_memory_free(sysmem);
 							loading_html--;
@@ -1904,9 +1922,9 @@ bgm_status:
 							break;
                         }
 					}
-
-					if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-
+#ifdef COBRA_ONLY
+					if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 					is_busy=false;
 				}
 
@@ -1987,7 +2005,7 @@ static void wwwd_thread(uint64_t arg)
 	cellFsUnlink((char*)"/dev_hdd0/tmp/wm_request");
 #endif
 
-	{from_reboot = FileExists(WMNOSCAN);} //is_rebug=isDir("/dev_flash/rebug");
+	{from_reboot = file_exists(WMNOSCAN);} //is_rebug=isDir("/dev_flash/rebug");
 
 	if(webman_config->blind) enable_dev_blind(NULL);
 

@@ -34,8 +34,8 @@ static bool get_cover(char *icon, char *titleid)
 #ifndef ENGLISH_ONLY
 	if(covers_exist[0])
 	{
-		sprintf(icon, "%s/%s.JPG", COVERS_PATH, titleid); if(FileExists(icon)) return true;
-		sprintf(icon, "%s/%s.PNG", COVERS_PATH, titleid); if(FileExists(icon)) return true;
+		sprintf(icon, "%s/%s.JPG", COVERS_PATH, titleid); if(file_exists(icon)) return true;
+		sprintf(icon, "%s/%s.PNG", COVERS_PATH, titleid); if(file_exists(icon)) return true;
 	}
 #endif
 
@@ -47,41 +47,41 @@ static bool get_cover(char *icon, char *titleid)
 			{
 				sprintf(icon, MM_ROOT_STD "/covers_retro/psx/%c%c%c%c_%c%c%c.%c%c_COV.JPG",
 						titleid[0], titleid[1], titleid[2], titleid[3],
-						titleid[4], titleid[5], titleid[6], titleid[7], titleid[8]); if(FileExists(icon)) return true;
+						titleid[4], titleid[5], titleid[6], titleid[7], titleid[8]); if(file_exists(icon)) return true;
 			}
 
-			sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STD, titleid); if(FileExists(icon)) return true;
-			sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STD, titleid); if(FileExists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STD, titleid); if(file_exists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STD, titleid); if(file_exists(icon)) return true;
 		}
 
 		if(covers_exist[2])
 		{
-			sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STL, titleid); if(FileExists(icon)) return true;
-			sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STL, titleid); if(FileExists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_STL, titleid); if(file_exists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_STL, titleid); if(file_exists(icon)) return true;
 		}
 
 		if(covers_exist[3])
 		{
-			sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_SSTL, titleid); if(FileExists(icon)) return true;
-			sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_SSTL, titleid); if(FileExists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.JPG", MM_ROOT_SSTL, titleid); if(file_exists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.PNG", MM_ROOT_SSTL, titleid); if(file_exists(icon)) return true;
 		}
 
 		if(covers_exist[4])
 		{
-			sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMES", titleid); if(FileExists(icon)) return true;
-			sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMES", titleid); if(FileExists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMES", titleid); if(file_exists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMES", titleid); if(file_exists(icon)) return true;
 		}
 
 		if(covers_exist[5])
 		{
-			sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMEZ", titleid); if(FileExists(icon)) return true;
-			sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMEZ", titleid); if(FileExists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.JPG", "/dev_hdd0/GAMEZ", titleid); if(file_exists(icon)) return true;
+			sprintf(icon, "%s/covers/%s.PNG", "/dev_hdd0/GAMEZ", titleid); if(file_exists(icon)) return true;
 		}
 
 		if(covers_exist[6])
 		{
-			sprintf(icon, WMTMP "/%s.JPG", titleid); if(FileExists(icon)) return true;
-			sprintf(icon, WMTMP "/%s.PNG", titleid); if(FileExists(icon)) return true;
+			sprintf(icon, WMTMP "/%s.JPG", titleid); if(file_exists(icon)) return true;
+			sprintf(icon, WMTMP "/%s.PNG", titleid); if(file_exists(icon)) return true;
 		}
 	}
 
@@ -102,17 +102,17 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 	if(!extcmp(file, ".BIN.ENC", 8))
 	{
 		sprintf(icon, "%s/%s.png", param, file);
-		if(FileExists(icon)) return;
+		if(file_exists(icon)) return;
 		sprintf(icon, "%s/%s.PNG", param, file);
-		if(FileExists(icon)) return;
+		if(file_exists(icon)) return;
 
 		flen=strlen(icon)-12;
 		if(flen>0 && icon[flen]=='.')
 		{
 			icon[flen]=0; strcat(icon, ".png");
-			if(FileExists(icon)) return;
+			if(file_exists(icon)) return;
 			icon[flen]=0; strcat(icon, ".PNG");
-			if(FileExists(icon)) return;
+			if(file_exists(icon)) return;
 		}
 	}
 
@@ -133,19 +133,19 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 
 		//file name + .jpg
 		strcat(icon, ".jpg");
-		if(FileExists(icon)) return;
+		if(file_exists(icon)) return;
 
 		flen=strlen(icon);
 
 		//file name + .png
 		icon[flen-4]=0; // remove file extension
 		strcat(icon, ".png");
-		if(FileExists(icon)) return;
+		if(file_exists(icon)) return;
 
 		//file name + .JPG
 		icon[flen-4]=0; // remove file extension
 		strcat(icon, ".JPG");
-		if(FileExists(icon)) return;
+		if(file_exists(icon)) return;
 
 		//file name + .PNG
 		icon[flen-4]=0; // remove file extension
@@ -153,7 +153,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 	}
 
 	//copy remote file
-	if(FileExists(icon)==false)
+	if(file_exists(icon)==false)
 	{
 #ifdef COBRA_ONLY
 		if(ns<0) {icon[0]=0; return;}
@@ -171,7 +171,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 			sprintf(tempstr, "%s/%s.jpg", param, icon);
 
 			get_name(icon, file, 1); strcat(icon, ".jpg"); //wmtmp
-			if(FileExists(icon)) return;
+			if(file_exists(icon)) return;
 		}
 
 #ifndef LITE_EDITION
@@ -183,7 +183,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 		if(remote_stat(ns, tempstr, &is_directory, &file_size, &mtime, &ctime, &atime, &abort_connection)!=0)
 		{
 			icon[strlen(icon)-4]=0; strcat(icon, ".png");
-            if(FileExists(icon)) return;
+            if(file_exists(icon)) return;
 
 			tempstr[strlen(tempstr)-4]=0; strcat(tempstr, ".png");
 
@@ -225,7 +225,7 @@ static void get_iso_icon(char *icon, char *param, char *file, int isdir, int ns,
 
 static bool get_cover_from_name(char *icon, char *name, char *titleid)
 {
-	if(icon[0]!=0 && FileExists(icon)) return true;
+	if(icon[0]!=0 && file_exists(icon)) return true;
 
 	// get cover from titleid in PARAM.SFO
 	if(get_cover(icon, titleid)) return true;
@@ -260,7 +260,7 @@ static void get_default_icon(char *icon, char *param, char *file, int isdir, cha
 	if(webman_config->nocov>1) {if(get_cover_from_name(icon, file, titleid)) return; goto no_icon0;}
 
 	// continue using cover or default icon0.png
-	if(icon[0]>0 && FileExists(icon))
+	if(icon[0]>0 && file_exists(icon))
 	{
 		if(!extcasecmp(icon, ".png", 4) || !extcasecmp(icon, ".jpg", 4)) return;
 		icon[0]=0;
@@ -271,14 +271,14 @@ static void get_default_icon(char *icon, char *param, char *file, int isdir, cha
 	// get icon from folder && copy remote icon
 	get_iso_icon(icon, param, file, isdir, ns, abort_connection);
 
-	if(icon[0]>0 && FileExists(icon)) return;
+	if(icon[0]>0 && file_exists(icon)) return;
 
 	//use the cached PNG from wmtmp if available
 	get_name(icon, file, 1);
 	strcat(icon, ".PNG");
 
 no_icon0:
-	if(icon[0]>0 && FileExists(icon)) return;
+	if(icon[0]>0 && file_exists(icon)) return;
 
 	if((webman_config->nocov==1) && get_cover_from_name(icon, file, titleid)) return; // show mm cover as last option (if it's disabled)
 
@@ -363,7 +363,7 @@ static int add_net_game(int ns, netiso_read_dir_result_data *data, int v3_entry,
 		else
 			{get_name(templn, data[v3_entry].name, 1); strcat(templn, ".SFO\0");}
 
-		if(data[v3_entry].is_directory && FileExists(templn)==false)
+		if(data[v3_entry].is_directory && file_exists(templn)==false)
 		{
 			sprintf(tempstr, "%s/%s/PS3_GAME/PARAM.SFO", param, data[v3_entry].name);
 
@@ -420,7 +420,7 @@ static int add_net_game(int ns, netiso_read_dir_result_data *data, int v3_entry,
 		get_default_icon(icon, param, data[v3_entry].name, data[v3_entry].is_directory, tempID, ns, abort_connection);
 	}
 
-	if(webman_config->nocov<2 && (icon[0]==0 || webman_config->nocov)) {get_name(tempstr, data[v3_entry].name, 1); strcat(tempstr, ".PNG"); if(FileExists(tempstr)) strcpy(icon, tempstr);}
+	if(webman_config->nocov<2 && (icon[0]==0 || webman_config->nocov)) {get_name(tempstr, data[v3_entry].name, 1); strcat(tempstr, ".PNG"); if(file_exists(tempstr)) strcpy(icon, tempstr);}
 
 	if(webman_config->tid && tempID[0]>'@' && strlen(templn) < 50 && strstr(templn, " [")==NULL) {strcat(templn, " ["); strcat(templn, tempID); strcat(templn, "]");}
 
@@ -506,7 +506,7 @@ static bool game_listing(char *buffer, char *templn, char *param, int conn_s, ch
 	cellRtcGetCurrentTick(&pTick);
 	int upd_time=0;
 
-	if(FileExists(WMTMP "/games.html"))
+	if(file_exists(WMTMP "/games.html"))
 		upd_time=buf.st_mtime;
 
 	CellRtcDateTime rDate;
@@ -774,7 +774,7 @@ next_html_entry:
 							sprintf(templn, "%s/%s/PS3_GAME/PARAM.SFO", param, entry.d_name);
 						}
 
-						if(is_iso || (f1<2 && FileExists(templn)))
+						if(is_iso || (f1<2 && file_exists(templn)))
 						{
 							icon[0]=tempID[0]=0;
 
@@ -793,7 +793,7 @@ next_html_entry:
 								{
 									int fs=0;
 									get_name(templn, entry.d_name, 1); strcat(templn, ".SFO\0");
-									if(f0!=NTFS && FileExists(templn)==false)
+									if(f0!=NTFS && file_exists(templn)==false)
 									{
 										get_name(tempstr, entry.d_name, 0);
 										sprintf(templn, "%s/%s.SFO", param, tempstr);
@@ -860,7 +860,7 @@ next_html_entry:
 									if(flen > 4 && icon[flen-4]=='.')
 									{
 										icon[flen-3]='p'; icon[flen-2]='n'; icon[flen-1]='g';
-										if(FileExists(icon)==false)
+										if(file_exists(icon)==false)
 										{
 											icon[flen-3]='P'; icon[flen-2]='N'; icon[flen-1]='G';
 										}
@@ -871,7 +871,7 @@ next_html_entry:
 										icon[flen-5]='p'; icon[flen-4]='n'; icon[flen-3]='g'; flen -= 2; icon[flen]=0;
 									}
 
-									if(FileExists(icon)==false)
+									if(file_exists(icon)==false)
 										{icon[flen-3]='j'; icon[flen-2]='p'; icon[flen-1]='g';}
 								}
 							}

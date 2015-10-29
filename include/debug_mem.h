@@ -16,6 +16,10 @@ static void peek_chunk(uint64_t start, uint64_t size, uint8_t* buf) // read from
 
 static void dump_mem(char *file, uint64_t start, uint32_t size_mb)
 {
+#ifdef COBRA_ONLY
+	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+#endif
+
 	int fp;
 	uint64_t sw;
 	uint32_t mem_size = (_128KB_), i;
@@ -40,6 +44,10 @@ static void dump_mem(char *file, uint64_t start, uint32_t size_mb)
 		show_msg((char*)"Memory dump completed!");
 		{ BEEP2 }
 	}
+
+#ifdef COBRA_ONLY
+	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 }
 
 static void ps3mapi_mem_dump(char *buffer, char *templn, char *param)

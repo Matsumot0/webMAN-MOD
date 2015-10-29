@@ -51,7 +51,7 @@
 
 		CellPadData data;
 
-		for(n=0;n<10;n++)
+		for(n = 0; n < 10; n++)
 		{
 			if(show_info_popup) {show_info_popup = false; goto show_popup;}
 
@@ -97,7 +97,7 @@
 #endif
 							{
 #ifdef WM_CUSTOM_COMBO
-								if(FileExists(WM_CUSTOM_COMBO "select_square"))
+								if(file_exists(WM_CUSTOM_COMBO "select_square"))
 								{
 									sysLv2FsLink(WM_CUSTOM_COMBO "select_square", "/dev_hdd0/tmp/wm_request"); break;
 								}
@@ -143,7 +143,7 @@
 							&& (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE) // SELECT+L2+TRIANGLE
 							&& (c_firmware>=4.65f) )
 						{
-							bool classic_ps2_enabled = FileExists(PS2_CLASSIC_TOGGLER);
+							bool classic_ps2_enabled = file_exists(PS2_CLASSIC_TOGGLER);
 
 							if(classic_ps2_enabled)
 							{
@@ -215,9 +215,11 @@
 								}
 #endif
 								/////////////////////////////
-
 								CellRtcTick pTick; u32 dd, hh, mm, ss; char tmp[200];
 show_popup:
+#ifdef COBRA_ONLY
+								if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+#endif
 								cellRtcGetCurrentTick(&pTick);
 								get_temperature(0, &t1);
 								get_temperature(1, &t2);
@@ -273,9 +275,9 @@ show_popup:
 
 								char cfw_info[20];
 #ifdef COBRA_ONLY
-								bool is_mamba; {system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
+								if(!is_mamba && !syscalls_removed) {system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
 
-								uint16_t cobra_version; sys_get_version2(&cobra_version);
+								if(!cobra_version) sys_get_version2(&cobra_version);
 
 								char cobra_ver[8];
 								if((cobra_version & 0x0F) == 0)
@@ -292,10 +294,10 @@ show_popup:
 								sprintf((char*)tmp, "CPU: %i°C  RSX: %i°C  FAN: %i%%   \r\n"
 													"%s: %id %02d:%02d:%02d%s\r\n"
 													"Firmware : %i.%02i %s\r\n"
-													"IP: %s  %s",
+													"IP: %s  %s%s",
 													t1>>24, t2>>24, (int)(((int)speed*100)/255),
 													bb?"Play":"Startup", dd, hh, mm, ss, smax,
-													(int)c_firmware, ((u32)(c_firmware * 1000.0f) % 1000) / 10, cfw_info, ip, net_type);
+													(int)c_firmware, ((u32)(c_firmware * 1000.0f) % 1000) / 10, cfw_info, ip, net_type, syscalls_removed ? "  [noSC]" : "");
 
 								sprintf((char*)msg, "%s\r\n%s: %'i %s\r\n"
 													"%s: %'i %s\r\n", tmp,
@@ -310,7 +312,9 @@ show_popup:
 
 									if(dd<100) {char gname[200]; get_game_info(); sprintf(gname, "%s %s\r\n\r\n", _game_TitleID, _game_Title); sprintf((char*) msg, "%sPlay: %id %02d:%02d:%02d\r\n%s", gname, dd, hh, mm, ss, tmp); }
 								}
-
+#ifdef COBRA_ONLY
+								if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 								show_msg((char*) msg);
 								sys_timer_sleep(2);
 							}
@@ -319,7 +323,7 @@ show_popup:
 						if(webman_config->fanc && !(webman_config->combo & MANUALFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_UP) ) // SELECT+UP increase TEMP/FAN
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_up"))
+							if(file_exists(WM_CUSTOM_COMBO "select_up"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_up", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -351,7 +355,7 @@ show_popup:
 						if(webman_config->fanc && !(webman_config->combo & MANUALFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_DOWN) ) // SELECT+DOWN increase TEMP/FAN
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_down"))
+							if(file_exists(WM_CUSTOM_COMBO "select_down"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_down", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -382,7 +386,7 @@ show_popup:
 						if(webman_config->minfan && !(webman_config->combo & MINDYNFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_LEFT) ) // SELECT+LEFT decrease Minfan
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_left"))
+							if(file_exists(WM_CUSTOM_COMBO "select_left"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_left", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -401,7 +405,7 @@ show_popup:
 						if(webman_config->minfan && !(webman_config->combo & MINDYNFAN) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL1] & CELL_PAD_CTRL_RIGHT) ) // SELECT+RIGHT increase Minfan
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_right"))
+							if(file_exists(WM_CUSTOM_COMBO "select_right"))
 							{
 									sysLv2FsLink(WM_CUSTOM_COMBO "select_right", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -420,7 +424,7 @@ show_popup:
 						if(!(webman_config->combo & PREV_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_L1) ) // SELECT+L1 (previous title)
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_l1"))
+							if(file_exists(WM_CUSTOM_COMBO "select_l1"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_l1", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -437,7 +441,7 @@ show_popup:
 						if(!(webman_config->combo & NEXT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_R1) ) // SELECT+R1 (next title)
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_r1"))
+							if(file_exists(WM_CUSTOM_COMBO "select_r1"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_r1", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -454,7 +458,7 @@ show_popup:
 						if(!(webman_config->combo & UMNT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_CIRCLE) ) // SELECT+O (unmount)
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "select_circle"))
+							if(file_exists(WM_CUSTOM_COMBO "select_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_circle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -466,7 +470,7 @@ show_popup:
 						else
 						if(!(webman_config->combo & UMNT_GAME) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] == CELL_PAD_CTRL_TRIANGLE) ) // SELECT+TRIANGLE
 						{
-							if(FileExists(WM_CUSTOM_COMBO "select_triangle"))
+							if(file_exists(WM_CUSTOM_COMBO "select_triangle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "select_triangle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -551,22 +555,22 @@ show_popup:
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE))==(CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2 | CELL_PAD_CTRL_CIRCLE) && View_Find("game_plugin")==0) // L2+R2+O
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "l2_r2_circle"))
+							if(file_exists(WM_CUSTOM_COMBO "l2_r2_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_circle", "/dev_hdd0/tmp/wm_request");
 							}
 							else
-							if(FileExists(WM_CUSTOM_COMBO "l2_r2_l1_circle"))
+							if(file_exists(WM_CUSTOM_COMBO "l2_r2_l1_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_l1_circle", "/dev_hdd0/tmp/wm_request");
 							}
 							else
-							if(FileExists(WM_CUSTOM_COMBO "l2_r2_r1_circle"))
+							if(file_exists(WM_CUSTOM_COMBO "l2_r2_r1_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_r1_circle", "/dev_hdd0/tmp/wm_request");
 							}
 							else
-							if(FileExists(WM_CUSTOM_COMBO "l2_r2_l1_r1_circle"))
+							if(file_exists(WM_CUSTOM_COMBO "l2_r2_l1_r1_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "l2_r2_l1_r1_circle", "/dev_hdd0/tmp/wm_request");
 							}
@@ -597,7 +601,7 @@ show_popup:
 						if(!(webman_config->combo & DISABLESH) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_TRIANGLE) ) // R2+TRIANGLE Disable CFW Sycalls
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "r2_triangle"))
+							if(file_exists(WM_CUSTOM_COMBO "r2_triangle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "r2_triangle", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -613,14 +617,14 @@ show_popup:
 						if(!(webman_config->combo2 & CUSTOMCMB) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_SQUARE) ) // R2+SQUARE
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "r2_square"))
+							if(file_exists(WM_CUSTOM_COMBO "r2_square"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "r2_square", "/dev_hdd0/tmp/wm_request"); break;
 							}
 							else
 #endif
 #ifdef WM_REQUEST
-							if(FileExists("/dev_hdd0/tmp/wm_custom_combo"))
+							if(file_exists("/dev_hdd0/tmp/wm_custom_combo"))
 							{
 								sysLv2FsLink("/dev_hdd0/tmp/wm_custom_combo", "/dev_hdd0/tmp/wm_request"); break;
 							}
@@ -636,7 +640,7 @@ show_popup:
 						if(!(webman_config->combo & SHOW_IDPS) && (data.button[CELL_PAD_BTN_OFFSET_DIGITAL2] & CELL_PAD_CTRL_CIRCLE) ) // R2+O Show IDPS EID0+LV2
 						{
 #ifdef WM_CUSTOM_COMBO
-							if(FileExists(WM_CUSTOM_COMBO "r2_circle"))
+							if(file_exists(WM_CUSTOM_COMBO "r2_circle"))
 							{
 								sysLv2FsLink(WM_CUSTOM_COMBO "r2_circle", "/dev_hdd0/tmp/wm_request"); break;
 							}

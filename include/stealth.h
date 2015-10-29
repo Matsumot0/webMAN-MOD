@@ -133,46 +133,54 @@ static void block_online_servers(void)
 {
 	if(View_Find("game_plugin")) return;
 
+#ifdef COBRA_ONLY
+	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+#endif
+
 	led(YELLOW, BLINK_FAST);
 
 	u64 mem=0; url_count = 0;
 
 	for(u64 addr=0x860000; addr<0xFFFFF8ULL; addr+=4)//16MB
 	{
-	 mem=peek_lv1(addr);
-	 if(mem         == 0x733A2F2F61757468ULL)  // s://auth
-	 	 {if(!block_url(addr, mem,   0x733A2F2F00000000ULL)) break;}
-	 else if(mem    == 0x2E7073332E757064ULL)  // .ps3.upd
-	 	 {if(!block_url(addr-8, mem, 0x3A2F2F0000000000ULL)) break;}
-	 else if(mem    == 0x656E612E6E65742EULL)  // ena.net.
-	 	 {if(!block_url(addr, mem,   0x0000000000000000ULL)) break;}
+		mem = peek_lv1(addr);
+		if(mem      == 0x733A2F2F61757468ULL)  // s://auth
+			{if(!block_url(addr, mem,   0x733A2F2F00000000ULL)) break;}
+		else if(mem == 0x2E7073332E757064ULL)  // .ps3.upd
+			{if(!block_url(addr-8, mem, 0x3A2F2F0000000000ULL)) break;}
+		else if(mem == 0x656E612E6E65742EULL)  // ena.net.
+			{if(!block_url(addr, mem,   0x0000000000000000ULL)) break;}
 	}
-	for(u64 addr=0x300000; addr<0x7FFFF8ULL; addr+=4)//8MB
+	for(u64 addr = 0x1300000ULL; addr < 0x17FFFF8ULL; addr+=4)//8MB
 	{
-	 mem=peekq(addr);
-	 if(mem      == 0x733A2F2F6E73782EULL)   // s://nsx.
-	 	 {if(!block_url(addr+0x1000000ULL,   mem, 0x733A2F2F00000000ULL)) break;}
-	 else if(mem == 0x733A2F2F6E73782DULL)   // s://nsx-
-	 	 {if(!block_url(addr+0x1000000ULL,   mem, 0x733A2F2F00000000ULL)) break;}
-	 else if(mem == 0x3A2F2F786D622D65ULL)   // ://xmb-e
-	 	 {if(!block_url(addr+0x1000000ULL,   mem, 0x3A2F2F0000000000ULL)) break;}
-	 else if(mem == 0x2E7073332E757064ULL)   // .ps3.upd
-	 	 {if(!block_url(addr+0x1000000ULL-8, mem, 0x3A2F2F0000000000ULL)) break;}
-	 else if(mem == 0x702E616470726F78ULL)   // p.adprox
-	 	 {if(!block_url(addr+0x1000000ULL-8, mem, 0x733A2F2F00000000ULL)) break;}
-	 else if(mem == 0x656E612E6E65742EULL)   // ena.net.
-	 	 {if(!block_url(addr+0x1000000ULL,   mem, 0x0000000000000000ULL)) break;}
-	 else if(mem == 0x702E7374756E2E70ULL)   // p.stun.p
-	 	 {if(!block_url(addr+0x1000000ULL-4, mem, 0x0000000000000000ULL)) break;}
-	 else if(mem == 0x2E7374756E2E706CULL)   // .stun.pl
-	 	 {if(!block_url(addr+0x1000000ULL-4, mem, 0x0000000000000000ULL)) break;}
-	 else if(mem == 0x63726565706F2E77ULL)   // creepo.w
-	 	 {if(!block_url(addr+0x1000000ULL,   mem, 0x0000000000000000ULL)) break;}
+		mem = peek_lv1(addr);
+		if(     mem == 0x733A2F2F6E73782EULL)   // s://nsx.
+			{if(!block_url(addr,   mem, 0x733A2F2F00000000ULL)) break;}
+		else if(mem == 0x733A2F2F6E73782DULL)   // s://nsx-
+			{if(!block_url(addr,   mem, 0x733A2F2F00000000ULL)) break;}
+		else if(mem == 0x3A2F2F786D622D65ULL)   // ://xmb-e
+			{if(!block_url(addr,   mem, 0x3A2F2F0000000000ULL)) break;}
+		else if(mem == 0x2E7073332E757064ULL)   // .ps3.upd
+			{if(!block_url(addr-8, mem, 0x3A2F2F0000000000ULL)) break;}
+		else if(mem == 0x702E616470726F78ULL)   // p.adprox
+			{if(!block_url(addr-8, mem, 0x733A2F2F00000000ULL)) break;}
+		else if(mem == 0x656E612E6E65742EULL)   // ena.net.
+			{if(!block_url(addr,   mem, 0x0000000000000000ULL)) break;}
+		else if(mem == 0x702E7374756E2E70ULL)   // p.stun.p
+			{if(!block_url(addr-4, mem, 0x0000000000000000ULL)) break;}
+		else if(mem == 0x2E7374756E2E706CULL)   // .stun.pl
+			{if(!block_url(addr-4, mem, 0x0000000000000000ULL)) break;}
+		else if(mem == 0x63726565706F2E77ULL)   // creepo.w
+			{if(!block_url(addr,   mem, 0x0000000000000000ULL)) break;}
 	}
 
 	led(YELLOW, OFF);
 
 	led(GREEN, ON);
+
+#ifdef COBRA_ONLY
+	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 }
 
 static void show_idps(char *msg)

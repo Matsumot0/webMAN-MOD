@@ -55,12 +55,19 @@ static void fan_control(u8 set_fanspeed, u8 initial)
 				//backup[2]=peekq(syscall_base + (u64) (138 * 8));
 				//backup[3]=peekq(syscall_base + (u64) (379 * 8));
 
+#ifdef COBRA_ONLY
+				if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+#endif
 				backup[4]=peekq(set_fan_policy_offset);
 				backup[5]=peekq(get_fan_policy_offset);
 				lv2poke32(get_fan_policy_offset, 0x38600001); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 				lv2poke32(set_fan_policy_offset, 0x38600001); // sys 389 set_fan_policy
 
 			    sys_sm_set_fan_policy(0, 2, 0x33);
+
+#ifdef COBRA_ONLY
+				if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 		    }
 		}
 
@@ -102,8 +109,16 @@ static void restore_fan(u8 set_ps2_temp)
 		}
 		else sys_sm_set_fan_policy(0, 1, 0x0); //syscon
 
+#ifdef COBRA_ONLY
+		if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+#endif
+
 		pokeq(set_fan_policy_offset, backup[4]);  // sys 389 set_fan_policy
 		pokeq(get_fan_policy_offset, backup[5]);  // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
+
+#ifdef COBRA_ONLY
+		if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 
 		backup[0]=0;
 	}

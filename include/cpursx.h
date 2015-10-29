@@ -1,5 +1,9 @@
 static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 {
+#ifdef COBRA_ONLY
+	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+#endif
+
 	u32 t1=0, t2=0, t1f=0, t2f=0;
 	get_temperature(0, &t1); // 3E030000 -> 3E.03°C -> 62.(03/256)°C
 	get_temperature(1, &t2);
@@ -143,9 +147,9 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 	{system_call_3(SYS_NET_EURUS_POST_COMMAND, CMD_GET_MAC_ADDRESS, (u64)(u32)mac_address, 0x13);}
 
 #ifdef COBRA_ONLY
-	bool is_mamba; {system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
+	if(!is_mamba && !syscalls_removed) {system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_MAMBA); is_mamba = ((int)p1 ==0x666);}
 
-	uint16_t cobra_version; sys_get_version2(&cobra_version);
+	if(!cobra_version) sys_get_version2(&cobra_version);
 
 	char cobra_ver[8];
 	if((cobra_version & 0x0F) == 0)
@@ -201,4 +205,8 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 	}
 #endif
 	/////////////////////////////
+
+#ifdef COBRA_ONLY
+	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#endif
 }

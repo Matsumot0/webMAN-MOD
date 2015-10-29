@@ -120,7 +120,7 @@ static void launch_disc(char *category, char *seg_name)
 			// use segment for media type
 			if(!strcmp(category, "game") && !strcmp(seg_name, "seg_device"))
 			{
-				if(isDir("/dev_bdvd/PS3_GAME") || FileExists("/dev_bdvd/SYSTEM.CNF")) ; else
+				if(isDir("/dev_bdvd/PS3_GAME") || file_exists("/dev_bdvd/SYSTEM.CNF")) ; else
 				if(isDir("/dev_bdvd/BDMV") )    {sprintf(category, "video"); sprintf(seg_name, "seg_bdmav_device");} else
 				if(isDir("/dev_bdvd/VIDEO_TS")) {sprintf(category, "video"); sprintf(seg_name, "seg_dvdv_device" );} else
 				if(isDir("/dev_bdvd/AVCHD"))    {sprintf(category, "video"); sprintf(seg_name, "seg_avchd_device");} else

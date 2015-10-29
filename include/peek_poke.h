@@ -1,5 +1,5 @@
-#define SC_PEEK_LV2 					(6)
-#define SC_POKE_LV2 					(7)
+//#define SC_PEEK_LV2 					(6)
+//#define SC_POKE_LV2 					(7)
 #define SC_PEEK_LV1 					(8)
 #define SC_POKE_LV1 					(9)
 
@@ -39,8 +39,10 @@ static void poke_lv1( uint64_t addr, uint64_t value)
 {
 	if(!syscalls_removed)
 		{system_call_2(SC_POKE_LV1, addr, value);}
+#ifdef COBRA_ONLY
 	else
 		{system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_LV1_POKE, addr, value);} // use ps3mapi extension to support poke lv1
+#endif
 }
 
 static inline uint64_t peekq(uint64_t addr) //lv2
@@ -53,8 +55,10 @@ static void pokeq( uint64_t addr, uint64_t value) //lv2
 {
 	if(!syscalls_removed)
 		{system_call_2(SC_POKE_LV1, addr + 0x1000000ULL, value);} //old: system_call_2(SC_POKE_LV2, addr, val);
+#ifdef COBRA_ONLY
 	else
 		{system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_LV1_POKE, addr + 0x1000000ULL, value);} // use ps3mapi extension to support poke lv2
+#endif
 }
 
 static uint64_t convertH(char *val)

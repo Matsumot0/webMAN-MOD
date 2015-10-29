@@ -23,7 +23,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 			sprintf(fsize, "<a href=\"%s\">%s</a>", templn, HTML_DIR);
 		else if(flen == 9 && !strcmp(name, "dev_blind"))
 			sprintf(fsize, "<a href=\"%s?0\">%s</a>", templn, HTML_DIR);
-		else if(show_play && (isDir("/dev_bdvd/PS3_GAME") || FileExists("/dev_bdvd/SYSTEM.CNF")))
+		else if(show_play && (isDir("/dev_bdvd/PS3_GAME") || file_exists("/dev_bdvd/SYSTEM.CNF")))
 			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "Play");
 		else if(show_play && isDir("/dev_bdvd/BDMV"))
 			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "BDV");

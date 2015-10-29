@@ -392,7 +392,7 @@ static void handleclient_ftp(u64 conn_s_ftp_p)
 						if(strcasecmp(cmd, "PASTE") == 0)
 						{
 							absPath(param, filename, cwd);
-							if((!copy_in_progress) && (strlen(source) > 0) && (strcmp(source, param) != 0) && FileExists(source))
+							if((!copy_in_progress) && (strlen(source) > 0) && (strcmp(source, param) != 0) && file_exists(source))
 							{
 								copy_in_progress=true; copied_count = 0;
 								ssend(conn_s_ftp, FTP_OK_250);
@@ -593,7 +593,7 @@ pasv_again:
 						{
 							absPath(filename, param, cwd);
 
-							//if(FileExists(filename))
+							//if(file_exists(filename))
 							{
 								int rr=-4;
 
@@ -857,7 +857,7 @@ pasv_again:
 					{
 						absPath(source, param, cwd);
 
-						if(FileExists(source))
+						if(file_exists(source))
 						{
 							ssend(conn_s_ftp, "350 RNFR OK\r\n"); // Requested file action pending further information
 						}
