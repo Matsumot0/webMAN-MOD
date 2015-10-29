@@ -7,6 +7,8 @@
 #define HTML_ONCLICK			"onclick=\"location.href="
 #define HTML_INPUT(n, v, m, s)	"<input name=\"" n "\" type=\"text\" value=\"" v "\" maxlength=\"" m "\" size=\"" s "\">"
 
+#define _BR_					NULL
+
 static char h2a(char hex);
 static void urlenc(char *dst, char *src, u8 rel_mode);
 static void htmlenc(char *dst, char *src, u8 cpy2src);
