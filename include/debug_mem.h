@@ -58,7 +58,7 @@ static void ps3mapi_mem_dump(char *buffer, char *templn, char *param)
 	if(strlen(param+10))
 	{
 		if(strstr(param,"?lv1")        ) {size=16;} else
-		if(strstr(param,"?lv2")        ) {start=0x1000000;} else
+		if(strstr(param,"?lv2")        ) {start=LV2_OFFSET_ON_LV1;} else
 		//if(strstr(param,"?v") /*vsh  */) {start=0x910000;}  else
 		if(strstr(param,"?r") /*rsx  */) {start=0x0000028080000000ULL; size=256;}  else
 		if(strstr(param,"?f") /*full */) {size=256;} else

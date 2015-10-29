@@ -291,6 +291,7 @@ static float c_firmware=0.0f;
 static u8 dex_mode=0;
 
 static u64 SYSCALL_TABLE = 0;
+static u64 LV2_OFFSET_ON_LV1 = 0x8000000ULL;
 
 typedef struct
 {
