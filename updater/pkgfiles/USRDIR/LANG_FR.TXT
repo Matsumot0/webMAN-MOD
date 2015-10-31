@@ -131,7 +131,7 @@ STR_MOVIELOADED	[DVD/BD Vidéo chargé avec succès. Lancer le film depuis l'ic�
 STR_XMLRF		[Liste des jeux rafraîchit (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Clic <a href="/restart.ps3">ici</a> pour redémarrer ton système PLAYSTATION®3 maintenant.]
 
 STR_STORAGE		[Stockage système]
-STR_MEMORY		[Mémoire disponible]
+STR_MEMORY		[Mémoire]
 STR_MBFREE		[Mo de libre]
 STR_KBFREE		[Ko de libre]
 

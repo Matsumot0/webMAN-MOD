@@ -217,9 +217,8 @@
 								/////////////////////////////
 								CellRtcTick pTick; u32 dd, hh, mm, ss; char tmp[200];
 show_popup:
-#ifdef COBRA_ONLY
-								if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+								{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
+
 								cellRtcGetCurrentTick(&pTick);
 								get_temperature(0, &t1);
 								get_temperature(1, &t2);
@@ -312,9 +311,9 @@ show_popup:
 
 									if(dd<100) {char gname[200]; get_game_info(); sprintf(gname, "%s %s\r\n\r\n", _game_TitleID, _game_Title); sprintf((char*) msg, "%sPlay: %id %02d:%02d:%02d\r\n%s", gname, dd, hh, mm, ss, tmp); }
 								}
-#ifdef COBRA_ONLY
-								if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+
+								{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
+
 								show_msg((char*) msg);
 								sys_timer_sleep(2);
 							}

@@ -157,7 +157,7 @@ static char STR_HOME[8] = "Home";
 #define STR_XMLRF		"Game list refreshed (<a href=\"" MY_GAMES_XML "\">mygames.xml</a>).<br>Click <a href=\"/restart.ps3\">here</a> to restart your PLAYSTATION®3 system now."
 
 #define STR_STORAGE		"System storage"
-#define STR_MEMORY		"Memory available"
+#define STR_MEMORY		"Memory"
 #define STR_MBFREE		"MB free"
 #define STR_KBFREE		"KB free"
 

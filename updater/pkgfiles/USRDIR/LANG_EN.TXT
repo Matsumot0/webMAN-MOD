@@ -131,7 +131,7 @@ STR_MOVIELOADED		[Movie loaded successfully. Start the movie from the disc icon<
 STR_XMLRF			[Game list refreshed (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Click <a href="/restart.ps3">here</a> to restart your PLAYSTATION®3 system now.]
                 	
 STR_STORAGE			[System storage]
-STR_MEMORY			[Memory available]
+STR_MEMORY			[Memory]
 STR_MBFREE			[MB free]
 STR_KBFREE			[KB free]
 

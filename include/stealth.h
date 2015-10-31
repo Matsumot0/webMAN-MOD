@@ -2,6 +2,31 @@ u64 blocked_url[64][2]; u8 url_count = 0;
 
 #ifdef REMOVE_SYSCALLS
 
+u64 sc_backup[6];
+
+#ifdef PS3MAPI
+static void restore_cfw_syscalls(void)
+{
+	if(!syscalls_removed) return;
+
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
+
+	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PDISABLE_SYSCALL8, 0); }
+
+	pokeq(SYSCALL_PTR( 6), sc_backup[0]);
+	pokeq(SYSCALL_PTR( 7), sc_backup[1]);
+	pokeq(SYSCALL_PTR(10), sc_backup[2]);
+	pokeq(SYSCALL_PTR(11), sc_backup[3]);
+	pokeq(SYSCALL_PTR(35), sc_backup[4]);
+	pokeq(SYSCALL_PTR( 9), sc_backup[5]);
+
+	ps3mapi_key = 0;
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
+
+    syscalls_removed = false;
+}
+#endif
+
 static void remove_cfw_syscalls(void)
 {
 	detect_firmware();
@@ -9,7 +34,6 @@ static void remove_cfw_syscalls(void)
 	if(!SYSCALL_TABLE) return;
 
 	u64 sc_null = peekq(SYSCALL_TABLE);
-	u64 sc_not_impl_pt = peekq(sc_null);
 
 	get_idps_psid();
 
@@ -35,42 +59,16 @@ static void remove_cfw_syscalls(void)
 	pokeq(SYSCALL_PTR(11), sc_null); // lv1 peek Hermes
 	pokeq(SYSCALL_PTR(35), sc_null); // Remapper PL3
 	pokeq(SYSCALL_PTR(36), sc_null); // Remapper
+	pokeq(SYSCALL_PTR(37), sc_null);
 	pokeq(SYSCALL_PTR(38), sc_null); // new sk1e syscall
-
-	u64 sc6  = peekq(SYSCALL_PTR( 6));
-	u64 sc7  = peekq(SYSCALL_PTR( 7));
-	u64 sc10 = peekq(SYSCALL_PTR(10));
-	u64 sc11 = peekq(SYSCALL_PTR(11));
-	u64 sc35 = peekq(SYSCALL_PTR(35));
-	u64 sc36 = peekq(SYSCALL_PTR(36));
-	u64 sc38 = peekq(SYSCALL_PTR(38));
-
-	if(sc6 !=sc_null) pokeq(sc6,  sc_not_impl_pt);
-	if(sc7 !=sc_null) pokeq(sc7,  sc_not_impl_pt);
-	if(sc10!=sc_null) pokeq(sc10, sc_not_impl_pt);
-	if(sc11!=sc_null) pokeq(sc11, sc_not_impl_pt);
-	if(sc35!=sc_null) pokeq(sc35, sc_not_impl_pt);
-	if(sc36!=sc_null) pokeq(sc36, sc_not_impl_pt);
-	if(sc38!=sc_null) pokeq(sc38, sc_not_impl_pt);
-
 	#ifndef COBRA_ONLY
 	pokeq(SYSCALL_PTR( 8), sc_null); // lv1 peek / cobra syscall
 	#endif
 	pokeq(SYSCALL_PTR( 9), sc_null); // lv1 poke
 
-	#ifndef COBRA_ONLY
-	u64 sc8  = peekq(SYSCALL_PTR( 8));
-	#endif
 	u64 sc9  = peekq(SYSCALL_PTR( 9));
 
-	#ifndef COBRA_ONLY
-	if(sc8 !=sc_null) pokeq(sc8,  sc_not_impl_pt);
-	#endif
-	if(sc9 !=sc_null) pokeq(sc9,  sc_not_impl_pt);
-
-	sc9  = peekq(SYSCALL_PTR( 9));
-
-	bool status = (peekq(0x8000000000003000ULL) == SYSCALLS_UNAVAILABLE || sc9 == sc_null || sc9 == sc_not_impl_pt);
+	bool status = (peekq(0x8000000000003000ULL) == SYSCALLS_UNAVAILABLE || sc9 == sc_null);
 
 	#ifdef COBRA_ONLY
 	if(status && !syscalls_removed)
@@ -115,7 +113,7 @@ static void disable_cfw_syscalls(void)
 		}
 	}
 
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 }
 #endif
 
@@ -133,9 +131,7 @@ static void block_online_servers(void)
 {
 	if(View_Find("game_plugin")) return;
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 	led(YELLOW, BLINK_FAST);
 
@@ -178,9 +174,7 @@ static void block_online_servers(void)
 
 	led(GREEN, ON);
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 }
 
 static void show_idps(char *msg)

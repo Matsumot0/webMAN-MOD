@@ -36,6 +36,7 @@
 #define PS3MAPI_OPCODE_DISABLE_SYSCALL				0x0092
 #define PS3MAPI_OPCODE_PDISABLE_SYSCALL8 			0x0093
 #define PS3MAPI_OPCODE_PCHECK_SYSCALL8 				0x0094
+#define PS3MAPI_OPCODE_RENABLE_SYSCALLS				0x0095
 #define PS3MAPI_OPCODE_REMOVE_HOOK					0x0101
 
 #define PS3MAPI_OPCODE_SUPPORT_SC8_PEEK_POKE		0x1000
@@ -281,13 +282,19 @@ static void ps3mapi_syscall(char *buffer, char *templn, char *param)
 
 	if(strstr(param, "syscall.ps3mapi?"))
 	{
-		if(strstr(param, "sc9=1"))  { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 9);  }
 		if(strstr(param, "sc10=1")) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 10); }
 		if(strstr(param, "sc11=1")) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 11); }
 		if(strstr(param, "sc35=1")) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 35); }
 		if(strstr(param, "sc36=1")) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 36); }
+		if(strstr(param, "sc38=1")) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 38); }
 		if(strstr(param, "sc6=1"))  { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 6);  }
 		if(strstr(param, "sc7=1"))  { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 7);  }
+		if(strstr(param, "sc9=1"))  { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 9);  }
+
+#ifdef REMOVE_SYSCALLS
+		if(strstr(param, "sce=1"))  { restore_cfw_syscalls(); } else
+		if(strstr(param, "scd=1"))  { remove_cfw_syscalls(); }
+#endif
 	}
 
 	if(!is_ps3mapi_home)
@@ -304,41 +311,52 @@ static void ps3mapi_syscall(char *buffer, char *templn, char *param)
 					"<br><tr><td width=\"260\" style=\"text-align:left; float:left;\">");
 	strcat(buffer, templn);
 
-	int ret_val = -1;
+	int ret_val = -1; u8 sc_count = 0;
 
     { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 6); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc6", "1\" disabled=\"disabled", "[6]LV2 Peek", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc6", "1", "[6]LV2 Peek", NULL, false, buffer);}
+	if( ret_val != 0 )  {add_check_box("sc6", "1\" disabled=\"disabled", "[6]LV2 Peek", _BR_, true, buffer); sc_count++;}
+	else {ret_val = -1; add_check_box("sc6", "1", "[6]LV2 Peek", _BR_, false, buffer);}
 
     { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 7); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc7", "1\" disabled=\"disabled", "[7]LV2 Poke", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc7", "1", "[7]LV2 Poke", NULL, false, buffer);}
+	if( ret_val != 0 )  {add_check_box("sc7", "1\" disabled=\"disabled", "[7]LV2 Poke", _BR_, true, buffer); sc_count++;}
+	else {ret_val = -1; add_check_box("sc7", "1", "[7]LV2 Poke", _BR_, false, buffer);}
 
     strcat(buffer, "</td><td  width=\"260\"  valign=\"top\" style=\"text-align:left; float:left;\">");
 
     { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 9); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc9", "1\" disabled=\"disabled", "[9]LV1 Poke", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc9", "1", "[9]LV1 Poke", NULL, false, buffer);}
+	if( ret_val != 0 )  {add_check_box("sc9", "1\" disabled=\"disabled", "[9]LV1 Poke", _BR_, true, buffer); sc_count++;}
+	else {ret_val = -1; add_check_box("sc9", "1", "[9]LV1 Poke", _BR_, false, buffer);}
 
     { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 10); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc10", "1\" disabled=\"disabled", "[10]LV1 Call", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc10", "1", "[10]LV1 Call", NULL, false, buffer);}
+	if( ret_val != 0 )  {add_check_box("sc10", "1\" disabled=\"disabled", "[10]LV1 Call", _BR_, true, buffer);}
+	else {ret_val = -1; add_check_box("sc10", "1", "[10]LV1 Call", _BR_, false, buffer);}
 
     { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 11); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc11", "1\" disabled=\"disabled", "[11]LV1 Peek", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc11", "1", "[11]LV1 Peek", NULL, false, buffer);}
+	if( ret_val != 0 )  {add_check_box("sc11", "1\" disabled=\"disabled", "[11]LV1 Peek", _BR_, true, buffer);}
+	else {ret_val = -1; add_check_box("sc11", "1", "[11]LV1 Peek", _BR_, false, buffer);}
 
     strcat(buffer, "</td><td  width=\"260\"  valign=\"top\" style=\"text-align:left; float:left;\">");
 
     { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 35); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc35", "1\" disabled=\"disabled", "[35]Map Path", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc35", "1", "[35]Map Path", NULL, false, buffer);}
+	if( ret_val != 0 )  add_check_box("sc35", "1\" disabled=\"disabled", "[35]Map Path", _BR_, true, buffer);
+	else {ret_val = -1; add_check_box("sc35", "1", "[35]Map Path", _BR_, false, buffer);}
 
 	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 36); ret_val = (int)p1;}
-	if( ret_val != 0 )  add_check_box("sc36", "1\" disabled=\"disabled", "[36]Map Game", NULL, true, buffer);
-	else {ret_val = -1; add_check_box("sc36", "1", "[36]Map Game", NULL, false, buffer);}
+	if( ret_val != 0 )  add_check_box("sc36", "1\" disabled=\"disabled", "[36]Map Game", _BR_, true, buffer);
+	else {ret_val = -1; add_check_box("sc36", "1", "[36]Map Game", _BR_, false, buffer);}
 
-	sprintf(templn, "</td></tr><tr><td style=\"text-align:right; float:right;\"><br><input type=\"submit\" value=\" %s \"/></td></tr></form></table><br>", "Disable");
+	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_CHECK_SYSCALL, 38); ret_val = (int)p1;}
+	if( ret_val != 0 )  add_check_box("sc38", "1\" disabled=\"disabled", "[38]New sk1e", _BR_, true, buffer);
+	else {ret_val = -1; add_check_box("sc38", "1", "[38]New sk1e", _BR_, false, buffer);}
+
+#ifdef REMOVE_SYSCALLS
+	strcat(buffer, "<br>");
+	if(sc_count) syscalls_removed = true;
+	if(syscalls_removed) add_check_box("sce", "1", "Re-Enable Syscalls", _BR_, false, buffer); else
+						 add_check_box("scd", "1", "Disable Syscalls", _BR_, false, buffer);
+#endif
+
+	sprintf(templn, "</td></tr><tr><td style=\"text-align:right; float:right;\"><br><input type=\"submit\" value=\" %s \"/></td></tr></form></table><br>", syscalls_removed ? "Enable" : "Disable");
 	if(!is_ps3mapi_home) strcat(templn, "<hr color=\"#FF0000\"/>");
 	strcat(buffer, templn);
 }
@@ -367,19 +385,19 @@ static void ps3mapi_syscall8(char *buffer, char *templn, char *param)
 	{ system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PCHECK_SYSCALL8); ret_val = (int)p1;}
 	if(ret_val < 0)
 	{
-		add_radio_button("mode\" disabled=\"disabled", "0", "sc8_0", "Fully enabled", NULL, false, buffer);
-		add_radio_button("mode\" disabled=\"disabled", "1", "sc8_1", "Partially disabled : Keep only COBRA/MAMBA/PS3MAPI features", NULL, false, buffer);
-		add_radio_button("mode\" disabled=\"disabled", "2", "sc8_2", "Partially disabled : Keep only PS3MAPI features", NULL, false, buffer);
-		add_radio_button("mode\" disabled=\"disabled", "3", "sc8_3", "Fake disabled (can be re-enabled)", NULL, false, buffer);
-		add_radio_button("mode\" disabled=\"disabled", "4", "sc8_4", "Fully disabled (cant be re-enabled)", NULL, true, buffer);
+		add_radio_button("mode\" disabled=\"disabled", "0", "sc8_0", "Fully enabled", _BR_, false, buffer);
+		add_radio_button("mode\" disabled=\"disabled", "1", "sc8_1", "Partially disabled : Keep only COBRA/MAMBA/PS3MAPI features", _BR_, false, buffer);
+		add_radio_button("mode\" disabled=\"disabled", "2", "sc8_2", "Partially disabled : Keep only PS3MAPI features", _BR_, false, buffer);
+		add_radio_button("mode\" disabled=\"disabled", "3", "sc8_3", "Fake disabled (can be re-enabled)", _BR_, false, buffer);
+		add_radio_button("mode\" disabled=\"disabled", "4", "sc8_4", "Fully disabled (can't be re-enabled)", _BR_, true, buffer);
 	}
 	else
 	{
-		add_radio_button("mode", "0", "sc8_0", "Fully enabled", NULL, (ret_val == 0), buffer);
-		add_radio_button("mode", "1", "sc8_1", "Partially disabled : Keep only COBRA/MAMBA/PS3MAPI features", NULL, (ret_val == 1), buffer);
-		add_radio_button("mode", "2", "sc8_2", "Partially disabled : Keep only PS3MAPI features", NULL, (ret_val == 2), buffer);
-		add_radio_button("mode", "3", "sc8_3", "Fake disabled (can be re-enabled)", NULL, (ret_val == 3), buffer);
-		add_radio_button("mode", "4", "sc8_4", "Fully disabled (cant be re-enabled)", NULL, false, buffer);
+		add_radio_button("mode", "0", "sc8_0", "Fully enabled", _BR_, (ret_val == 0), buffer);
+		add_radio_button("mode", "1", "sc8_1", "Partially disabled : Keep only COBRA/MAMBA/PS3MAPI features", _BR_, (ret_val == 1), buffer);
+		add_radio_button("mode", "2", "sc8_2", "Partially disabled : Keep only PS3MAPI features", _BR_, (ret_val == 2), buffer);
+		add_radio_button("mode", "3", "sc8_3", "Fake disabled (can be re-enabled)", _BR_, (ret_val == 3), buffer);
+		add_radio_button("mode", "4", "sc8_4", "Fully disabled (can't be re-enabled)", _BR_, false, buffer);
 	}
 	sprintf(templn, "</td></tr><tr><td style=\"text-align:right; float:right;\"><br><input type=\"submit\" value=\" %s \"/></td></tr></form></table><br>", "Set");
 	if(!is_ps3mapi_home) strcat(templn, "<hr color=\"#FF0000\"/>");
@@ -928,7 +946,7 @@ loadgameplug_err_arg:
 
 		char tmp_name[30];
 		char tmp_filename[256];
-		u32 mod_list[64];
+		u32 mod_list[62];
 		memset(mod_list, 0, sizeof(mod_list));
 		{system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_ALL_PROC_MODULE_PID, (u64)pid, (u64)(u32)mod_list);}
 

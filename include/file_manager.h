@@ -39,7 +39,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 		if(strlen(templn)<=11 && strstr(templn, "/dev_"))
 		{
 			uint64_t freeSize, devSize;
-			system_call_3(SC_FS_DISK_FREE, templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
+			system_call_3(SC_FS_DISK_FREE, (uint64_t *)templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
 
 			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'llu %s (%'llu %s)\">%'8llu %s</a>", templn, (unsigned long long)((devSize)>>20), STR_MEGABYTE, devSize, STR_BYTE, (unsigned long long)((freeSize)>>20), STR_MEGABYTE);
 		}

@@ -131,7 +131,7 @@ STR_MOVIELOADED		[Vídeo Carregado com Sucesso. Inicie o Vídeo Pelo Ícone do D
 STR_XMLRF			[Lista de Jogos Atualizada (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>).<br>Clique <a href=/restart.ps3>Aqui</a> Para Reiniciar o Sistema Agora.]
 
 STR_STORAGE			[Espaço Total]
-STR_MEMORY			[Espaço Livre]
+STR_MEMORY			[Memória]
 STR_MBFREE			[Mb Livres]
 STR_KBFREE			[Kb Livres]
 

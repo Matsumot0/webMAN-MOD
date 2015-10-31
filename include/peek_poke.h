@@ -13,8 +13,6 @@ static void poke_lv1( uint64_t addr, uint64_t val);
 
 static void lv2poke32(u64 addr, u32 value);
 
-static uint64_t convertH(char *val);
-
 /*
 static u32 lv2peek32(u64 addr);
 static u32 lv2peek32(u64 addr)
@@ -61,12 +59,12 @@ static void pokeq( uint64_t addr, uint64_t value) //lv2
 #endif
 }
 
+#if defined(PS3MAPI) || defined(DEBUG_MEM)
 static uint64_t convertH(char *val)
 {
 	uint64_t ret=0;
-	uint8_t buff, i, n=0;
 
-	for(i = 0; i < 16+n; i++)
+	for(uint8_t buff, i = 0, n=0; i < 16+n; i++)
 	{
 		if(val[i]==' ') {n++; continue;}
 
@@ -86,6 +84,7 @@ static uint64_t convertH(char *val)
 
 	return ret;
 }
+#endif
 
 #ifdef GET_KLICENSEE
 static char *hex_dump(char *buffer, int offset, int size)

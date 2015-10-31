@@ -9,9 +9,7 @@ static int set_gamedata_status(u8 status, bool do_mount)
 	char msg[100];
 	char gamei_path[MAX_PATH_LEN]; u8 n;
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 #ifndef COBRA_ONLY
 	sprintf(gamei_path, "//dev_hdd0/game");
@@ -63,9 +61,7 @@ static int set_gamedata_status(u8 status, bool do_mount)
 
 	extgd = status;
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 
 	if(do_mount)
     {

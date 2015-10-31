@@ -9,6 +9,24 @@
 
 #define _BR_					NULL
 
+#define HTML_RESPONSE_FMT		"HTTP/1.1 %i OK\r\n" \
+								"X-PS3-Info: [%s]\r\n" \
+								"Content-Type: text/html;charset=UTF-8\r\n" \
+								"Cache-Control: no-cache\r\n" \
+								"Content-Length: %i\r\n\r\n" \
+								"%s%s%s"
+
+#define HTML_HEADER				"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" \
+								"<html xmlns=\"http://www.w3.org/1999/xhtml\">" \
+								"<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">" \
+								"<meta http-equiv=\"Cache-Control\" content=\"no-cache\">" \
+								"<meta name=\"viewport\" content=\"width=device-width,initial-scale=0.6,maximum-scale=1.0\">"  /* size: 369 */
+
+#define HTML_BODY				"<body bgcolor=\"#101010\" text=\"#c0c0c0\">" \
+								"<font face=\"Courier New\">" /* size: 64 */
+
+#define HTML_BODY_END			"</font></body></html>" /* size: 21 */
+
 static char h2a(char hex);
 static void urlenc(char *dst, char *src, u8 rel_mode);
 static void htmlenc(char *dst, char *src, u8 cpy2src);

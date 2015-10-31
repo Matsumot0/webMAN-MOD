@@ -76,6 +76,7 @@ static char search_url[50] = "http://google.com/search?q=";
  #else
     #define EDITION " [nonCobra]"
  #endif
+ #undef PS3MAPI
 #endif
 
 SYS_MODULE_INFO(WWWD, 0, 1, 0);
@@ -98,7 +99,7 @@ SYS_MODULE_STOP(wwwd_stop);
 #define PS2_CLASSIC_ISO_PATH     "/dev_hdd0/game/PS2U10000/USRDIR/ISO.BIN.ENC"
 #define PS2_CLASSIC_ISO_ICON     "/dev_hdd0/game/PS2U10000/ICON0.PNG"
 
-#define WM_VERSION			"1.43.14 MOD"						// webMAN version
+#define WM_VERSION			"1.43.15 MOD"						// webMAN version
 #define MM_ROOT_STD			"/dev_hdd0/game/BLES80608/USRDIR"	// multiMAN root folder
 #define MM_ROOT_SSTL		"/dev_hdd0/game/NPEA00374/USRDIR"	// multiman SingStar® Stealth root folder
 #define MM_ROOT_STL			"/dev_hdd0/tmp/game_repo/main"		// stealthMAN root folder
@@ -110,14 +111,20 @@ SYS_MODULE_STOP(wwwd_stop);
 
 
 ///////////// PS3MAPI BEGIN //////////////
+#ifdef COBRA_ONLY
+ #define SYSCALL8_OPCODE_PS3MAPI					0x7777
 
-#define SYSCALL8_OPCODE_PS3MAPI						0x7777
+ #define PS3MAPI_OPCODE_SET_ACCESS_KEY				0x2000
+ #define PS3MAPI_OPCODE_REQUEST_ACCESS				0x2001
 
-#define PS3MAPI_OPCODE_SET_ACCESS_KEY				0x2000
-#define PS3MAPI_OPCODE_REQUEST_ACCESS				0x2001
+ static uint64_t ps3mapi_key = 0;
 
-static uint64_t ps3mapi_key = 0;
-
+ #define PS3MAPI_ENABLE_ACCESS_SYSCALL8		if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+ #define PS3MAPI_DISABLE_ACCESS_SYSCALL8	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+#else
+ #define PS3MAPI_ENABLE_ACCESS_SYSCALL8
+ #define PS3MAPI_DISABLE_ACCESS_SYSCALL8
+#endif
 ///////////// PS3MAPI END //////////////
 
 #ifdef WM_REQUEST
@@ -291,7 +298,7 @@ static float c_firmware=0.0f;
 static u8 dex_mode=0;
 
 static u64 SYSCALL_TABLE = 0;
-static u64 LV2_OFFSET_ON_LV1 = 0x8000000ULL;
+static u64 LV2_OFFSET_ON_LV1; // value is set on detect_firmware() -> 0x1000000 on 4.46, 0x8000000 on 4.76
 
 typedef struct
 {
@@ -380,7 +387,6 @@ typedef struct
 static CellRtcTick rTick, gTick;
 
 static void enable_fan_control(u8 enable, char *msg);
-static int set_gamedata_status(u8 status, bool do_mount);
 static void set_buffer_sizes(int footprint);
 static void waitfor(char *path, uint8_t timeout);
 static void show_msg(char* msg);
@@ -473,6 +479,13 @@ static void unload_prx_module(void);
 
 static void detect_firmware(void);
 
+#ifdef REMOVE_SYSCALLS
+static void remove_cfw_syscalls(void);
+#ifdef PS3MAPI
+static void restore_cfw_syscalls(void);
+#endif
+#endif
+
 static void handleclient(u64 conn_s_p);
 
 static void do_umount(bool clean);
@@ -545,32 +558,21 @@ static inline sys_prx_id_t prx_get_module_id_by_address(void *addr)
 
 static void http_response(int conn_s, char *header, char *param, int code, char *msg)
 {
-	char text[MAX_LINE_LEN]; if(msg[0]=='/') sprintf(text, "%s : OK", msg+1); else sprintf(text, "%s", msg);
+	char templn[MAX_LINE_LEN]; if(msg[0]=='/') {sprintf(templn, "%s : OK", msg+1); show_msg(templn);} else sprintf(templn, "%s", msg);
 
-	sprintf(header, "HTTP/1.1 %i OK\r\n"
-					"X-PS3-Info: [%s]\r\n"
-					"Content-Type: text/html;charset=UTF-8\r\n"
-					"Cache-Control: no-cache\r\n"
-					"Content-Length: %i\r\n\r\n"
-					"<body bgcolor=\"#101010\" text=\"#c0c0c0\">"
-					"<font face=\"Courier New\">"
-					"webMAN MOD " WM_VERSION "<hr><h2>%s</h2>"
-					"</font></body>",
-					 code, param, 113+strlen(text), text);
+	sprintf(header, HTML_RESPONSE_FMT,
+					code, param, 182+strlen(templn), HTML_BODY, "webMAN MOD " WM_VERSION "<hr><h2>", templn);
+
+	sprintf(templn, "<hr>" HTML_BUTTON_FMT "%s",
+					HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/", HTML_BODY_END); strcat(header, templn);
 
 	ssend(conn_s, header);
 	sclose(&conn_s);
-
-	if(msg[0]=='/') {show_msg((char*)text); sys_timer_sleep(1); }
 }
 
 static void prepare_html(char *buffer, char *templn, char *param, u8 is_ps3_http, u8 is_cpursx, bool mount_ps3)
 {
-	strcpy(buffer,  "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
-					"<html xmlns=\"http://www.w3.org/1999/xhtml\">"
-					"<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">"
-					"<meta http-equiv=\"Cache-Control\" content=\"no-cache\">"
-					"<meta name=\"viewport\" content=\"width=device-width,initial-scale=0.6,maximum-scale=1.0\">");
+	strcpy(buffer, HTML_HEADER);
 
 	if(is_cpursx) strcat(buffer, "<meta http-equiv=\"refresh\" content=\"6;URL=/cpursx.ps3\">");
 	if(mount_ps3) {	strcat(buffer, "<body bgcolor=\"#101010\">"); return;}
@@ -909,7 +911,7 @@ again3:
 					char *pos, col[16] = {NULL}, seg[80] = {NULL};
 					pos=strstr(param, "col="); if(pos) get_value(col, pos + 4, 16); // game / video / friend / psn / network / music / photo / tv
 					pos=strstr(param, "seg="); if(pos) get_value(seg, pos + 4, 80);
-					launch_disc(col, seg); sprintf(param+10, HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
+					launch_disc(col, seg);
 				}
 
 				http_response(conn_s, header, param, 200, (param+9+is_combo));
@@ -918,6 +920,28 @@ again3:
 				return;
 			}
 #endif //  #ifdef VIRTUAL_PAD
+
+			if(strstr(param, "/cpursx_ps3"))
+			{
+				u32 t1=0, t2=0;
+				get_temperature(0, &t1); // 3E030000 -> 3E.03°C -> 62.(03/256)°C
+				get_temperature(1, &t2);
+				t1=t1>>24;
+				t2=t2>>24;
+				sprintf(param,  "<meta http-equiv=\"refresh\" content=\"15;URL=%s\">"
+								"%s"
+								"<a href=\"/cpursx.ps3\" target=\"_parent\" style=\"text-decoration:none;\"><font color=\"#fff\">CPU: %i°C | RSX: %i°C</a>",
+								"/cpursx_ps3", HTML_BODY, t1, t2);
+
+				sprintf(header, HTML_RESPONSE_FMT,
+								200, "/cpursx_ps3", 390 + strlen(param), HTML_HEADER, param, HTML_BODY_END);
+
+				ssend(conn_s, header);
+				sclose(&conn_s);
+
+				loading_html--;
+				sys_ppu_thread_exit(0);
+			}
 
 #ifdef PS3_BROWSER
 			if(strstr(param, "/browser.ps3"))
@@ -1029,10 +1053,9 @@ again3:
 
 						show_msg((char*)param+13);
 					}
- 					sprintf(header, "%s<hr>" HTML_BUTTON_FMT, param+13, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
 				}
 				else
- 					sprintf(param+13, "ERROR: Not in XMB!<hr>" HTML_BUTTON_FMT, HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/");
+ 					sprintf(param+13, "ERROR: Not in XMB!");
 
 				http_response(conn_s, header, param, 200, param+13);
 				loading_html--;
@@ -1041,7 +1064,7 @@ again3:
 			}
 #endif // #ifdef PS3_BROWSER
 
-#if defined(FIX_GAME)  || defined(COPY_PS3)
+#if defined(FIX_GAME) || defined(COPY_PS3)
 			if(strstr(param, ".ps3$abort"))
 			{
 				if(copy_in_progress) {copy_aborted=true; show_msg((char*)STR_CPYABORT);}   // /copy.ps3$abort
@@ -1064,7 +1087,6 @@ again3:
 				}
 
 				u8 klic_polling_status = klic_polling;
-				char buffer[0x300], kl[0x120], prev[0x300];
 
 				if(strstr(param, "auto")) klic_polling = 2; else
 				if(strstr(param, "off"))  klic_polling = 0; else
@@ -1077,6 +1099,8 @@ again3:
 					// wait until game start
 					while((klic_polling == 2) && View_Find("game_plugin") == 0) {sys_timer_usleep(500000);}
 				}
+
+				char kl[0x120], prev[0x200], buffer[0x200];
 
 				if(View_Find("game_plugin"))
 				{
@@ -1095,10 +1119,9 @@ again3:
 
 				sprintf(prev, "%s", ((klic_polling_status) ? (klic_polling ? "Auto-Log: Running" : "Auto-Log: Stopped") : ((klic_polling == 1)? "Added to Log" : (klic_polling == 2)? "Auto-Log: Started" : "Enable Auto-Log")));
 
-				sprintf(kl, "<a href=\"/%s\"><font color=#ccc>%s</font></a><hr>" HTML_BUTTON_FMT,
+				sprintf(kl, "<a href=\"/%s\"><font color=#ccc>%s</font></a>",
 							(klic_polling_status>0 && klic_polling>0) ? "klic.ps3?off" :
-							((klic_polling_status | klic_polling) == 0) ? "klic.ps3?auto" : "dev_hdd0/klic.log", prev,
-							HTML_BUTTON, " &#9664;  ", HTML_ONCLICK, "/cpursx.ps3"); strcat(buffer, kl);
+							((klic_polling_status | klic_polling) == 0) ? "klic.ps3?auto" : "dev_hdd0/klic.log", prev); strcat(buffer, kl);
 
 				is_binary=0;
 				http_response(conn_s, header, param, 200, buffer);
@@ -1514,19 +1537,15 @@ html_response:
 				}
 				else if(!mount_ps3)
 				{
-					u32 t1=0, t2=0;
-					get_temperature(0, &t1); // 3E030000 -> 3E.03°C -> 62.(03/256)°C
-					get_temperature(1, &t2);
-					t1=t1>>24;
-					t2=t2>>24;
-
-					sprintf(templn, " [<a href=\"/cpursx.ps3\">CPU: %i°C | RSX: %i°C</a>]<hr>"
+					sprintf(templn, " [<a href=\"/cpursx.ps3\"><iframe src=\"%s\" style=\"border:0;overflow:hidden;\" width=\"225\" height=\"22\" frameborder=\"0\" scrolling=\"no\"></iframe></a>]<hr>"
 									"<div id=\"rxml\" class=\"dlg\"><H1>%s XML ...</H1></div>"
 									"<div id=\"rhtm\" class=\"dlg\"><H1>%s HTML ...</H1></div>"
 #ifdef COPY_PS3
 									"<div id=\"rcpy\" class=\"dlg\"><H1><a href=\"/copy.ps3$abort\">&#9746;</a> %s ...</H1></div>"
+									"<form action=\"\">", "/cpursx_ps3", STR_REFRESH, STR_REFRESH, STR_COPYING); strcat(buffer, templn);
+#else
+									"<form action=\"\">", "/cpursx_ps3", STR_REFRESH, STR_REFRESH); strcat(buffer, templn);
 #endif
-									"<form action=\"\">", t1, t2, STR_REFRESH, STR_REFRESH, STR_COPYING); strcat(buffer, templn);
 
 					if((webman_config->homeb) && (strlen(webman_config->home_url)>0))
 					{sprintf(templn, HTML_BUTTON_FMT, HTML_BUTTON, STR_HOME, HTML_ONCLICK, webman_config->home_url); strcat(buffer, templn);}
@@ -1616,9 +1635,8 @@ html_response:
 				}
 				else
 				{
-#ifdef COBRA_ONLY
-					if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+					{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
+
 					is_busy=true;
 
 					if(strstr(param, "refresh.ps3") && init_running==0)
@@ -1680,7 +1698,7 @@ html_response:
 						else
 							sprintf(param, "unload slot: %i", slot);
 
-						strcat(buffer, param); strcat(buffer, "</font></body></html>");
+						strcat(buffer, param); strcat(buffer, HTML_BODY_END);
 
 						if(slot < 7)
 						{
@@ -1913,9 +1931,8 @@ bgm_status:
 
 						if(game_listing(buffer, templn, param, conn_s, tempstr, mobile_mode) == false)
 						{
-#ifdef COBRA_ONLY
-							if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+							{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
+
 							is_busy=false;
 							if(sysmem) sys_memory_free(sysmem);
 							loading_html--;
@@ -1923,9 +1940,9 @@ bgm_status:
 							break;
                         }
 					}
-#ifdef COBRA_ONLY
-					if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+
+					{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
+
 					is_busy=false;
 				}
 
@@ -1935,7 +1952,7 @@ send_response:
 				if(mount_ps3)
 					strcat(buffer, "<script type=\"text/javascript\">window.close(this);</script>"); //auto-close
 				else
-					strcat(buffer, "</font></body></html>"); //end-html
+					strcat(buffer, HTML_BODY_END); //end-html
 
 				sprintf(templn, "Content-Length: %llu\r\n\r\n", (unsigned long long)strlen(buffer)); strcat(header, templn);
 				ssend(conn_s, header);
@@ -1989,6 +2006,15 @@ static void wwwd_thread(uint64_t arg)
 	cobra_mode=1;
 #else
 	cobra_mode=0;
+#endif
+
+#ifdef REMOVE_SYSCALLS
+	sc_backup[0] = peekq(SYSCALL_PTR( 6));
+	sc_backup[1] = peekq(SYSCALL_PTR( 7));
+	sc_backup[2] = peekq(SYSCALL_PTR(10));
+	sc_backup[3] = peekq(SYSCALL_PTR(11));
+	sc_backup[4] = peekq(SYSCALL_PTR(35));
+	sc_backup[5] = peekq(SYSCALL_PTR( 9));
 #endif
 
 	View_Find = (void*)((int)getNIDfunc("paf", 0xF21655F3, 0));

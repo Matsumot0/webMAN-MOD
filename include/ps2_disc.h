@@ -19,11 +19,11 @@ static bool mount_ps2disc(char *path)
 	if(!isDir(path)) return false;
 
  #ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 	sys_map_path((char*)"/dev_ps2disc", path);
 
-	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
  #else
 
 	max_mapped=0;

@@ -649,7 +649,7 @@ static void do_umount(bool clean)
 #ifdef COBRA_ONLY
 	//if(cobra_mode)
 	{
-		if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+		{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 		do_umount_iso();
  #ifdef PS2_DISC
@@ -682,7 +682,7 @@ static void do_umount(bool clean)
 		while(rawseciso_loaded) {sys_timer_usleep(100000);}
  #endif
 
-		if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+		{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 	}
 #else
 	{
@@ -750,15 +750,19 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 	if(is_mounting) return false;
 
 	// show message if syscalls are fully disabled
+#ifdef COBRA_ONLY
 	if(syscalls_removed || peekq(0x8000000000003000ULL) == SYSCALLS_UNAVAILABLE)
 	{
-		{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
+		syscalls_removed = true;
+		{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
-		int ret_val = -1; syscalls_removed = true;
-		{ system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PCHECK_SYSCALL8); ret_val = (int)p1;}
-		if(ret_val < 0) { show_msg(STR_CFWSYSALRD); { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); } return false; }
+		int ret_val = -1; { system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PCHECK_SYSCALL8); ret_val = (int)p1;}
+		if(ret_val < 0) { show_msg((char*)STR_CFWSYSALRD); { PS3MAPI_DISABLE_ACCESS_SYSCALL8 } return false; }
 		if(ret_val > 1) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PDISABLE_SYSCALL8, 1); }
 	}
+#else
+	if(syscalls_removed || peekq(0x8000000000003000ULL) == SYSCALLS_UNAVAILABLE) { show_msg(STR_CFWSYSALRD); return false; }
+#endif
 
 	bool ret=true;
 
@@ -1872,7 +1876,7 @@ static bool mount_with_mm(const char *_path0, u8 do_eject)
 					}
 
 					is_mounting=false;
-					if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+					{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 					return result;
 				}
 				else if(strstr(_path, "/BDISO"))
@@ -2425,11 +2429,14 @@ exit_mount:
 
 		sys_map_path((char*)"/dev_bdvd/PS3_UPDATE", (char*)"/dev_bdvd"); //redirect firmware update to root of bdvd
 
-		if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
+		is_mounting=false;
+
+		{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 	}
+#else
+	is_mounting=false;
 #endif
 
-	is_mounting=false;
 	max_mapped=0;
     return ret;
 }

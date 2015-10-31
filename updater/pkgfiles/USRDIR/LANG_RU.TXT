@@ -131,7 +131,7 @@ STR_MOVIELOADED		[Фильм успешно загружен<hr/>Использ�
 STR_XMLRF			[Список игр обновлён (<a href=/dev_hdd0/xmlhost/game_plugin/mygames.xml>mygames.xml</a>)<hr/>Нажмите <a href=/restart.ps3>здесь</a> для перезагрузки PS3]
 
 STR_STORAGE			[Хранилище системы]
-STR_MEMORY			[Объём доступной памяти]
+STR_MEMORY			[памяти]
 STR_MBFREE			[Mb свободно]
 STR_KBFREE			[Kb свободно]
 

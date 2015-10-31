@@ -16,9 +16,7 @@ static void peek_chunk(uint64_t start, uint64_t size, uint8_t* buf) // read from
 
 static void dump_mem(char *file, uint64_t start, uint32_t size_mb)
 {
-#ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 	int fp;
 	uint64_t sw;
@@ -45,9 +43,7 @@ static void dump_mem(char *file, uint64_t start, uint32_t size_mb)
 		{ BEEP2 }
 	}
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 }
 
 static void ps3mapi_mem_dump(char *buffer, char *templn, char *param)
@@ -108,6 +104,7 @@ static void ps3mapi_find_peek_poke(char *buffer, char *templn, char *param)
 
 	lv1=strstr(param,".lv1?")?1:0;
 	upper_memory=(lv1?LV1_UPPER_MEMORY:LV2_UPPER_MEMORY)-8;
+	if(lv1) { system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_DISABLE_COBRA); }
 
 	if(v!=NULL && strstr(param, "find.lv") && (address<upper_memory))
 	{
@@ -184,6 +181,8 @@ static void ps3mapi_find_peek_poke(char *buffer, char *templn, char *param)
 	address&=0xFFFFFFFFFFFFFFF0ULL;
 	addr=address;
 
+	if(lv1) { system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_DISABLE_COBRA); }
+
 	for(u16 i=0; i<0x200; i++)
 	{
 		if(!p)
@@ -223,10 +222,19 @@ static void ps3mapi_find_peek_poke(char *buffer, char *templn, char *param)
 
 		p++; if(p>=0x10) p=0;
 	}
+
+	if(lv1) { system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_ENABLE_COBRA); }
+
 	strcat(buffer, "<hr>Dump: [<a href=\"/dump.ps3?mem\">Full Memory</a>] [<a href=\"/dump.ps3?lv1\">LV1</a>] [<a href=\"/dump.ps3?lv2\">LV2</a>]");
 	sprintf(templn, " [<a href=\"/dump.ps3?%llx\">Dump 0x%llx</a>]", address, address); strcat(buffer, templn);
-	sprintf(templn, " <a href=\"/peek.lv%i?%llx\">&lt;&lt;</a> <a href=\"/peek.lv%i?%llx\">&lt;Back</a>", lv1?1:2, ((int)(address-0x1000)>=0)?(address-0x1000):0, lv1?1:2, ((int)(address-0x200)>=0)?(address-0x200):0); strcat(buffer, templn);
-	sprintf(templn, " <a href=\"/peek.lv%i?%llx\">Next&gt;</a> <a href=\"/peek.lv%i?%llx\">&gt;&gt;</a></pre>", lv1?1:2, ((int)(address+0x400)<(int)upper_memory)?(address+0x200):(upper_memory-0x200), lv1?1:2, ((int)(lv1+0x1200)<(int)upper_memory)?(address+0x1000):(upper_memory-0x200)); strcat(buffer, templn);
+	sprintf(templn, " <a id=\"back\" href=\"/peek.lv%i?%llx\">&lt;&lt;</a> <a href=\"/peek.lv%i?%llx\">&lt;Back</a>", lv1?1:2, ((int)(address-0x1000)>=0)?(address-0x1000):0, lv1?1:2, ((int)(address-0x200)>=0)?(address-0x200):0); strcat(buffer, templn);
+	sprintf(templn, " <a id=\"next\" href=\"/peek.lv%i?%llx\">Next&gt;</a> <a href=\"/peek.lv%i?%llx\">&gt;&gt;</a></pre>", lv1?1:2, ((int)(address+0x400)<(int)upper_memory)?(address+0x200):(upper_memory-0x200), lv1?1:2, ((int)(lv1+0x1200)<(int)upper_memory)?(address+0x1000):(upper_memory-0x200)); strcat(buffer, templn);
+
+	strcat(buffer,  "<script>"
+					"document.addEventListener(\"keydown\", keyDownEvent, false);"
+					"function keyDownEvent(e)"
+					"{e=e||window.event;var keyCode=e.keyCode;if(keyCode==37){self.location=back.href;}if(keyCode==39){self.location=next.href;}}"
+					"</script>");
 }
 
 #endif

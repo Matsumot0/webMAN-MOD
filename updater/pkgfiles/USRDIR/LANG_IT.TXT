@@ -131,7 +131,7 @@ STR_MOVIELOADED	[Film caricato correttamente. Avviare dall'icona del disco<br>ne
 STR_XMLRF		[Lista contenuti aggiornata (<a href="/dev_hdd0/xmlhost/game_plugin/mygames.xml">mygames.xml</a>).<br>Clicca <a href="/restart.ps3">qui</a> per riavviare il sistema PLAYSTATION®3 ora.]
 
 STR_STORAGE		[Disco di sistema]
-STR_MEMORY		[Memoria disponibile]
+STR_MEMORY		[Memoria]
 STR_MBFREE		[MB liberi]
 STR_KBFREE		[KB liberi]
 

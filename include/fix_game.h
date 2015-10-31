@@ -110,6 +110,7 @@ static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 show_warning)
 	return ret;
 }
 
+#if defined(FIX_GAME) || !defined(COBRA_ONLY)
 static void getTitleID(char *filename, char *titleID, u8 show_warning)
 {
 	memset(titleID, 0, 10); int fs;
@@ -127,6 +128,7 @@ static void getTitleID(char *filename, char *titleID, u8 show_warning)
 		fix_param_sfo(mem, titleID, show_warning);
 	}
 }
+#endif
 
 #ifdef FIX_GAME
 static bool fix_ps3_extra(unsigned char *mem)

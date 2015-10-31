@@ -11,9 +11,7 @@ uint64_t PSID[2] = {0, 0};
 static void get_idps_psid(void);
 static void get_idps_psid(void)
 {
-#ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 	if(c_firmware<=4.53f)
 	{
@@ -30,18 +28,14 @@ static void get_idps_psid(void)
 			PSID[1] = peekq(psid_offset +8);
 	}
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 }
 
 #ifdef SPOOF_CONSOLEID
 static void spoof_idps_psid(void);
 static void spoof_idps_psid(void)
 {
-#ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 	if(webman_config->spsid)
 	{

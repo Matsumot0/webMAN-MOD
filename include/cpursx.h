@@ -1,8 +1,6 @@
 static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 {
-#ifdef COBRA_ONLY
-	if(syscalls_removed) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_REQUEST_ACCESS, ps3mapi_key); }
-#endif
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
 	u32 t1=0, t2=0, t1f=0, t2f=0;
 	get_temperature(0, &t1); // 3E030000 -> 3E.03°C -> 62.(03/256)°C
@@ -206,7 +204,7 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 #endif
 	/////////////////////////////
 
-#ifdef COBRA_ONLY
-	if(syscalls_removed && !is_mounting) { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_ACCESS_KEY, ps3mapi_key); }
-#endif
+	strcat(buffer, "<hr>webMAN - Simple Web Server" EDITION "<br>");
+
+	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 }
