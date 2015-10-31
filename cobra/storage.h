@@ -75,7 +75,6 @@ typedef struct
 
 int sys_storage_get_device_info(uint64_t device_id, sys_device_info_t *device_info);
 
-
 static int sys_storage_open(uint64_t device_id, uint64_t unk, sys_device_handle_t *device_handle, uint64_t unk2)
 {
 	system_call_4(SYS_STORAGE_OPEN, device_id, unk, (uint64_t)(uint32_t)device_handle, unk2);
