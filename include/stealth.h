@@ -83,10 +83,11 @@ static void remove_cfw_syscalls(void)
 
 static void disable_cfw_syscalls(void)
 {
+	/*
 #ifdef COBRA_ONLY
 	get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload vsh menu
 #endif
-
+*/
 	if(syscalls_removed)
 	{
 		{ BEEP2 }
