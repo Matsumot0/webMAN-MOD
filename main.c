@@ -853,7 +853,7 @@ again3:
 
 		if(((header[0]=='G') || recv(conn_s, header, HTML_RECV_SIZE, 0) > 0) && header[0]=='G' && header[4]=='/') // serve only GET /xxx requests
 		{
-			if(strstr(header, "Mozilla/5.0 (PLAYSTATION 3;")) is_ps3_http=1; else
+			if(strstr(header, "x-ps3-browser")) is_ps3_http=1; else
 			if(strstr(header, "Gecko/36")) is_ps3_http=2; else is_ps3_http=0;
 
 			header[strcspn(header, "\n")] = '\0';
@@ -1537,15 +1537,29 @@ html_response:
 				}
 				else if(!mount_ps3)
 				{
-					sprintf(templn, " [<a href=\"/cpursx.ps3\"><iframe src=\"%s\" style=\"border:0;overflow:hidden;\" width=\"225\" height=\"22\" frameborder=\"0\" scrolling=\"no\"></iframe></a>]<hr>"
-									"<div id=\"rxml\" class=\"dlg\"><H1>%s XML ...</H1></div>"
-									"<div id=\"rhtm\" class=\"dlg\"><H1>%s HTML ...</H1></div>"
+					{
+						char cpursx[24]; memset(cpursx, 0, 24);
+
+						if(is_ps3_http)
+						{
+							u32 t1=0, t2=0;
+							get_temperature(0, &t1); // 3E030000 -> 3E.03°C -> 62.(03/256)°C
+							get_temperature(1, &t2);
+							t1=t1>>24;
+							t2=t2>>24;
+							sprintf(cpursx, "CPU: %i°C | RSX: %i°C", t1, t2);
+						}
+
+						sprintf(templn, " [<a href=\"/cpursx.ps3\" style=\"text-decoration:none;\">%s</a>]<hr>"
+										"<div id=\"rxml\" class=\"dlg\"><H1>%s XML ...</H1></div>"
+										"<div id=\"rhtm\" class=\"dlg\"><H1>%s HTML ...</H1></div>"
 #ifdef COPY_PS3
-									"<div id=\"rcpy\" class=\"dlg\"><H1><a href=\"/copy.ps3$abort\">&#9746;</a> %s ...</H1></div>"
-									"<form action=\"\">", "/cpursx_ps3", STR_REFRESH, STR_REFRESH, STR_COPYING); strcat(buffer, templn);
+										"<div id=\"rcpy\" class=\"dlg\"><H1><a href=\"/copy.ps3$abort\">&#9746;</a> %s ...</H1></div>"
+										"<form action=\"\">", is_ps3_http ? cpursx : "<iframe src=\"/cpursx_ps3\" style=\"border:0;overflow:hidden;\" width=\"230\" height=\"22\" frameborder=\"0\" scrolling=\"no\"></iframe>", STR_REFRESH, STR_REFRESH, STR_COPYING); strcat(buffer, templn);
 #else
-									"<form action=\"\">", "/cpursx_ps3", STR_REFRESH, STR_REFRESH); strcat(buffer, templn);
+										"<form action=\"\">", is_ps3_http ? cpursx : "<iframe src=\"/cpursx_ps3\" style=\"border:0;overflow:hidden;\" width=\"230\" height=\"22\" frameborder=\"0\" scrolling=\"no\"></iframe>", STR_REFRESH, STR_REFRESH); strcat(buffer, templn);
 #endif
+					}
 
 					if((webman_config->homeb) && (strlen(webman_config->home_url)>0))
 					{sprintf(templn, HTML_BUTTON_FMT, HTML_BUTTON, STR_HOME, HTML_ONCLICK, webman_config->home_url); strcat(buffer, templn);}

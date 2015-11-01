@@ -575,7 +575,7 @@
 				<Pair key="title"><String>Выгрузить игру</String></Pair>
 				<Pair key="info"><String>Текущая смонтированная игра будет выгружена [Select+O]</String></Pair>
 				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
-				<Pair key="module_action"><String>http://localhost/mount.ps3/unmount</String></Pair>
+				<Pair key="module_action"><String>http://localhost/mount_ps3/unmount</String></Pair>
 			</Table>
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_unmount" attr="webman_unmount"/></Items>

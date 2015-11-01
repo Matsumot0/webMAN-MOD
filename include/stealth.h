@@ -83,11 +83,6 @@ static void remove_cfw_syscalls(void)
 
 static void disable_cfw_syscalls(void)
 {
-	/*
-#ifdef COBRA_ONLY
-	get_vsh_plugin_slot_by_name((char *)"VSH_MENU", true); // unload vsh menu
-#endif
-*/
 	if(syscalls_removed)
 	{
 		{ BEEP2 }
@@ -138,6 +133,8 @@ static void block_online_servers(void)
 
 	u64 mem=0; url_count = 0;
 
+	// LV1
+
 	for(u64 addr=0x860000; addr<0xFFFFF8ULL; addr+=4)//16MB
 	{
 		mem = peek_lv1(addr);
@@ -148,7 +145,12 @@ static void block_online_servers(void)
 		else if(mem == 0x656E612E6E65742EULL)  // ena.net.
 			{if(!block_url(addr, mem,   0x0000000000000000ULL)) break;}
 	}
-	for(u64 addr = 0x1300000ULL; addr < 0x17FFFF8ULL; addr+=4)//8MB
+
+	// LV2
+
+	u64 start_addr = 0x300000ULL + LV2_OFFSET_ON_LV1, stop_addr = 0x7FFFF8ULL + LV2_OFFSET_ON_LV1;
+
+	for(u64 addr = start_addr; addr < stop_addr; addr+=4)//8MB
 	{
 		mem = peek_lv1(addr);
 		if(     mem == 0x733A2F2F6E73782EULL)   // s://nsx.
