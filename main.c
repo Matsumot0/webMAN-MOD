@@ -1217,10 +1217,11 @@ again3:
 			else
 			if(strstr(param, "/cpy.ps3") || strstr(param, "/cut.ps3"))
 			{
+				cp_mode = strstr(param, "/cut.ps3") ? 2 : 1;
 				sprintf(cp_path, "%s", param + 8);
 				sprintf(param, "%s", cp_path);
 				char *p = strrchr(param, '/'); p[0]=0;
-				is_binary=2; small_alloc = false; cp_mode = strstr(param, "/cpy.ps3") ? 1 : 2;
+				is_binary=2; small_alloc = false;
 				if(file_exists(cp_path)==false) cp_mode = 0;
 				goto html_response;
 			}

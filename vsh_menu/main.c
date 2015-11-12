@@ -148,7 +148,6 @@ struct platform_info {
 	uint32_t firmware_version;
 } info;
 
-
 static uint8_t vsh_menu_config[sizeof(vsh_menu_Cfg)];
 static vsh_menu_Cfg *config = (vsh_menu_Cfg*) vsh_menu_config;
 
@@ -156,6 +155,7 @@ static vsh_menu_Cfg *config = (vsh_menu_Cfg*) vsh_menu_config;
 static sys_ppu_thread_t vsh_menu_tid = -1;
 static int32_t running = 1;
 static uint8_t menu_running = 0;    // vsh menu off(0) or on(1)
+static uint8_t clipboard_mode = 0;
 
 int32_t vsh_menu_start(uint64_t arg);
 int32_t vsh_menu_stop(void);
@@ -175,6 +175,8 @@ static uint8_t wm_unload = 0;
 
 #define MAX_PATH_LEN 128
 #define MAX_ITEMS    256
+
+#define REFRESH_DIR  0
 
 static char curdir[MAX_PATH_LEN] = "/";
 static char items[MAX_ITEMS][MAX_PATH_LEN];
@@ -565,7 +567,7 @@ static void start_VSH_Menu(void)
   int32_t ret, mem_size;
 
   // create VSH Menu heap memory from memory container 1("app")
-  mem_size = ((((CANVAS_W * CANVAS_H * 4) * 2) + (FONT_CACHE_MAX * 32 * 32)) + MB(4)) / MB(1);
+  mem_size = (((CANVAS_W * CANVAS_H * 4 * 2) + (FONT_CACHE_MAX * 32 * 32)) + (320 * 176 * 4) + MB(3)) / MB(1);
   ret = create_heap(mem_size);  // 5 MB
 
   if(ret) return;
@@ -589,6 +591,9 @@ static void start_VSH_Menu(void)
 
   // set menu_running on
   menu_running = 1;
+
+  // reset clipboard mode
+  clipboard_mode = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1070,13 +1075,12 @@ static void draw_frame(void)
   // draw logo from png
   draw_png(0, 648, 336, 576, 400, 64, 64);
 
-
-  if(has_icon0 && (view == FILE_MANAGER))
-     draw_png(1, 18, 208, 0, 0, 320, 176);
+  if(has_icon0 && (view == FILE_MANAGER && clipboard_mode == 0))
+     draw_png(1, 18, 208, 0, 0, ctx.png[1].w, ctx.png[1].h);
 
   // print headline string, center(x = -1)
   set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, ((view == REBUG_MENU) ? "VSH Menu for Rebug" : (view == FILE_MANAGER) ? curdir + curdir_offset : (view == PLUGINS_MANAGER) ? "Plugins Manager" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.03");
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.04");
 
 
   set_font(20.f, 20.f, 1.f, 1);
@@ -1127,13 +1131,15 @@ static void draw_frame(void)
 
   if(view == FILE_MANAGER)
      {draw_png(0, 522, 230, 320, 400, 32, 32); print_text(560, 234, items_isdir[cur_item] ? ": Mount" : ": Copy");}  // draw start button
+  else if(view == PLUGINS_MANAGER)
+     {draw_png(0, 522, 230, 320, 400, 32, 32); print_text(560, 234, ": Save");}                                      // draw start button
   else
      {draw_png(0, 522, 230, 128 + (((view == MAIN_MENU && (line<3||line==6||line==10)) || (view == REBUG_MENU && line==7)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");}  // draw up-down button
 
   draw_png(0, 522, 262, 0, 400, 32, 32);
   if(view == FILE_MANAGER)
   {
-      if(strcasestr(items[cur_item], ".png") || strcasestr(items[cur_item], ".bmp") || strcasestr(items[cur_item], ".jpg") || strcasestr(items[cur_item], ".txt") || strcasestr(items[cur_item], ".log"))
+      if(strcasestr(items[cur_item], ".png") || strcasestr(items[cur_item], ".bmp") || strcasestr(items[cur_item], ".jpg") || strcasestr(items[cur_item], ".txt") || strcasestr(items[cur_item], ".log") || strcasestr(items[cur_item], ".htm"))
                                            print_text(560, 266, ": View"); else
       if(strcasestr(items[cur_item], ".pkg") || strstr(items[cur_item], ".sprx") || strstr(items[cur_item], ".p3t") || strstr(items[cur_item], ".edat") || strstr(items[cur_item], ".rco") || strstr(items[cur_item], ".qrc") || strstr(items[cur_item], "coldboot") || strcasestr(items[cur_item], ".mp3") || strcasestr(items[cur_item], ".mp4") || strcasestr(items[cur_item], ".mkv") || strcasestr(items[cur_item], ".avi") || strstr(curdir, "/dev_hdd0/home"))
                                            print_text(560, 266, ": Copy"); else
@@ -1141,7 +1147,7 @@ static void draw_frame(void)
                                            print_text(560, 266, ": Mount"); else
                                            print_text(560, 266, ": Select");  // draw X button
 
-      if(!items_isdir[cur_item]) print_text(410, 208, item_size);
+      if(!items_isdir[cur_item] || clipboard_mode) print_text(410, 208, item_size);
   }
   else if(view == PLUGINS_MANAGER)
                                            print_text(560, 266, items_isdir[cur_item] ? ": Unload" : ": Load");  // draw X button
@@ -1187,7 +1193,7 @@ static void draw_frame(void)
       draw_png(0, 355, 38 + (LINE_HEIGHT * 5), t_icon_X, 464, 32, 32);
       print_text(395, 30 + (LINE_HEIGHT * 5), tempstr);
   }
-  else if(has_icon0) return;
+  else if(has_icon0 && clipboard_mode == 0) return;
 
 
   set_font(20.f, 17.f, 1.f, 1);
@@ -1394,7 +1400,7 @@ static void vsh_menu_thread(uint64_t arg)
                   if(cdir==17) sprintf(curdir, "/dev_usb000/GAMES");
                   if(cdir==18) sprintf(curdir, "/dev_usb000");
 
-                  if(isDir(curdir)) {curpad = PAD_SQUARE; break;}
+                  if(isDir(curdir)) {curpad = REFRESH_DIR; break;}
                   if(curpad & PAD_LEFT) {if(cdir>0) cdir--;} else cdir++;
                   if(cdir > 18) cdir=0;
               }
@@ -1456,7 +1462,11 @@ static void vsh_menu_thread(uint64_t arg)
                   if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
                   {
                       sprintf(tempstr, "%s/%s/../ICON0.PNG", curdir, items[cur_item]);
-                      if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);}
+                      if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
+                      {
+                          sprintf(tempstr, "%s/%s/../../ICON0.PNG", curdir, items[cur_item]);
+                          if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);}
+                      }
                   }
               }
           }
@@ -1464,7 +1474,7 @@ static void vsh_menu_thread(uint64_t arg)
           oldpad = 0;
         }
 
-        if((curpad & (PAD_R1 | PAD_TRIANGLE | PAD_START | PAD_L1)) || (view == FILE_MANAGER && (curpad & (PAD_CROSS | PAD_SQUARE))))
+        if((curpad & (PAD_R1 | PAD_TRIANGLE | PAD_START | PAD_L1)) || (view == FILE_MANAGER && ((curpad & (PAD_CROSS | PAD_SQUARE)) || curpad == REFRESH_DIR)))
         {
             if((curpad & PAD_R1) == PAD_R1 || (view != FILE_MANAGER && (curpad & PAD_TRIANGLE))) {if(++view > 3) view = MAIN_MENU;}
             if((curpad & PAD_L1) == PAD_L1) {if(view > 0) --view; else view = 3;}
@@ -1481,6 +1491,30 @@ static void vsh_menu_thread(uint64_t arg)
                     sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
                     del(tempstr, true);
                 }
+                else if(curpad & PAD_SQUARE)
+                {
+                    if(clipboard_mode == 0 && strcmp(items[cur_item], "..") == 0) continue;
+
+                    char url[MAX_PATH_LEN];
+                    if(clipboard_mode)
+                        sprintf(tempstr, "%s", curdir);
+                    else
+                        sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+
+                    urlenc(url, tempstr);
+
+                    if(clipboard_mode)
+                        {sprintf(item_size, "<Paste>"); sprintf(tempstr, "GET /paste.ps3%s", curdir); clipboard_mode = 0;}
+                    else if(curpad & PAD_R2)
+                        {sprintf(item_size, "<Cut>"); sprintf(tempstr, "GET /cut.ps3%s", url); clipboard_mode = 2;}
+                    else
+                        {sprintf(item_size, "<Copy>"); sprintf(tempstr, "GET /cpy.ps3%s", url); clipboard_mode = 1;}
+
+                    send_wm_request(tempstr);
+                    sys_timer_sleep(1);
+
+                    if(clipboard_mode) continue;
+                }
                 else if(curpad & (PAD_CROSS | PAD_START | PAD_TRIANGLE))
                 {
                     if(curpad & PAD_TRIANGLE)
@@ -1492,7 +1526,7 @@ static void vsh_menu_thread(uint64_t arg)
                         if(strlen(curdir)==0) sprintf(curdir, "/");
                     }
                     else
-                    if(strcasestr(items[cur_item], ".png") || strcasestr(items[cur_item], ".bmp") || strcasestr(items[cur_item], ".jpg") || strcasestr(items[cur_item], ".txt") || strcasestr(items[cur_item], ".log"))
+                    if(strcasestr(items[cur_item], ".png") || strcasestr(items[cur_item], ".bmp") || strcasestr(items[cur_item], ".jpg") || strcasestr(items[cur_item], ".txt") || strcasestr(items[cur_item], ".log") || strcasestr(items[cur_item], ".htm"))
                     {
                         char url[MAX_PATH_LEN];
                         sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
@@ -1648,7 +1682,11 @@ static void vsh_menu_thread(uint64_t arg)
 
                 has_icon0 = 0;
                 sprintf(tempstr, "%s/ICON0.PNG", curdir);
-                if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);}
+                if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);} else
+                {
+                    sprintf(tempstr, "%s/ICON2.PNG", curdir);
+                    if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);}
+                }
 
                 if(!has_icon0)
                 {
@@ -1666,11 +1704,14 @@ static void vsh_menu_thread(uint64_t arg)
                         if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
                         {
                             sprintf(tempstr, "%s/%s/../ICON0.PNG", curdir, items[cur_item]);
-                            if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);}
+                            if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);} else
+                            {
+                                sprintf(tempstr, "%s/%s/../../ICON0.PNG", curdir, items[cur_item]);
+                                if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);}
+                            }
                         }
                     }
                 }
-
             }
 
             if(view == PLUGINS_MANAGER && (curpad & PAD_START))
