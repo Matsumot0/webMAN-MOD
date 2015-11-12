@@ -170,6 +170,7 @@ static char cfw_str[64];
 static char drivestr[6][64];
 static uint8_t drive_type[6];
 
+static uint8_t has_icon0 = 0;
 static uint8_t wm_unload = 0;
 
 #define MAX_PATH_LEN 128
@@ -468,6 +469,12 @@ static int isDir(const char* path)
 		return 0;
 }
 
+static int file_exists(const char* path)
+{
+	struct CellFsStat s;
+	return (cellFsStat(path, &s)==CELL_FS_SUCCEEDED);
+}
+
 static int del(char *path, bool recursive)
 {
 	if(!isDir(path)) {return cellFsUnlink(path);}
@@ -558,8 +565,8 @@ static void start_VSH_Menu(void)
   int32_t ret, mem_size;
 
   // create VSH Menu heap memory from memory container 1("app")
-  mem_size = ((((CANVAS_W * CANVAS_H * 4) * 2) + (FONT_CACHE_MAX * 32 * 32)) + MB(2)) / MB(1);
-  ret = create_heap(mem_size);  // 4 MB
+  mem_size = ((((CANVAS_W * CANVAS_H * 4) * 2) + (FONT_CACHE_MAX * 32 * 32)) + MB(4)) / MB(1);
+  ret = create_heap(mem_size);  // 5 MB
 
   if(ret) return;
 
@@ -1064,9 +1071,12 @@ static void draw_frame(void)
   draw_png(0, 648, 336, 576, 400, 64, 64);
 
 
+  if(has_icon0 && (view == FILE_MANAGER))
+     draw_png(1, 18, 208, 0, 0, 320, 176);
+
   // print headline string, center(x = -1)
   set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, ((view == REBUG_MENU) ? "VSH Menu for Rebug" : (view == FILE_MANAGER) ? curdir + curdir_offset : (view == PLUGINS_MANAGER) ? "Plugins Manager" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.02");
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.03");
 
 
   set_font(20.f, 20.f, 1.f, 1);
@@ -1177,6 +1187,8 @@ static void draw_frame(void)
       draw_png(0, 355, 38 + (LINE_HEIGHT * 5), t_icon_X, 464, 32, 32);
       print_text(395, 30 + (LINE_HEIGHT * 5), tempstr);
   }
+  else if(has_icon0) return;
+
 
   set_font(20.f, 17.f, 1.f, 1);
 
@@ -1399,22 +1411,6 @@ static void vsh_menu_thread(uint64_t arg)
           }
           else
             line = (view > REBUG_MENU ? nitems : view == REBUG_MENU ? MAX_MENU2 : MAX_MENU)-1;
-
-          if(view == FILE_MANAGER && !items_isdir[cur_item])
-          {
-              struct CellFsStat s;
-              sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
-              cellFsStat(tempstr, &s);
-
-              if(s.st_size >= 0x40000000ULL)
-                  sprintf(item_size, "%1.2f GB", ((float)(s.st_size)) / 1073741824.0f);
-              if(s.st_size >= 0x100000ULL)
-                  sprintf(item_size, "%1.2f MB", ((float)(s.st_size)) / 1048576.0f);
-              else
-                  sprintf(item_size, "%1.2f KB", ((float)(s.st_size)) / 1024.0f);
-          }
-
-          oldpad = 0;
         }
         else
         if(curpad & PAD_DOWN)
@@ -1427,19 +1423,42 @@ static void vsh_menu_thread(uint64_t arg)
           }
           else
             line = 0;
+        }
 
-          if(view == FILE_MANAGER && !items_isdir[cur_item])
+        if((view == FILE_MANAGER) && curpad & (PAD_UP | PAD_DOWN))
+        {
+          if(curpad & PAD_DOWN) {cur_item++; if(cur_item >= nitems) cur_item = 0;}
+          if(curpad & PAD_UP) {if(cur_item == 0) cur_item = nitems - 1; else cur_item--;}
+
+
+          if(has_icon0 == 1) has_icon0 = 0;
+
+          if(!items_isdir[cur_item])
           {
               struct CellFsStat s;
               sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
               cellFsStat(tempstr, &s);
 
               if(s.st_size >= 0x40000000ULL)
-                  sprintf(item_size, "%1.2f GB", ((float)(s.st_size)) / 1073741824.0f);
+                  sprintf(item_size, "%1.2f GB", ((double)(s.st_size)) / 1073741824.0f);
               if(s.st_size >= 0x100000ULL)
-                  sprintf(item_size, "%1.2f MB", ((float)(s.st_size)) / 1048576.0f);
+                  sprintf(item_size, "%1.2f MB", ((double)(s.st_size)) / 1048576.0f);
               else
-                  sprintf(item_size, "%1.2f KB", ((float)(s.st_size)) / 1024.0f);
+                  sprintf(item_size, "%1.2f KB", ((double)(s.st_size)) / 1024.0f);
+          }
+          else if(has_icon0 == 0)
+          {
+
+              sprintf(tempstr, "%s/%s/ICON0.PNG", curdir, items[cur_item]);
+              if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
+              {
+                  sprintf(tempstr, "%s/%s/PS3_GAME/ICON0.PNG", curdir, items[cur_item]);
+                  if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
+                  {
+                      sprintf(tempstr, "%s/%s/../ICON0.PNG", curdir, items[cur_item]);
+                      if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);}
+                  }
+              }
           }
 
           oldpad = 0;
@@ -1562,7 +1581,6 @@ static void vsh_menu_thread(uint64_t arg)
                     cellFsClosedir(fd);
                 }
 
-
                 if((curpad & (PAD_L2 | PAD_SQUARE))==(PAD_L2 | PAD_SQUARE))
                 {
                     line = old_line; old_nitems--;
@@ -1623,9 +1641,37 @@ static void vsh_menu_thread(uint64_t arg)
                         }
 
                 for(n=0; n<nitems; n++) memcpy(items[n], items[n]+1, MAX_PATH_LEN-1);
-            }
 
-            if(!curdir[1]) for(int i=1; i<nitems; i++) if(!strcmp(items[i], "dev_hdd0")) {line=i; break;}
+                if(strcmp(items[0], "..") == 0 && nitems>1) cur_item = 1; else cur_item = 0;
+
+                if(!curdir[1]) for(int i=1; i<nitems; i++) if(!strcmp(items[i], "dev_hdd0")) {cur_item = line=i; break;}
+
+                has_icon0 = 0;
+                sprintf(tempstr, "%s/ICON0.PNG", curdir);
+                if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);}
+
+                if(!has_icon0)
+                {
+                    sprintf(tempstr, "%s/PS3_GAME/ICON0.PNG", curdir);
+                    if(file_exists(tempstr)) {has_icon0 = 2; load_png_bitmap(1, tempstr);}
+                }
+
+                if(!has_icon0 && items_isdir[cur_item])
+                {
+
+                    sprintf(tempstr, "%s/%s/ICON0.PNG", curdir, items[cur_item]);
+                    if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
+                    {
+                        sprintf(tempstr, "%s/%s/PS3_GAME/ICON0.PNG", curdir, items[cur_item]);
+                        if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);} else
+                        {
+                            sprintf(tempstr, "%s/%s/../ICON0.PNG", curdir, items[cur_item]);
+                            if(file_exists(tempstr)) {has_icon0 = 1; load_png_bitmap(1, tempstr);}
+                        }
+                    }
+                }
+
+            }
 
             if(view == PLUGINS_MANAGER && (curpad & PAD_START))
             {
