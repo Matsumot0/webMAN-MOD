@@ -168,7 +168,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Znovu Načítať Moje Hry</String></Pair>
 				<Pair key="info"><String>Zoznam Hier sa objaví pri opätovnom načítaní XMB.</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/refresh.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -182,7 +182,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Znovu Načítať sieť. Zoznam Hier</String></Pair>
 				<Pair key="info"><String>Zoznam hier, vo formáte HTML bude aktualizovaný pre režim prehliadača.</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/index.ps3?html</String></Pair>
 			</Table>
 		</Attributes>
@@ -210,7 +210,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/multiman.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Hry]</String></Pair>
 				<Pair key="info"><String>Zoznam mojich hier cez Web Prehliadač</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/index.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -224,7 +224,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Súbory]</String></Pair>
 				<Pair key="info"><String>Zoznam mojich súborov cez Web Prehliadač</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/</String></Pair>
 			</Table>
 		</Attributes>
@@ -253,7 +253,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/settings.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Nastavenie]</String></Pair>
 				<Pair key="info"><String>Nastavenie zariadení pre skenovanie a možnosti spustenia.</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/setup.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -267,7 +267,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0 ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/.</String></Pair>
 			</Table>
 		</Attributes>
@@ -281,7 +281,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0/PKG ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/PKG</String></Pair>
 			</Table>
 		</Attributes>
@@ -295,7 +295,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0/VIDEO ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/VIDEO</String></Pair>
 			</Table>
 		</Attributes>
@@ -309,7 +309,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0/MUSIC ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/MUSIC</String></Pair>
 			</Table>
 		</Attributes>
@@ -323,7 +323,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0/PICTURE ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/PICTURE</String></Pair>
 			</Table>
 		</Attributes>
@@ -337,7 +337,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0/ROMS ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/ROMS</String></Pair>
 			</Table>
 		</Attributes>
@@ -351,7 +351,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net0/FIRMWARE ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/FIRMWARE</String></Pair>
 			</Table>
 		</Attributes>
@@ -365,7 +365,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1 ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/.</String></Pair>
 			</Table>
 		</Attributes>
@@ -379,7 +379,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1/PKG ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/PKG</String></Pair>
 			</Table>
 		</Attributes>
@@ -393,7 +393,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1/VIDEO ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/VIDEO</String></Pair>
 			</Table>
 		</Attributes>
@@ -407,7 +407,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1/MUSIC ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/MUSIC</String></Pair>
 			</Table>
 		</Attributes>
@@ -421,7 +421,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1/PICTURE ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/PICTURE</String></Pair>
 			</Table>
 		</Attributes>
@@ -435,7 +435,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1/ROMS ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/ROMS</String></Pair>
 			</Table>
 		</Attributes>
@@ -449,7 +449,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net1/FIRMWARE ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/FIRMWARE</String></Pair>
 			</Table>
 		</Attributes>
@@ -463,7 +463,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2 ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/.</String></Pair>
 			</Table>
 		</Attributes>
@@ -477,7 +477,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2/PKG ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/PKG</String></Pair>
 			</Table>
 		</Attributes>
@@ -491,7 +491,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2/VIDEO ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/VIDEO</String></Pair>
 			</Table>
 		</Attributes>
@@ -505,7 +505,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2/MUSIC ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/MUSIC</String></Pair>
 			</Table>
 		</Attributes>
@@ -519,7 +519,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2/PICTURE ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/PICTURE</String></Pair>
 			</Table>
 		</Attributes>
@@ -533,7 +533,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2/ROMS ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/ROMS</String></Pair>
 			</Table>
 		</Attributes>
@@ -547,7 +547,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Pripoj /net2/FIRMWARE ako /dev_bdvd</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/FIRMWARE</String></Pair>
 			</Table>
 		</Attributes>
@@ -561,7 +561,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png</String></Pair>
 				<Pair key="title"><String>Prepnúť externé herné dáta</String></Pair>
 				<Pair key="info"><String>zap./vyp. inštaláciu herných dát na USB zariadenie.</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/extgd.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -575,7 +575,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/homebrew.png</String></Pair>
 				<Pair key="title"><String>Odpojiť Disk</String></Pair>
 				<Pair key="info"><String></String>Odpojí načítaný disk</Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/unmount</String></Pair>
 			</Table>
 		</Attributes>
@@ -589,8 +589,8 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/bd.png</String></Pair>
 				<Pair key="title"><String>Vložiť Disk</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
-				<Pair key="module_action"><String>http://localhost/insert.ps3</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
+				<Pair key="module_action"><String>http://localhost/mount_ps3/insert.ps3</String></Pair>
 			</Table>
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_insert" attr="webman_insert"/></Items>
@@ -603,7 +603,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/devflash.png</String></Pair>
 				<Pair key="title"><String>Odpojiť webMAN</String></Pair>
 				<Pair key="info"><String>Odpojiť webMAN z pamäte [R2+L3+R3]</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/quit.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -617,7 +617,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Reštartovať PS3</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/restart.ps3</String></Pair>
 			</Table>
 		</Attributes>

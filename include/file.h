@@ -27,7 +27,6 @@ static void delete_history(bool delete_folders);
 static void  import_edats(char *path1, char *path2);
 #endif
 
-#define IS_COPY				9
 #define COPY_WHOLE_FILE		0
 
 /*
@@ -74,24 +73,37 @@ static int savefile(char *file, char *mem, u64 size)
 {
 	u64 written; int fd=0;
 	cellFsChmod(file, MODE);
-	if(cellFsOpen(file, CELL_FS_O_CREAT| CELL_FS_O_TRUNC |CELL_FS_O_WRONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+	if(cellFsOpen(file, CELL_FS_O_CREAT | CELL_FS_O_TRUNC | CELL_FS_O_WRONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
 	{
 		if(size) cellFsWrite(fd, (void *)mem, size, &written);
 		cellFsClose(fd);
 		cellFsChmod(file, MODE);
-        return CELL_FS_SUCCEEDED;
+		return CELL_FS_SUCCEEDED;
 	}
-    else
-        return FAILED;
+	else
+		return FAILED;
 }
-
+/*
+static int appendfile(char *file, char *mem, u64 size)
+{
+	u64 written; int fd=0;
+	if(cellFsOpen(file, CELL_FS_O_CREAT | CELL_FS_O_APPEND | CELL_FS_O_WRONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+	{
+		if(size) cellFsWrite(fd, (void *)mem, size, &written);
+		cellFsClose(fd);
+		return CELL_FS_SUCCEEDED;
+	}
+	else
+		return FAILED;
+}
+*/
 static int filecopy(char *file1, char *file2, uint64_t maxbytes)
 {
-    struct CellFsStat buf;
-    int fd1, fd2;
-    int ret=FAILED;
+	struct CellFsStat buf;
+	int fd1, fd2;
+	int ret=FAILED;
 
-    uint64_t chunk_size=_64KB_; //64K
+	uint64_t chunk_size=_64KB_; //64K
 
 	if(cellFsStat(file1, &buf)!=CELL_FS_SUCCEEDED) return ret;
 
@@ -136,7 +148,7 @@ static int filecopy(char *file1, char *file2, uint64_t maxbytes)
 					size-=msiz2;
 					if(chunk_size>size) chunk_size=(int) size;
 
-					sys_timer_usleep(1);
+					sys_timer_usleep(1000);
 				}
 				cellFsClose(fd2);
 
@@ -164,7 +176,7 @@ static int folder_copy(char *path1, char *path2)
 	char target[MAX_PATH_LEN];
 
 	cellFsMkdir((char*)path2, MODE);
-    copy_aborted=false;
+	copy_aborted=false;
 
 	if(cellFsOpendir(path1, &fd) == CELL_FS_SUCCEEDED)
 	{
@@ -259,11 +271,10 @@ static void enable_dev_blind(char *msg)
 
 static void delete_history(bool delete_folders)
 {
-	int fd;
+	int fd; char path[128];
 
 	if(cellFsOpendir("/dev_hdd0/home", &fd) == CELL_FS_SUCCEEDED)
 	{
-		char path[128];
 		CellFsDirent dir; u64 read = sizeof(CellFsDirent);
 
 		while(!cellFsReaddir(fd, &dir, &read))
@@ -286,20 +297,11 @@ static void delete_history(bool delete_folders)
 
 	if(!delete_folders) return;
 
-	cellFsRmdir("/dev_hdd0/GAMEZ");
-	cellFsRmdir("/dev_hdd0/GAMES");
-	cellFsRmdir("/dev_hdd0/GAMES [auto]");
-	cellFsRmdir("/dev_hdd0/PS3ISO");
-	cellFsRmdir("/dev_hdd0/PS3ISO [auto]");
-	cellFsRmdir("/dev_hdd0/PS2ISO");
-	cellFsRmdir("/dev_hdd0/PS2ISO [auto]");
-	cellFsRmdir("/dev_hdd0/PSXISO");
-	cellFsRmdir("/dev_hdd0/PSXISO [auto]");
-	cellFsRmdir("/dev_hdd0/PSXGAMES");
-	cellFsRmdir("/dev_hdd0/PSPISO");
-	cellFsRmdir("/dev_hdd0/ISO");
-	cellFsRmdir("/dev_hdd0/BDISO");
-	cellFsRmdir("/dev_hdd0/DVDISO");
+	for(u8 p=0; p<10; p++)
+	{
+		sprintf(path, "%s/%s", drives[0], paths[p]); cellFsRmdir(path);
+		strcat(path, " [auto]"); cellFsRmdir(path);
+	}
 	cellFsRmdir("/dev_hdd0/PKG");
 }
 

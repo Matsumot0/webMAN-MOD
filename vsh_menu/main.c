@@ -1,3 +1,7 @@
+#include <arpa/inet.h>
+
+#define ssend(socket, str) send(socket, str, strlen(str), 0)
+
 #include <sys/prx.h>
 #include <sys/ppu_thread.h>
 #include <sys/process.h>
@@ -40,6 +44,22 @@ SYS_MODULE_STOP(vsh_menu_stop);
 
 #define VSH_MODULE_PATH 	"/dev_blind/vsh/module/"
 #define VSH_ETC_PATH		"/dev_blind/vsh/etc/"
+
+#define FAILED       -1
+
+#define WHITE				0xFFFFFFFF
+#define GREEN				0xFF00FF00
+#define BLUE				0xFF008FFF
+#define GRAY				0xFF999999
+#define YELLOW				0xFFFFFF55
+
+enum menus
+{
+    MAIN_MENU,
+    REBUG_MENU,
+    PLUGINS_MANAGER,
+    FILE_MANAGER,
+};
 
 typedef struct
 {
@@ -143,12 +163,24 @@ int32_t vsh_menu_stop(void);
 static void finalize_module(void);
 static void vsh_menu_stop_thread(uint64_t arg);
 
-static char tempstr[128];
+static char tempstr[512];
 static uint16_t t_icon_X;
 static char netstr[64];
 static char cfw_str[64];
 static char drivestr[6][64];
 static uint8_t drive_type[6];
+
+static uint8_t wm_unload = 0;
+
+#define MAX_PATH_LEN 128
+#define MAX_ITEMS    256
+
+static char curdir[MAX_PATH_LEN] = "/";
+static char items[MAX_ITEMS][MAX_PATH_LEN];
+static uint8_t items_isdir[MAX_ITEMS];
+static uint16_t nitems = 0, cur_item = 0, curdir_offset = 0, cdir = 0;
+
+static char item_size[64];
 
 char *current_file[512];
 
@@ -203,8 +235,35 @@ static void shutdown_system(void)
     sys_ppu_thread_exit(0);
 }
 
-static int send_wm_request(char *cmd)
+static int connect_to_webman(void)
 {
+	struct sockaddr_in sin;
+	int s;
+
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = 0x7F000001; //127.0.0.1 (localhost)
+	sin.sin_port = htons(80);         //http port (80)
+	s = socket(AF_INET, SOCK_STREAM, 0);
+	if (s < 0)
+	{
+		return -1;
+	}
+
+	if (connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+	{
+		return -1;
+	}
+
+	return s;
+}
+
+static void send_wm_request(char *cmd)
+{
+	// send command
+	int conn_s=-1;
+	conn_s=connect_to_webman();
+	if(conn_s>=0) ssend(conn_s, cmd);
+/*
 	uint64_t written; int fd=0;
 	if(cellFsOpen("/dev_hdd0/tmp/wm_request", CELL_FS_O_CREAT|CELL_FS_O_WRONLY|CELL_FS_O_TRUNC, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
 	{
@@ -213,7 +272,9 @@ static int send_wm_request(char *cmd)
         return CELL_FS_SUCCEEDED;
 	}
 	else
+
 		return -1;
+
 }
 
 static void wait_for_request(void)
@@ -223,6 +284,7 @@ static void wait_for_request(void)
     while(timeout > 0 && cellFsStat((char*)"/dev_hdd0/tmp/wm_request", &s) == CELL_FS_SUCCEEDED) {sys_timer_usleep(250000); --timeout;}
 
     sys_timer_usleep(100000);
+*/
 }
 
 
@@ -343,6 +405,136 @@ static void get_network_info(void)
     sprintf(ipaddr, "%s", ip);
 
   sprintf(netstr, "Network connection :  %s\r\nIP address :  %s", netdevice, ipaddr);
+}
+
+#define SC_COBRA_SYSCALL8 8
+#define SYSCALL8_OPCODE_LOAD_VSH_PLUGIN                 0x1EE7
+#define SYSCALL8_OPCODE_UNLOAD_VSH_PLUGIN               0x364F
+#define SYSCALL8_OPCODE_PS3MAPI                         0x7777
+#define PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO              0x0047
+#define PS3MAPI_OPCODE_UNLOAD_VSH_PLUGIN                0x0046
+
+char *strcasestr(const char *s1, const char *s2);
+
+static int cobra_load_vsh_plugin(unsigned int slot, char *path, void *arg, uint32_t arg_size)
+{
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, slot, (uint64_t)(uint32_t)path, (uint64_t)(uint32_t)arg, arg_size);
+	return (int)p1;
+}
+
+static int cobra_unload_vsh_plugin(unsigned int slot)
+{
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_UNLOAD_VSH_PLUGIN, slot);
+	return (int)p1;
+}
+
+static char h2a(char hex)
+{
+	char c = hex;
+	if(c>=0 && c<=9)
+		c += '0';
+	else if(c>=10 && c<=15)
+		c += 0x57; //a-f
+	return c;
+}
+
+static void urlenc(char *dst, char *src)
+{
+	size_t j=0;
+    size_t n=strlen(src);
+	for(size_t i=0; i<n; i++,j++)
+	{
+		     if(src[i]==' ') {dst[j++] = '%'; dst[j++] = '2'; dst[j] = '0';}
+		else if(src[i]==':') {dst[j++] = '%'; dst[j++] = '3'; dst[j] = 'A';}
+		else if(src[i] & 0x80)
+		{
+			dst[j++] = '%';
+			dst[j++] = h2a((unsigned char)src[i]>>4);
+			dst[j] = h2a(src[i] & 0xf);
+		}
+		else if(src[i]==34) {dst[j++] = '%'; dst[j++] = '2'; dst[j] = '2';}
+		else if(src[i]==39) {dst[j++] = '%'; dst[j++] = '2'; dst[j] = '7';}
+		else dst[j] = src[i];
+	}
+	dst[j] = '\0';
+}
+
+static int isDir(const char* path)
+{
+	struct CellFsStat s;
+	if(cellFsStat(path, &s)==CELL_FS_SUCCEEDED)
+		return ((s.st_mode & CELL_FS_S_IFDIR) != 0);
+	else
+		return 0;
+}
+
+static int del(char *path, bool recursive)
+{
+	if(!isDir(path)) {return cellFsUnlink(path);}
+	if(strlen(path)<11 || !memcmp(path, "/dev_bdvd", 9) || !memcmp(path, "/dev_flash", 10) || !memcmp(path, "/dev_blind", 10)) return FAILED;
+
+	int fd;
+	uint64_t read;
+	CellFsDirent dir;
+	char entry[MAX_PATH_LEN];
+
+	if(cellFsOpendir(path, &fd) == CELL_FS_SUCCEEDED)
+	{
+		read = sizeof(CellFsDirent);
+		while(!cellFsReaddir(fd, &dir, &read))
+		{
+			if(!read) break;
+			if(dir.d_name[0]=='.' && (dir.d_name[1]=='.' || dir.d_name[1]==0)) continue;
+
+			sprintf(entry, "%s/%s", path, dir.d_name);
+
+			if(isDir(entry))
+				{if(recursive) del(entry, recursive);}
+			else
+				cellFsUnlink(entry);
+		}
+		cellFsClosedir(fd);
+	}
+	else
+		return FAILED;
+
+	if(recursive) cellFsRmdir(path);
+
+	return CELL_FS_SUCCEEDED;
+}
+
+static unsigned int get_vsh_plugin_slot_by_name(char *name, bool unload)
+{
+	char tmp_name[30];
+	char tmp_filename[256];
+	unsigned int slot, unused_slot = 0;
+
+	for (slot = 1; slot < 7; slot++)
+	{
+		memset(tmp_name, 0, sizeof(tmp_name));
+		memset(tmp_filename, 0, sizeof(tmp_filename));
+		{system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (uint64_t)slot, (uint64_t)(uint32_t)tmp_name, (uint64_t)(uint32_t)tmp_filename); }
+
+		if(strstr(tmp_filename, name) || !strcmp(tmp_name, name))
+		{
+			if(strstr(tmp_filename, "webftp_server"))
+			{
+				if(unload) {if(wm_unload) continue; send_wm_request((char *)"GET /quit.ps3"); return 0;}
+				return wm_unload ? 0 : slot;
+			}
+			else
+			if(unload)
+			{
+				cobra_unload_vsh_plugin(slot);
+				return 0;
+			}
+			else
+				return slot;
+		}
+
+		if(unused_slot == 0 && strlen(tmp_name)==0) unused_slot = slot;
+	}
+	return unload ? unused_slot : 0;
 }
 
 static void start_VSH_Menu(void)
@@ -639,7 +831,6 @@ static void recovery_mode(void)
 	hard_reboot();
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 //                            BLITTING                                //
 ////////////////////////////////////////////////////////////////////////
@@ -647,9 +838,9 @@ static uint16_t line = 0;           // current line into menu, init 0 (Menu Entr
 #define MAX_MENU     11
 #define MAX_MENU2    8
 
-static uint8_t view = 0;
+static uint8_t view = MAIN_MENU;
 
-uint8_t entry_mode[MAX_MENU] = {0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t entry_mode[MAX_MENU] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 static char entry_str[2][MAX_MENU][32] = {
                                           {
@@ -682,6 +873,13 @@ static char entry_str[2][MAX_MENU][32] = {
 ////////////////////////////////////////////////////////////////////////
 static uint8_t fan_mode = 0;
 
+static void return_to_xmb(void)
+{
+    sys_timer_sleep(1);
+    stop_VSH_Menu();
+    view = MAIN_MENU; if(view) line = 0;
+}
+
 static void do_menu_action(void)
 {
   switch(line)
@@ -690,7 +888,8 @@ static void do_menu_action(void)
       buzzer(1);
       send_wm_request((char*)"GET /mount_ps3/unmount");
 
-      if(entry_mode[line]) wait_for_request(); else sys_timer_sleep(1);
+      //if(entry_mode[line]) wait_for_request(); else
+      sys_timer_sleep(1);
 
       if(entry_mode[line]==2) eject_insert(0, 1); else if(entry_mode[line]==1) eject_insert(1, 0);
 
@@ -728,7 +927,7 @@ static void do_menu_action(void)
       if(entry_mode[line]==(fan_mode ? 0 : 1)) {send_wm_request((char*)"GET /cpursx.ps3?up"); buzzer(1);}
 
       if(entry_mode[line]==2) {send_wm_request((char*)"GET /cpursx.ps3?mode"); buzzer(3); entry_mode[line]=3; strcpy(entry_str[view][line], "2: System Info"); fan_mode = fan_mode ? 0 : 1;} else
-      if(entry_mode[line]==3) {send_wm_request((char*)"GET /popup.ps3"); sys_timer_sleep(1); stop_VSH_Menu();}
+      if(entry_mode[line]==3) {send_wm_request((char*)"GET /popup.ps3"); return_to_xmb();}
 
       play_rco_sound("system_plugin", "snd_system_ok");
       return;
@@ -761,15 +960,13 @@ static void do_menu_action(void)
 
       break;
     case 9:
-      sys_timer_sleep(1);
-      stop_VSH_Menu();
+      return_to_xmb();
 
       buzzer(2);
       shutdown_system();
       return;
     case 0xA:
-      sys_timer_sleep(1);
-      stop_VSH_Menu();
+      return_to_xmb();
 
       buzzer(1);
       if(entry_mode[line]) hard_reboot(); else soft_reboot();
@@ -777,8 +974,7 @@ static void do_menu_action(void)
   }
 
   // return to XMB
-  sys_timer_sleep(1);
-  stop_VSH_Menu();
+  return_to_xmb();
 
   play_rco_sound("system_plugin", "snd_system_ok");
 }
@@ -838,8 +1034,7 @@ static void do_menu_action2(void)
   }
 
   // return to XMB
-  sys_timer_sleep(1);
-  stop_VSH_Menu();
+  return_to_xmb();
 
   play_rco_sound("system_plugin", "snd_system_ok");
 }
@@ -857,7 +1052,7 @@ static void draw_frame(void)
 
   // all 32bit colors are ARGB, the framebuffer format
   set_background_color(0xFF000000);     // red, semitransparent
-  set_foreground_color(0xFFFFFFFF);     // white, opac
+  set_foreground_color(WHITE);     // white, opac
 
   // fill background with background color
   //draw_background();
@@ -870,13 +1065,13 @@ static void draw_frame(void)
 
 
   // print headline string, center(x = -1)
-  set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, (view ? "VSH Menu for Rebug" : "VSH Menu for webMAN"));
-  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.0");
+  set_font(22.f, 23.f, 1.f, 1); print_text(-1, 8, ((view == REBUG_MENU) ? "VSH Menu for Rebug" : (view == FILE_MANAGER) ? curdir + curdir_offset : (view == PLUGINS_MANAGER) ? "Plugins Manager" : "VSH Menu for webMAN"));
+  set_font(14.f, 14.f, 1.f, 1); print_text(650, 8, "v1.02");
 
 
   set_font(20.f, 20.f, 1.f, 1);
 
-  selcolor = (frame & 0x4) ? 0xFFFFFFFF : 0xFF00FF00;
+  selcolor = (frame & 0x4) ? WHITE : GREEN;
 
   // draw menu entry list
   for(i = 0; i < count; i++)
@@ -884,17 +1079,28 @@ static void draw_frame(void)
     if(line < count)
     {
       selected = 0;
-      i == line ? (color = selcolor) : (color = 0xFFFFFFFF);
+      color = (i == line) ? selcolor : WHITE;
     }
     else
     {
       selected = line - (count - 1);
-      i == (count - 1) ? (color = selcolor) : (color = 0xFFFFFFFF);
+      color = (i == (count - 1)) ? selcolor : WHITE;
+    }
+
+    if(view>REBUG_MENU)
+    {
+        if(color == WHITE && items_isdir[selected + i]) color = YELLOW;
+        if(color == GREEN) cur_item = selected + i;
     }
 
     set_foreground_color(color);
 
-    print_text(20, 40 + (LINE_HEIGHT * (i + 1)), entry_str[view][selected + i]);
+    if(view == FILE_MANAGER)
+        print_text(20, 40 + (LINE_HEIGHT * (i + 1)), items[selected + i]);
+    else if(view == PLUGINS_MANAGER)
+        print_text(20, 40 + (LINE_HEIGHT * (i + 1)), strrchr(items[selected + i], '/') + 1 );
+    else
+        print_text(20, 40 + (LINE_HEIGHT * (i + 1)), entry_str[view][selected + i]);
 
     selected++;
   }
@@ -907,54 +1113,76 @@ static void draw_frame(void)
 
 
   // draw command buttons
-  set_foreground_color(0xFF999999);
-  draw_png(0, 522, 230, 128 + (((!view && (line<3||line==6||line==10)) || (view && line==7)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");  // draw up-down button
-  draw_png(0, 522, 262, 0, 400, 32, 32); print_text(560, 266, ": Select");  // draw X button
-  draw_png(0, 522, 294, 416, 400, 32, 32); print_text(560, 298, ": Exit");  // draw select button
-  draw_png(0, 522, 326, 64, 400, 32, 32); print_text(560, 330, ": Menu");  // draw Triangle button
-  set_foreground_color(0xFF008FFF);
+  set_foreground_color(GRAY);
 
+  if(view == FILE_MANAGER)
+     {draw_png(0, 522, 230, 320, 400, 32, 32); print_text(560, 234, items_isdir[cur_item] ? ": Mount" : ": Copy");}  // draw start button
+  else
+     {draw_png(0, 522, 230, 128 + (((view == MAIN_MENU && (line<3||line==6||line==10)) || (view == REBUG_MENU && line==7)) ? 64 : 0), 432, 32, 32); print_text(560, 234, ": Choose");}  // draw up-down button
 
-  // draw firmware version info
-  print_text(352, 30 + (LINE_HEIGHT * 1), cfw_str);
-
-  // draw network info
-  print_text(352, 30 + (LINE_HEIGHT * 2.5), netstr);
-
-
-  // draw temperatures
-  if(frame == 1 || frame == 33)
+  draw_png(0, 522, 262, 0, 400, 32, 32);
+  if(view == FILE_MANAGER)
   {
-      uint32_t cpu_temp_c = 0, rsx_temp_c = 0, cpu_temp_f = 0, rsx_temp_f = 0, higher_temp;
+      if(strcasestr(items[cur_item], ".png") || strcasestr(items[cur_item], ".bmp") || strcasestr(items[cur_item], ".jpg") || strcasestr(items[cur_item], ".txt") || strcasestr(items[cur_item], ".log"))
+                                           print_text(560, 266, ": View"); else
+      if(strcasestr(items[cur_item], ".pkg") || strstr(items[cur_item], ".sprx") || strstr(items[cur_item], ".p3t") || strstr(items[cur_item], ".edat") || strstr(items[cur_item], ".rco") || strstr(items[cur_item], ".qrc") || strstr(items[cur_item], "coldboot") || strcasestr(items[cur_item], ".mp3") || strcasestr(items[cur_item], ".mp4") || strcasestr(items[cur_item], ".mkv") || strcasestr(items[cur_item], ".avi") || strstr(curdir, "/dev_hdd0/home"))
+                                           print_text(560, 266, ": Copy"); else
+      if(strcasestr(items[cur_item], ".iso") || (!items_isdir[cur_item] && strstr(curdir, "/PS3_GAME")!=NULL) || strcmp(items[cur_item], "PS3_DISC.SFB")==0)
+                                           print_text(560, 266, ": Mount"); else
+                                           print_text(560, 266, ": Select");  // draw X button
 
-      get_temperature(0, &cpu_temp_c);
-      get_temperature(1, &rsx_temp_c);
-      cpu_temp_c = cpu_temp_c >> 24;
-      rsx_temp_c = rsx_temp_c >> 24;
-      cpu_temp_f = (1.8f * (float)cpu_temp_c + 32.f);
-      rsx_temp_f = (1.8f * (float)rsx_temp_c + 32.f);
-
-      sprintf(tempstr, "CPU :  %i°C  •  %i°F\r\nRSX :  %i°C  •  %i°F", cpu_temp_c, cpu_temp_f, rsx_temp_c, rsx_temp_f);
-
-      if (cpu_temp_c > rsx_temp_c) higher_temp = cpu_temp_c;
-      else higher_temp = rsx_temp_c;
-
-           if (higher_temp < 50)                       t_icon_X = 224;  // blue icon
-      else if (higher_temp >= 50 && higher_temp <= 65) t_icon_X = 256;  // green icon
-      else if (higher_temp >  65 && higher_temp <  75) t_icon_X = 288;  // yellow icon
-      else                                             t_icon_X = 320;  // red icon
+      if(!items_isdir[cur_item]) print_text(410, 208, item_size);
   }
+  else if(view == PLUGINS_MANAGER)
+                                           print_text(560, 266, items_isdir[cur_item] ? ": Unload" : ": Load");  // draw X button
+  else                                     print_text(560, 266, ": Select");  // draw X button
+  draw_png(0, 522, 294, 416, 400, 32, 32); print_text(560, 298, ": Exit");    // draw select button
 
-  set_font(24.f, 17.f, 1.f, 1);
+  draw_png(0, 522, 326, 128, 400, 32, 32); print_text(560, 330, ": Mode");    // draw R1 button
+  set_foreground_color(BLUE);
 
-  draw_png(0, 355, 38 + (LINE_HEIGHT * 5), t_icon_X, 464, 32, 32);
-  print_text(395, 30 + (LINE_HEIGHT * 5), tempstr);
+  if(view != FILE_MANAGER)
+  {
+      // draw firmware version info
+      print_text(352, 30 + (LINE_HEIGHT * 1), cfw_str);
+
+      // draw network info
+      print_text(352, 30 + (LINE_HEIGHT * 2.5), netstr);
+
+      // draw temperatures
+      if(frame == 1 || frame == 33 || !tempstr[0])
+      {
+          uint32_t cpu_temp_c = 0, rsx_temp_c = 0, cpu_temp_f = 0, rsx_temp_f = 0, higher_temp;
+
+          get_temperature(0, &cpu_temp_c);
+          get_temperature(1, &rsx_temp_c);
+          cpu_temp_c = cpu_temp_c >> 24;
+          rsx_temp_c = rsx_temp_c >> 24;
+          cpu_temp_f = (1.8f * (float)cpu_temp_c + 32.f);
+          rsx_temp_f = (1.8f * (float)rsx_temp_c + 32.f);
+
+          sprintf(tempstr, "CPU :  %i°C  •  %i°F\r\nRSX :  %i°C  •  %i°F", cpu_temp_c, cpu_temp_f, rsx_temp_c, rsx_temp_f);
+
+          if (cpu_temp_c > rsx_temp_c) higher_temp = cpu_temp_c;
+          else higher_temp = rsx_temp_c;
+
+               if (higher_temp < 50)                       t_icon_X = 224;  // blue icon
+          else if (higher_temp >= 50 && higher_temp <= 65) t_icon_X = 256;  // green icon
+          else if (higher_temp >  65 && higher_temp <  75) t_icon_X = 288;  // yellow icon
+          else                                             t_icon_X = 320;  // red icon
+      }
+
+      set_font(24.f, 17.f, 1.f, 1);
+
+      draw_png(0, 355, 38 + (LINE_HEIGHT * 5), t_icon_X, 464, 32, 32);
+      print_text(395, 30 + (LINE_HEIGHT * 5), tempstr);
+  }
 
   set_font(20.f, 17.f, 1.f, 1);
 
 
   //draw drives info
-  set_foreground_color(0xFFFFFF55);
+  set_foreground_color(YELLOW);
   print_text(20, 208, "Available free space on device(s):");
 
   int fd;
@@ -1014,7 +1242,6 @@ static void draw_frame(void)
   //...
 
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 //                        PLUGIN MAIN PPU THREAD                      //
@@ -1095,15 +1322,18 @@ static void vsh_menu_thread(uint64_t arg)
       {
         curpad = (pdata.button[2] | (pdata.button[3] << 8));            // merge pad data
 
-        if((curpad & (PAD_SELECT | PAD_CIRCLE)) && (curpad != oldpad))  // if select was pressed stop VSH menu
+        if(curpad == oldpad) continue;
+
+        oldpad = curpad;
+
+        if(curpad & (PAD_SELECT | PAD_CIRCLE))  // if select was pressed stop VSH menu
         {
-          stop_VSH_Menu();
-          if(view) {view = line = 0;}
+          return_to_xmb();
         }
         else
-        if((curpad & (PAD_LEFT | PAD_RIGHT)) && (curpad != oldpad))
+        if((curpad & (PAD_LEFT | PAD_RIGHT)))
         {
-          if(!view)
+          if(view == MAIN_MENU)
           {
             if(curpad & PAD_RIGHT) ++entry_mode[line]; else if(entry_mode[line]==0) entry_mode[line] = ((line==2) ? 3 : (line<=1) ? 2 : 1); else --entry_mode[line];
 
@@ -1118,16 +1348,48 @@ static void vsh_menu_thread(uint64_t arg)
              case 0xA: strcpy(entry_str[view][line], ((entry_mode[line]) ? "A: Reboot PS3 (hard)\0"        : "A: Reboot PS3 (soft)\0")); break;
             }
           }
-          else
+          if(view == REBUG_MENU)
           {
             switch (line)
             {
              case 7: do_menu_action2(); break;
             }
           }
+          if(view == FILE_MANAGER)
+          {
+              if(curpad & PAD_LEFT)  if(cdir>0) cdir--;
+              if(curpad & PAD_RIGHT) cdir++;
+
+              while(true)
+              {
+                  if(cdir== 0) sprintf(curdir, "/");
+                  if(cdir== 1) sprintf(curdir, "/dev_hdd0");
+                  if(cdir== 2) sprintf(curdir, "/dev_hdd0/GAMES");
+                  if(cdir== 3) sprintf(curdir, "/dev_hdd0/GAMEZ");
+                  if(cdir== 4) sprintf(curdir, "/dev_hdd0/PS3ISO");
+                  if(cdir== 5) sprintf(curdir, "/dev_hdd0/PS2ISO");
+                  if(cdir== 6) sprintf(curdir, "/dev_hdd0/PSXISO");
+                  if(cdir== 7) sprintf(curdir, "/dev_hdd0/PSPISO");
+                  if(cdir== 8) sprintf(curdir, "/dev_hdd0/packages");
+                  if(cdir== 9) sprintf(curdir, "/dev_hdd0/plugins");
+                  if(cdir==10) sprintf(curdir, "/dev_hdd0/BDISO");
+                  if(cdir==11) sprintf(curdir, "/dev_hdd0/DVDISO");
+                  if(cdir==12) sprintf(curdir, "/dev_hdd0/game/BLES80608/USRDIR");
+                  if(cdir==13) sprintf(curdir, "/dev_usb001");
+                  if(cdir==14) sprintf(curdir, "/dev_usb001/GAMES");
+                  if(cdir==15) sprintf(curdir, "/dev_usb001/PS3ISO");
+                  if(cdir==16) sprintf(curdir, "/dev_usb000/PS3ISO");
+                  if(cdir==17) sprintf(curdir, "/dev_usb000/GAMES");
+                  if(cdir==18) sprintf(curdir, "/dev_usb000");
+
+                  if(isDir(curdir)) {curpad = PAD_SQUARE; break;}
+                  if(curpad & PAD_LEFT) {if(cdir>0) cdir--;} else cdir++;
+                  if(cdir > 18) cdir=0;
+              }
+          }
         }
         else
-        if((curpad & PAD_UP) && (curpad != oldpad))
+        if(curpad & PAD_UP)
         {
           frame = 0;
           if(line > 0)
@@ -1136,32 +1398,277 @@ static void vsh_menu_thread(uint64_t arg)
             play_rco_sound("system_plugin", "snd_cursor");
           }
           else
-            line = (view ? MAX_MENU2 : MAX_MENU)-1;
+            line = (view > REBUG_MENU ? nitems : view == REBUG_MENU ? MAX_MENU2 : MAX_MENU)-1;
+
+          if(view == FILE_MANAGER && !items_isdir[cur_item])
+          {
+              struct CellFsStat s;
+              sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+              cellFsStat(tempstr, &s);
+
+              if(s.st_size >= 0x40000000ULL)
+                  sprintf(item_size, "%1.2f GB", ((float)(s.st_size)) / 1073741824.0f);
+              if(s.st_size >= 0x100000ULL)
+                  sprintf(item_size, "%1.2f MB", ((float)(s.st_size)) / 1048576.0f);
+              else
+                  sprintf(item_size, "%1.2f KB", ((float)(s.st_size)) / 1024.0f);
+          }
+
+          oldpad = 0;
         }
         else
-        if((curpad & PAD_DOWN) && (curpad != oldpad))
+        if(curpad & PAD_DOWN)
         {
           frame = 0;
-          if(line < ((view ? MAX_MENU2 : MAX_MENU)-1))
+          if(line < ((view > REBUG_MENU ? nitems : view == REBUG_MENU ? MAX_MENU2 : MAX_MENU)-1))
           {
             line++;
             play_rco_sound("system_plugin", "snd_cursor");
           }
           else
             line = 0;
+
+          if(view == FILE_MANAGER && !items_isdir[cur_item])
+          {
+              struct CellFsStat s;
+              sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+              cellFsStat(tempstr, &s);
+
+              if(s.st_size >= 0x40000000ULL)
+                  sprintf(item_size, "%1.2f GB", ((float)(s.st_size)) / 1073741824.0f);
+              if(s.st_size >= 0x100000ULL)
+                  sprintf(item_size, "%1.2f MB", ((float)(s.st_size)) / 1048576.0f);
+              else
+                  sprintf(item_size, "%1.2f KB", ((float)(s.st_size)) / 1024.0f);
+          }
+
+          oldpad = 0;
         }
-        else
-        if((curpad & PAD_CROSS) && (curpad != oldpad))
+
+        if((curpad & (PAD_R1 | PAD_TRIANGLE | PAD_START | PAD_L1)) || (view == FILE_MANAGER && (curpad & (PAD_CROSS | PAD_SQUARE))))
         {
-          if(view) do_menu_action2(); else do_menu_action();
+            if((curpad & PAD_R1) == PAD_R1 || (view != FILE_MANAGER && (curpad & PAD_TRIANGLE))) {if(++view > 3) view = MAIN_MENU;}
+            if((curpad & PAD_L1) == PAD_L1) {if(view > 0) --view; else view = 3;}
+
+            uint16_t old_nitems = nitems, old_line = line;
+            nitems = line = 0;
+
+            if(view == FILE_MANAGER)
+            {
+                int fd;
+
+                if((curpad & (PAD_L2 | PAD_SQUARE))==(PAD_L2 | PAD_SQUARE))
+                {
+                    sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+                    del(tempstr, true);
+                }
+                else if(curpad & (PAD_CROSS | PAD_START | PAD_TRIANGLE))
+                {
+                    if(curpad & PAD_TRIANGLE)
+                    {
+                        if(!strcmp(items[cur_item], "..")) sprintf(curdir, "/");
+
+                        cur_item = 0;
+                        char *p = strrchr(curdir, '/'); p[0]=0;
+                        if(strlen(curdir)==0) sprintf(curdir, "/");
+                    }
+                    else
+                    if(strcasestr(items[cur_item], ".png") || strcasestr(items[cur_item], ".bmp") || strcasestr(items[cur_item], ".jpg") || strcasestr(items[cur_item], ".txt") || strcasestr(items[cur_item], ".log"))
+                    {
+                        char url[MAX_PATH_LEN];
+                        sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+                        urlenc(url, tempstr);
+                        if(curpad & PAD_CROSS)
+                            sprintf(tempstr, "GET /browser.ps3%s", url);
+                        else
+                            sprintf(tempstr, "GET /copy.ps3%s", url);
+                        send_wm_request(tempstr);
+                        return_to_xmb();
+                        continue;
+                    }
+                    else
+                    if(strcasestr(items[cur_item], ".pkg") || strstr(items[cur_item], ".sprx") || strstr(items[cur_item], ".p3t") || strstr(items[cur_item], ".edat") || strstr(items[cur_item], ".rco") || strstr(items[cur_item], ".qrc") || strstr(items[cur_item], "coldboot") || strcasestr(items[cur_item], ".mp3") || strcasestr(items[cur_item], ".mp4") || strcasestr(items[cur_item], ".mkv") || strcasestr(items[cur_item], ".avi"))
+                    {
+                        char url[MAX_PATH_LEN];
+                        sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+                        urlenc(url, tempstr);
+                        sprintf(tempstr, "GET /copy.ps3%s", url);
+                        send_wm_request(tempstr);
+                        return_to_xmb();
+                        continue;
+                    }
+                    else
+                    if(strcasestr(items[cur_item], ".iso") || (items_isdir[cur_item] && (curpad & PAD_START)) || (!items_isdir[cur_item] && (strstr(curdir, "/PS3_GAME")!=NULL || strcmp(items[cur_item], "PS3_DISC.SFB")==0)))
+                    {
+                        if(strcmp(items[cur_item], "PS3_DISC.SFB")==0)
+                            sprintf(tempstr, "%s", curdir);
+                       else
+                            sprintf(tempstr, "%s/%s", curdir, items[cur_item]);
+
+                        char url[MAX_PATH_LEN];
+                        urlenc(url, tempstr);
+
+                        if(strstr(curdir, "/dev_hdd0/game"))
+                            sprintf(tempstr, "GET /fixgame.ps3%s", url);
+                        else if(strstr(url, "/dev_bdvd") || strstr(url, "/app_home"))
+                            sprintf(tempstr, "GET /play.ps3");
+                        else if(strstr(url, "/dev_hdd0/home"))
+                            sprintf(tempstr, "GET /copy.ps3%s", url);
+                        else
+                            sprintf(tempstr, "GET /mount_ps3%s", url);
+                        send_wm_request(tempstr);
+                        return_to_xmb();
+                        continue;
+                    }
+                    else
+                    if(items_isdir[cur_item])
+                    {
+                        if(!strcmp(items[cur_item], ".."))
+                        {
+                            char *p = strrchr(curdir, '/'); p[0]=0;
+                            if(strlen(curdir)==0) sprintf(curdir, "/");
+                        }
+                        else
+                        {
+                            if(strlen(curdir)>1) strcat(curdir, "/");
+                            strcat(curdir, items[cur_item]);
+                        }
+                    }
+
+                }
+
+                if(strlen(curdir)<38) curdir_offset = 0; else curdir_offset = strlen(curdir) - 38;
+
+                for(int i=0;i<MAX_ITEMS;i++) {items[i][0] = 0; items_isdir[i] = 0;}
+
+                if(cellFsOpendir(curdir, &fd) == CELL_FS_SUCCEEDED)
+                {
+                    CellFsDirent dir; uint64_t read = sizeof(CellFsDirent);
+
+                    while(!cellFsReaddir(fd, &dir, &read))
+                    {
+                        if(!read || nitems>=MAX_ITEMS) break;
+                        if(dir.d_name[0]=='.' && dir.d_name[1]==0) continue;
+
+                        sprintf(items[nitems], "/%s", dir.d_name);
+
+                        sprintf(tempstr, "%s/%s", curdir, dir.d_name);
+                        items_isdir[nitems] = isDir(tempstr);
+
+                        if(items_isdir[nitems]) items[nitems][0]=' ';
+
+                        nitems++;
+                    }
+                    cellFsClosedir(fd);
+                }
+
+
+                if((curpad & (PAD_L2 | PAD_SQUARE))==(PAD_L2 | PAD_SQUARE))
+                {
+                    line = old_line; old_nitems--;
+                    if(line>=old_nitems) {if(line>0) line--; else line = 0;}
+                }
+                else
+                    line = (nitems>1) ? 1 : 0;
+            }
+            else
+            if(view == PLUGINS_MANAGER)
+            {
+                int fd; char paths[10][48] = {"/dev_hdd0", "/dev_hdd0/plugins", "/dev_hdd0/plugins/ps3xpad", "/dev_hdd0/plugins/ps3_menu", "/dev_usb000", "/dev_usb001", "/dev_hdd0/game/UPDWEBMOD/USRDIR", "/dev_hdd0/game/UPDWEBMOD/USRDIR/official", "/dev_hdd0/tmp"};
+
+                nitems = line = 0;
+
+                for(int i=0;i<MAX_ITEMS;i++) {items[i][0] = 0; items_isdir[i] = 0;}
+
+                for(uint8_t i = 0; i < 9; i++)
+                if(cellFsOpendir(paths[i], &fd) == CELL_FS_SUCCEEDED)
+                {
+                    CellFsDirent dir; uint64_t read = sizeof(CellFsDirent);
+
+                    while(!cellFsReaddir(fd, &dir, &read))
+                    {
+                        if(!read || nitems>=MAX_ITEMS) break;
+                        if(strstr(dir.d_name, ".sprx"))
+                        {
+                            dir.d_name[MAX_PATH_LEN-1]=0;
+                            sprintf(items[nitems], "%s/%s", paths[i], dir.d_name);
+
+                            items_isdir[nitems] = get_vsh_plugin_slot_by_name(items[nitems], false);
+
+                            sprintf(items[nitems], "/%s/%s", paths[i], dir.d_name);
+
+                            if(items_isdir[nitems]) items[nitems][0]=' ';
+
+                            nitems++;
+                        }
+                    }
+                    cellFsClosedir(fd);
+                }
+            }
+
+            if(view == FILE_MANAGER || view == PLUGINS_MANAGER)
+            {   // sort file entries
+                uint16_t n, m; char swap[MAX_PATH_LEN]; uint8_t s;
+                for(n=0; n<(nitems-1); n++)
+                    for(m=(n+1); m<nitems; m++)
+                        if(strcasecmp(items[n], items[m])>0)
+                        {
+                            strcpy(swap, items[n]);
+                            strcpy(items[n], items[m]);
+                            strcpy(items[m], swap);
+
+                            s=items_isdir[n];
+                            items_isdir[n]=items_isdir[m];
+                            items_isdir[m]=s;
+                        }
+
+                for(n=0; n<nitems; n++) memcpy(items[n], items[n]+1, MAX_PATH_LEN-1);
+            }
+
+            if(!curdir[1]) for(int i=1; i<nitems; i++) if(!strcmp(items[i], "dev_hdd0")) {line=i; break;}
+
+            if(view == PLUGINS_MANAGER && (curpad & PAD_START))
+            {
+                int fd;
+                if(cellFsOpen("/dev_hdd0/boot_plugins.txt", CELL_FS_O_CREAT|CELL_FS_O_WRONLY|CELL_FS_O_TRUNC, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+                {
+                    for (int i = 0; i < nitems; i++)
+                    {
+                        if(items_isdir[i])
+                        {
+                            sprintf(tempstr, "%s\n", items[i]);
+                            cellFsWrite(fd, (void *)tempstr, strlen(tempstr), 0);
+                        }
+                    }
+                    cellFsClose(fd);
+                }
+
+                return_to_xmb();
+                vshtask_notify("Saved /dev_hdd0/boot_plugins.txt");
+            }
+
+            tempstr[0]=0;
         }
         else
-        if((curpad & PAD_TRIANGLE) && (curpad != oldpad))
+        if(curpad & PAD_CROSS)
         {
-            view = (view ? 0 : 1); line = 0;
+          if(view == MAIN_MENU) do_menu_action(); else
+          if(view == REBUG_MENU) do_menu_action2();
+          if(view == FILE_MANAGER)
+          {
+              unsigned int slot = get_vsh_plugin_slot_by_name(items[cur_item], true);
+
+              return_to_xmb();
+
+              if(!slot) sprintf(tempstr, "%s unloaded", items[cur_item]); else {cobra_load_vsh_plugin(slot, items[cur_item], NULL, 0); sprintf(tempstr, "%s loaded in slot %i", items[cur_item], slot);}
+
+              if(strstr(items[cur_item], "webftp_server")) wm_unload ^= 1;
+
+              vshtask_notify(tempstr);
+          }
         }
         else
-        if((curpad & PAD_SQUARE) && (curpad != oldpad))
+        if(curpad & PAD_SQUARE)
         {
           stop_VSH_Menu();
           config->bgindex++;
@@ -1177,13 +1684,11 @@ static void vsh_menu_thread(uint64_t arg)
         }
 
         // ...
-
-        oldpad = curpad;
       }
       else
         oldpad = 0;
 
-      sys_timer_usleep(40000); // short menu frame delay
+      sys_timer_usleep(100000); // short menu frame delay
     }
   }
 

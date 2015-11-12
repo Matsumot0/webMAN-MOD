@@ -167,7 +167,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Opdater Mine Spil</String></Pair>
 				<Pair key="info"><String>Spilleliste vil blive vist næste gang XMB er indlæst</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/refresh.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -181,7 +181,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Opdater Web Spille Liste</String></Pair>
 				<Pair key="info"><String>Spillet liste i HTML vil blive opdateret for browseren tilstand</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/index.ps3?html</String></Pair>
 			</Table>
 		</Attributes>
@@ -209,7 +209,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/multiman.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Spil]</String></Pair>
 				<Pair key="info"><String>List mine spil i Web Browser</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/index.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -223,7 +223,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Filer]</String></Pair>
 				<Pair key="info"><String>List mine filer til Web Browser</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/</String></Pair>
 			</Table>
 		</Attributes>
@@ -252,7 +252,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/settings.png</String></Pair>
 				<Pair key="title"><String>PS3 webMAN [Opsætning]</String></Pair>
 				<Pair key="info"><String>Opsætning af enheder til at scanne og opstart indstillinger</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/setup.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -266,7 +266,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount net0</String></Pair>
 				<Pair key="info"><String>Mount /net0 som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/.</String></Pair>
 			</Table>
 		</Attributes>
@@ -280,7 +280,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount PKG</String></Pair>
 				<Pair key="info"><String>Mount /net0/PKG som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/PKG</String></Pair>
 			</Table>
 		</Attributes>
@@ -294,7 +294,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount VIDEO</String></Pair>
 				<Pair key="info"><String>Mount /net0/VIDEO som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/VIDEO</String></Pair>
 			</Table>
 		</Attributes>
@@ -308,7 +308,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount MUSIC</String></Pair>
 				<Pair key="info"><String>Mount /net0/MUSIC som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/MUSIC</String></Pair>
 			</Table>
 		</Attributes>
@@ -322,7 +322,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount PICTURE</String></Pair>
 				<Pair key="info"><String>Mount /net0/PICTURE som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/PICTURE</String></Pair>
 			</Table>
 		</Attributes>
@@ -336,7 +336,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount ROMS</String></Pair>
 				<Pair key="info"><String>Mount /net0/ROMS som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/ROMS</String></Pair>
 			</Table>
 		</Attributes>
@@ -350,7 +350,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount FIRMWARE</String></Pair>
 				<Pair key="info"><String>Mount /net0/FIRMWARE som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net0/FIRMWARE</String></Pair>
 			</Table>
 		</Attributes>
@@ -364,7 +364,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount net1</String></Pair>
 				<Pair key="info"><String>Mount /net1 som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/.</String></Pair>
 			</Table>
 		</Attributes>
@@ -378,7 +378,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount PKG</String></Pair>
 				<Pair key="info"><String>Mount /net1/PKG som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/PKG</String></Pair>
 			</Table>
 		</Attributes>
@@ -392,7 +392,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount VIDEO</String></Pair>
 				<Pair key="info"><String>Mount /net1/VIDEO som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/VIDEO</String></Pair>
 			</Table>
 		</Attributes>
@@ -406,7 +406,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount MUSIC</String></Pair>
 				<Pair key="info"><String>Mount /net1/MUSIC som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/MUSIC</String></Pair>
 			</Table>
 		</Attributes>
@@ -420,7 +420,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount PICTURE</String></Pair>
 				<Pair key="info"><String>Mount /net1/PICTURE som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/PICTURE</String></Pair>
 			</Table>
 		</Attributes>
@@ -434,7 +434,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount ROMS</String></Pair>
 				<Pair key="info"><String>Mount /net1/ROMS som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/ROMS</String></Pair>
 			</Table>
 		</Attributes>
@@ -448,7 +448,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount FIRMWARE</String></Pair>
 				<Pair key="info"><String>Mount /net1/FIRMWARE som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net1/FIRMWARE</String></Pair>
 			</Table>
 		</Attributes>
@@ -462,7 +462,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount net2</String></Pair>
 				<Pair key="info"><String>Mount /net2 som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/.</String></Pair>
 			</Table>
 		</Attributes>
@@ -476,7 +476,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount PKG</String></Pair>
 				<Pair key="info"><String>Mount /net2/PKG som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/PKG</String></Pair>
 			</Table>
 		</Attributes>
@@ -490,7 +490,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount VIDEO</String></Pair>
 				<Pair key="info"><String>Mount /net2/VIDEO som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/VIDEO</String></Pair>
 			</Table>
 		</Attributes>
@@ -504,7 +504,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount MUSIC</String></Pair>
 				<Pair key="info"><String>Mount /net2/MUSIC som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/MUSIC</String></Pair>
 			</Table>
 		</Attributes>
@@ -518,7 +518,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount PICTURE</String></Pair>
 				<Pair key="info"><String>Mount /net2/PICTURE som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/PICTURE</String></Pair>
 			</Table>
 		</Attributes>
@@ -532,7 +532,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String>Mount ROMS</String></Pair>
 				<Pair key="info"><String>Mount /net2/ROMS som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/ROMS</String></Pair>
 			</Table>
 		</Attributes>
@@ -546,7 +546,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/network.png</String></Pair>
 				<Pair key="title"><String></String>Mount FIRMWARE</Pair>
 				<Pair key="info"><String>Mount /net2/FIRMWARE som /dev_bdvd</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/net2/FIRMWARE</String></Pair>
 			</Table>
 		</Attributes>
@@ -560,7 +560,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/gamedata.png</String></Pair>
 				<Pair key="title"><String>Vis external gameDATA</String></Pair>
 				<Pair key="info"><String>Tænd til/fra installation af spildata på USB-enhed</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/extgd.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -574,7 +574,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/homebrew.png</String></Pair>
 				<Pair key="title"><String>Afmontér Disk</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/mount_ps3/unmount</String></Pair>
 			</Table>
 		</Attributes>
@@ -588,8 +588,8 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/bd.png</String></Pair>
 				<Pair key="title"><String>Indsæt Disk</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
-				<Pair key="module_action"><String>http://localhost/insert.ps3</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
+				<Pair key="module_action"><String>http://localhost/mount_ps3/insert.ps3</String></Pair>
 			</Table>
 		</Attributes>
 		<Items><Item class="type:x-xmb/module-action" key="webman_insert" attr="webman_insert"/></Items>
@@ -602,7 +602,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/devflash.png</String></Pair>
 				<Pair key="title"><String>Unload webMAN</String></Pair>
 				<Pair key="info"><String>Unload webMAN fra hukommelse [R2+L3+R3]</String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/quit.ps3</String></Pair>
 			</Table>
 		</Attributes>
@@ -616,7 +616,7 @@
 				<Pair key="icon"><String>/dev_hdd0/game/XMBMANPLS/USRDIR/IMAGES/pkgmanager.png</String></Pair>
 				<Pair key="title"><String>Genstart PS3</String></Pair>
 				<Pair key="info"><String></String></Pair>
-				<Pair key="module_name"><String>webbrowser_plugin</String></Pair>
+				<Pair key="module_name"><String>webrender_plugin</String></Pair>
 				<Pair key="module_action"><String>http://localhost/restart.ps3</String></Pair>
 			</Table>
 		</Attributes>

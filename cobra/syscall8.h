@@ -1,6 +1,8 @@
 #ifndef __SYSCALL8_H__
 #define __SYSCALL8_H__
 
+#define SC_COBRA_SYSCALL8                               (8)
+
 #define SYSCALL8_OPCODE_DISABLE_COBRA                   0x0000
 #define SYSCALL8_OPCODE_ENABLE_COBRA                    0x0001
 

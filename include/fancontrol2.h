@@ -216,7 +216,7 @@ static void poll_thread(uint64_t poll)
 #ifdef WM_REQUEST
 		// Poll requests via local file
 		if((sec & 1) && (gTick.tick>rTick.tick)) continue; // slowdown polling if ingame
-		if(file_exists("/dev_hdd0/tmp/wm_request"))
+		if(file_exists(WMREQUEST_FILE))
 		{
 			loading_html++;
 			sys_ppu_thread_t id;

@@ -100,6 +100,8 @@ static void setup_parse_settings(char *param)
 	if(!strstr(param, "pf2=1")) webman_config->combo|=MINDYNFAN;
 	if(!strstr(param, "pdf=1")) webman_config->combo|=DISABLEFC;
 	if(!strstr(param, "psc=1")) webman_config->combo|=DISABLESH;
+	if(!strstr(param, "kcc=1")) webman_config->keep_ccapi = true;
+
 #ifdef COBRA_ONLY
 	if(!strstr(param, "pdc=1")) webman_config->combo|=DISACOBRA;
 
@@ -129,7 +131,7 @@ static void setup_parse_settings(char *param)
 #endif
 	if(strstr(param, "wmdn")) webman_config->wmdn=1;
 	if(strstr(param, "tid=1")) webman_config->tid=1;
-	if(!strstr(param, "sfo=1")) webman_config->nosfo=1;
+	if(!strstr(param, "sfo=1")) webman_config->use_filename=1;
 	if(strstr(param, "pl=1")) webman_config->poll=1;
 	if(strstr(param, "ft=1")) webman_config->ftpd=1;
 	if(strstr(param, "np=1")) webman_config->nopad=1;
@@ -148,15 +150,14 @@ static void setup_parse_settings(char *param)
 
 	webman_config->temp1=MY_TEMP;
 
-	char *pos; char mytemp[8];
+	char *pos; char value[8];
 
 	webman_config->minfan=DEFAULT_MIN_FANSPEED;
 	pos=strstr(param, "mfan=");
 	if(pos)
 	{
-		get_value(mytemp, pos + 5, 2);
-
-		webman_config->minfan=val(mytemp);
+		get_value(value, pos + 5, 2);
+		webman_config->minfan=val(value);
 	}
 	webman_config->minfan=RANGE(webman_config->minfan, MIN_FANSPEED, 99); //%
 
@@ -172,28 +173,24 @@ static void setup_parse_settings(char *param)
 	pos=strstr(param, "step=");
 	if(pos)
 	{
-
-		get_value(mytemp, pos + 5, 2);
-
-		webman_config->temp1=val(mytemp);
+		get_value(value, pos + 5, 2);
+		webman_config->temp1=val(value);
 	}
 	webman_config->temp1=RANGE(webman_config->temp1, 40, MAX_TEMPERATURE); //°C
 
 	pos=strstr(param, "fsp0=");
 	if(pos)
 	{
-		get_value(mytemp, pos + 5, 2);
-
-		webman_config->ps2temp=val(mytemp);
+		get_value(value, pos + 5, 2);
+		webman_config->ps2temp=val(value);
 	}
 	webman_config->ps2temp=RANGE(webman_config->ps2temp, 20, 99); //%
 
 	pos=strstr(param, "manu=");
 	if(pos)
 	{
-		get_value(mytemp, pos + 5, 2);
-
-		webman_config->manu=val(mytemp); // manual fan speed in %
+		get_value(value, pos + 5, 2);
+		webman_config->manu=val(value); // manual fan speed in %
 	}
 	webman_config->manu=RANGE(webman_config->manu, 20, 95); //%
 
@@ -247,6 +244,23 @@ static void setup_parse_settings(char *param)
 	spoof_idps_psid();
 #endif
 
+#ifdef VIDEO_REC
+	// set video format
+	pos=strstr(param, "vif=");
+	if(pos)
+	{
+		get_value(value, pos + 4, 4);
+		rec_video_format = webman_config->rec_video_format = convertH(value);
+	}
+	// set audio format
+	pos=strstr(param, "auf=");
+	if(pos)
+	{
+		get_value(value, pos + 4, 4);
+		rec_audio_format = webman_config->rec_audio_format = convertH(value);
+	}
+#endif
+
 	webman_config->lang=0; //English
 
 #ifndef ENGLISH_ONLY
@@ -254,7 +268,7 @@ static void setup_parse_settings(char *param)
 	else
 	for(uint8_t i=22; i>0; i--)
 	{
-		sprintf(mytemp, "&l=%i", i); if(strstr(param, mytemp)) {webman_config->lang=i; break;}
+		sprintf(value, "&l=%i", i); if(strstr(param, value)) {webman_config->lang=i; break;}
 	}
 
 	update_language();
@@ -399,7 +413,7 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 	//general settings
-	strcat(buffer, "</td></tr></table><hr color=\"#0099FF\"/>");
+	strcat(buffer, "</td></tr></table>" HTML_BLU_SEPARATOR);
 
 	add_check_box("lp", "1", STR_LPG    , _BR_, (webman_config->lastp), buffer);
 	add_check_box("ab", "1", STR_AUTOB  , _BR_, (webman_config->autob), buffer);
@@ -430,7 +444,7 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 	//game listing
-	strcat(buffer, "<hr color=\"#0099FF\"/>");
+	strcat(buffer, HTML_BLU_SEPARATOR);
 	add_check_box("ng" , "1", STR_NOGRP,     _BR_, (webman_config->nogrp), buffer);
 	add_check_box("ns" , "1", STR_NOSETUP,   _BR_, (webman_config->noset), buffer);
 	add_check_box("nc" , "1", STR_MMCOVERS, " • ", (webman_config->nocov), buffer);
@@ -442,7 +456,7 @@ static void setup_form(char *buffer, char *templn)
 	strcat(buffer, "</select><br>");
 
 	add_check_box("tid", "1", STR_TITLEID, " • ", (webman_config->tid),   buffer);
-	add_check_box("sfo", "1", "PARAM.SFO",  _BR_,!(webman_config->nosfo), buffer);
+	add_check_box("sfo", "1", "PARAM.SFO",  _BR_,!(webman_config->use_filename), buffer);
 
 	//game mounting
 #ifdef COBRA_ONLY
@@ -462,23 +476,23 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 	//fan control settings
-	strcat(buffer, "<hr color=\"#0099FF\"/><table width=\"900\" border=\"0\" cellspacing=\"2\" cellpadding=\"0\"><tr class=\"propfont\"><td>");
+	strcat(buffer, HTML_BLU_SEPARATOR "<table width=\"900\" border=\"0\" cellspacing=\"2\" cellpadding=\"0\"><tr class=\"propfont\"><td>");
 
 	add_check_box("fc"  , "1", STR_FANCTRL, " </td><td>", (webman_config->fanc), buffer);
 	add_check_box("warn", "1" , STR_NOWARN, " </td></tr>", (webman_config->warn), buffer);
 
 	strcat(buffer, "<tr class=\"propfont\"><td>");
 	add_radio_button("temp", "0", "t_0", STR_AUTOAT , " : ", (webman_config->temp0==0), buffer);
-	sprintf(templn, HTML_INPUT("step", "%i", "2", "3") " °C</td><td><label><input type=\"checkbox\"%s/> %s</label> : " HTML_INPUT("mfan", "%i", "2", "3") " %% %s </td></tr>", webman_config->temp1, (webman_config->fanc && webman_config->temp0==0)?ITEM_CHECKED:"", STR_LOWEST, webman_config->minfan, STR_FANSPEED); strcat(buffer, templn);
+	sprintf(templn, HTML_NUMBER("step", "%i", "2", "3", "40", "80") " °C</td><td><label><input type=\"checkbox\"%s/> %s</label> : " HTML_NUMBER("mfan", "%i", "2", "3", "20", "95") " %% %s </td></tr>", webman_config->temp1, (webman_config->fanc && webman_config->temp0==0)?ITEM_CHECKED:"", STR_LOWEST, webman_config->minfan, STR_FANSPEED); strcat(buffer, templn);
 
 	strcat(buffer, "<tr class=\"propfont\"><td>");
 	add_radio_button("temp", "1", "t_1", STR_MANUAL , " : ", (webman_config->temp0!=0), buffer);
-	sprintf(templn, HTML_INPUT("manu", "%i", "2", "3") " %% %s </td><td> %s : " HTML_INPUT("fsp0", "%i", "2", "3") " %% %s </td></tr></table>", (webman_config->manu), STR_FANSPEED, STR_PS2EMU, webman_config->ps2temp, STR_FANSPEED); strcat(buffer, templn);
+	sprintf(templn, HTML_NUMBER("manu", "%i", "2", "3", "20", "95") " %% %s </td><td> %s : " HTML_NUMBER("fsp0", "%i", "2", "3", "20", "99") " %% %s </td></tr></table>", (webman_config->manu), STR_FANSPEED, STR_PS2EMU, webman_config->ps2temp, STR_FANSPEED); strcat(buffer, templn);
 
 #ifdef COBRA_ONLY
  #ifndef LITE_EDITION
 	//ps3netsvr settings
-	strcat(buffer, "<hr color=\"#0099FF\"/>");
+	strcat(buffer, HTML_BLU_SEPARATOR);
 	add_check_box("nd0", "1", STR_LANGAMES,  " &nbsp; PS3NETSRV#1 IP:", (webman_config->netd0), buffer);
 	sprintf(templn, HTML_INPUT("neth0", "%s", "15", "16") ":" HTML_INPUT("netp0", "%i", "5", "6") "<br>", webman_config->neth0, webman_config->netp0); strcat(buffer, templn);
 	add_check_box("nd1", "1", STR_LANGAMES,  " &nbsp; PS3NETSRV#2 IP:", (webman_config->netd1), buffer);
@@ -489,14 +503,14 @@ static void setup_form(char *buffer, char *templn)
 #endif
 
 	//Wait for any USB device to be ready
-	sprintf(templn, "<hr color=\"#0099FF\"/><u> %s:</u><br>", STR_ANYUSB); strcat(buffer, templn);
+	sprintf(templn, HTML_BLU_SEPARATOR "<u> %s:</u><br>", STR_ANYUSB); strcat(buffer, templn);
 
 	add_radio_button("b", "0", "b_0", "0 sec" , _BR_, (webman_config->bootd==0), buffer);
 	add_radio_button("b", "5", "b_1", "5 sec" , _BR_, (webman_config->bootd==5), buffer);
 	add_radio_button("b", "9", "b_2", "10 sec", _BR_, (webman_config->bootd==9), buffer);
 
 	//Wait additionally for each selected USB device to be ready
-	sprintf(templn, "<hr color=\"#0099FF\"/><u> %s:</u><br>", STR_ADDUSB); strcat(buffer, templn);
+	sprintf(templn, HTML_BLU_SEPARATOR "<u> %s:</u><br>", STR_ADDUSB); strcat(buffer, templn);
 
 	add_radio_button("s", "0",  "s_0", "0 sec" , _BR_, (webman_config->boots==0), buffer);
 	add_radio_button("s", "3",  "s_1", "3 sec" , _BR_, (webman_config->boots==3), buffer);
@@ -505,7 +519,7 @@ static void setup_form(char *buffer, char *templn)
 
 #ifdef SPOOF_CONSOLEID
 	//Change idps and psid in lv2 memory at system startup
-	sprintf(templn, "<hr color=\"#0099FF\"/><u> %s:</u><br>", STR_SPOOFID); strcat(buffer, templn);
+	sprintf(templn, HTML_BLU_SEPARATOR "<u> %s:</u><br>", STR_SPOOFID); strcat(buffer, templn);
 
     if(!webman_config->vIDPS1[0] && !webman_config->vIDPS1[1]) {get_idps_psid(); sprintf(webman_config->vIDPS1, "%016llX", IDPS[0]); sprintf(webman_config->vIDPS2, "%016llX", IDPS[1]);}
     if(!webman_config->vPSID1[0] && !webman_config->vPSID1[1]) {get_idps_psid(); sprintf(webman_config->vPSID1, "%016llX", PSID[0]); sprintf(webman_config->vPSID2, "%016llX", PSID[1]);}
@@ -520,7 +534,7 @@ static void setup_form(char *buffer, char *templn)
 	sprintf(templn, HTML_INPUT("vPS2", "%s", "16", "22"), webman_config->vPSID2); strcat(buffer, templn);
     sprintf(templn, HTML_BUTTON_FMT "<br><br>", HTML_BUTTON, " ", "onclick=\"vPS1.value=vPS2.value=", "0000000000000000"); strcat(buffer, templn);
 #else
-	strcat(buffer, "<hr color=\"#0099FF\"/>");
+	strcat(buffer, HTML_BLU_SEPARATOR);
 #endif
 
 	//Home
@@ -534,7 +548,7 @@ static void setup_form(char *buffer, char *templn)
 	#endif
 	add_check_box("shh", "1", "Offline", _BR_, (webman_config->spp & 2), buffer);
 #endif
-	strcat(buffer, "<hr color=\"#0099FF\"/>");
+	strcat(buffer, HTML_BLU_SEPARATOR);
 
 	//default content profile
 	sprintf(templn, "%s : <select name=\"usr\">", STR_PROFILE); strcat(buffer, templn);
@@ -637,8 +651,29 @@ static void setup_form(char *buffer, char *templn)
 #endif
 #endif
 
+#ifdef VIDEO_REC
+	strcat(buffer, " • Rec Video: <select name=\"vif\">");
+	add_option_item("1110" , "AVC MP 272p" , (rec_video_format==0x1110) , buffer);
+	add_option_item("2110" , "AVC BL 272p" , (rec_video_format==0x2110) , buffer);
+	add_option_item("0000" , "MPEG4 240p"  , (rec_video_format==0x0000) , buffer);
+	add_option_item("0110" , "MPEG4 272p"  , (rec_video_format==0x0110) , buffer);
+	add_option_item("0240" , "MPEG4 368p"  , (rec_video_format==0x0240) , buffer);
+	add_option_item("3160" , "M4HD  272p"  , (rec_video_format==0x3160) , buffer);
+	add_option_item("3270" , "M4HD  368p"  , (rec_video_format==0x3270) , buffer);
+	add_option_item("4660" , "M4HD  720p"  , (rec_video_format==0x4660) , buffer);
+	add_option_item("3670" , "MJPEG 720p"  , (rec_video_format==0x3670) , buffer);
+	strcat(buffer, "</select> • Audio: <select name=\"auf\">");
+	add_option_item("0002" , "AAC 64K"   , (rec_audio_format==0x0002) , buffer);
+	add_option_item("0000" , "AAC 96K"   , (rec_audio_format==0x0000) , buffer);
+	add_option_item("0001" , "AAC 128K"  , (rec_audio_format==0x0001) , buffer);
+	add_option_item("2007" , "PCM 384K"  , (rec_audio_format==0x2007) , buffer);
+	add_option_item("2008" , "PCM 768K"  , (rec_audio_format==0x2008) , buffer);
+	add_option_item("2009" , "PCM 1536K" , (rec_audio_format==0x2009) , buffer);
+	strcat(buffer, "</select>");
+#endif
+
 	//combos
-	sprintf(templn, "<hr color=\"#0099FF\"/><b><u> %s :</u></b><br><table width=\"800\" border=\"0\" cellspacing=\"2\" cellpadding=\"0\"><tr><td nowrap valign=top>", STR_COMBOS2); strcat(buffer, templn);
+	sprintf(templn, HTML_BLU_SEPARATOR "<b><u> %s :</u></b><br><table width=\"800\" border=\"0\" cellspacing=\"2\" cellpadding=\"0\"><tr><td nowrap valign=top>", STR_COMBOS2); strcat(buffer, templn);
 
 	add_check_box("pfs", "1", STR_FAILSAFE,   " : <b>SELECT+L3+L2+R2</b><br>"  , !(webman_config->combo & FAIL_SAFE), buffer);
 	add_check_box("pss", "1", STR_SHOWTEMP,   " : <b>SELECT+START</b><br>"     , !(webman_config->combo & SHOW_TEMP), buffer);
@@ -679,7 +714,8 @@ static void setup_form(char *buffer, char *templn)
 	add_check_box("pf1", "1", STR_FANCTRL2,   " : <b>SELECT+"                  , !(webman_config->combo & MANUALFAN), buffer); sprintf(templn, "%s</b><br>", STR_UPDN); strcat(buffer, templn);
 	add_check_box("pf2", "1", STR_FANCTRL5,   " : <b>SELECT+"                  , !(webman_config->combo & MINDYNFAN), buffer); sprintf(templn, "%s</b><br>", STR_LFRG); strcat(buffer, templn);
 #ifdef REMOVE_SYSCALLS
-	add_check_box("psc", "1", STR_DELCFWSYS2, " : <b>R2+&#8710;</b><br>"       , !(webman_config->combo & DISABLESH), buffer);
+	add_check_box("psc", "1", STR_DELCFWSYS2, " : <b>R2+&#8710;</b> &nbsp; ("  , !(webman_config->combo & DISABLESH), buffer);
+	add_check_box("kcc", "1", "CCAPI)", _BR_, !(webman_config->keep_ccapi), buffer);
 #endif
 #ifdef COBRA_ONLY
 	add_check_box("pdc", "1", STR_DISCOBRA,   " : <b>L3+L2+&#8710;</b><br>"    , !(webman_config->combo & DISACOBRA), buffer);
@@ -713,6 +749,7 @@ static void setup_form(char *buffer, char *templn)
 
 		strcat(buffer, "<div style=\"display:none\"><datalist id=\"cmds\">");
 		strcat(buffer, "<option>GET /browser.ps3$block_servers</option>");
+		strcat(buffer, "<option>GET /browser.ps3$disable_syscalls?keep_ccapi</option>");
 #ifdef XMB_SCREENSHOT
 		strcat(buffer, "<option>GET /browser.ps3$screenshot_xmb</option>");
 #endif
@@ -722,10 +759,10 @@ static void setup_form(char *buffer, char *templn)
 	}
 #endif
 
-	sprintf(templn, "<hr color=\"#FF0000\"/><input type=\"submit\" value=\" %s \"/>"
+	sprintf(templn, HTML_RED_SEPARATOR "<input type=\"submit\" value=\" %s \"/>"
 					"</form>", STR_SAVE); strcat(buffer, templn);
 
-	strcat(buffer,  "<hr color=\"#FF0000\"/>"
+	strcat(buffer,  HTML_RED_SEPARATOR
 					"<a href=\"http://github.com/Matsumot0/webMAN-MOD/releases\">webMAN-MOD - Latest version of webMAN-MOD on Github</a><br>"
 					"<a href=\"http://www.psx-place.com/forum/showthread.php?t=27\">webMAN-MOD - Main thread of webMAN-MOD on Psx-place</a><br>");
 
@@ -844,45 +881,53 @@ static void reset_settings()
 	webman_config->combo=DISACOBRA; //disable combo for cobra toggle
 	webman_config->combo2|=(REBUGMODE|NORMAMODE|DEBUGMENU|PS2SWITCH|VIDRECORD); //disable combos for rebug/ps2 switch/video record
 
+	//webman_config->rec_video_format = CELL_REC_PARAM_VIDEO_FMT_MPEG4_SMALL_512K_30FPS;
+	//webman_config->rec_audio_format = CELL_REC_PARAM_AUDIO_FMT_AAC_96K;
+
+	// default first user account
 	char upath[24];
-	struct CellFsStat buf;
 	sprintf(webman_config->uaccount, "%08i", 1);
 	for(u8 acc=1; acc<100; acc++)
 	{
 		sprintf(upath, "%s/%08i", "/dev_hdd0/home", acc);
-		if(cellFsStat(upath, &buf)==CELL_FS_SUCCEEDED) {sprintf(webman_config->uaccount, "%08i", acc); break;}
+		if(file_exists(upath)) {sprintf(webman_config->uaccount, "%08i", acc); break;}
 	}
 
+	// set default language
 #ifndef ENGLISH_ONLY
 	get_system_language(&webman_config->lang);
 #else
 	webman_config->lang=0; // english
 #endif
 
-	strcpy(webman_config->autoboot_path, DEFAULT_AUTOBOOT_PATH);
-
+	// set default language
+	struct CellFsStat buf;
 	int fdwm=0; cellFsStat(WMCONFIG, &buf);
 
+	// read current settings
 	for(u8 n=0;n<10;n++)
 	{
 		if(cellFsOpen(WMCONFIG, CELL_FS_O_RDONLY, &fdwm, NULL, 0) == CELL_FS_SUCCEEDED)
 		{
 			cellFsRead(fdwm, (void *)wmconfig, MIN(buf.st_size, sizeof(WebmanCfg)), NULL);
 			cellFsClose(fdwm);
-
-#ifndef COBRA_ONLY
-		webman_config->spp=0; //disable removal of syscalls on nonCobra
-#endif
 			break;
 		}
-	    sys_timer_usleep(500000);
-		save_settings();
+		sys_timer_usleep(500000);
 	}
 
+#ifndef COBRA_ONLY
+	webman_config->spp=0; //disable removal of syscalls on nonCobra
+#endif
+
+	// set default autoboot path
 	if(strlen(webman_config->autoboot_path)==0) strcpy(webman_config->autoboot_path, DEFAULT_AUTOBOOT_PATH);
 
 	if(webman_config->warn>1) webman_config->warn=0;
 	webman_config->minfan=RANGE(webman_config->minfan, MIN_FANSPEED, 99);
+
+	// settings
+	save_settings();
 
 	profile=webman_config->profile;
 }

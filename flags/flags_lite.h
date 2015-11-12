@@ -10,15 +10,15 @@
 #define LITE_EDITION	1	// no ps3netsrv support, smaller memory footprint
 
 //// FEATURES ////
-#define FIX_GAME		1	// Auto-Fix game
+//#define FIX_GAME		1	// Auto-Fix game
 #define EXT_GDATA		1	// /extgd.ps3?status /extgd.ps3?enable /extgd.ps3?disable (external gameDATA)
 //#define COPY_PS3		1	// /copy.ps3/<path>
 //#define DEBUG_MEM		1	// /dump.ps3 / peek.lv1 / poke.lv1 / find.lv1 / peek.lv2 / poke.lv2 / find.lv2
 //#define VIDEO_REC		1	// /videorec.ps3  start/stop video recording (in-game only)
 //#define LOAD_PRX		1	// /loadprx.ps3?slot=n&prx=path/file.sprx  (load prx)
-#define FAKEISO 		1	// support .ntfs[BDFILE] (fake ISO)
+//#define FAKEISO 		1	// support .ntfs[BDFILE] (fake ISO)
 //#define BDVD_REGION	1	// change BD/DVD region
-//#define REMOVE_SYSCALLS	1	// remove syscalls on startup and using R2+TRIANGLE
+#define REMOVE_SYSCALLS	1	// remove syscalls on startup and using R2+TRIANGLE
 //#define SPOOF_CONSOLEID	1	// spoof idps/psid
 //#define VIRTUAL_PAD	1	// virtual pad
 //#define WM_REQUEST	1	// accept commands via local file /dev_hdd0/tmp/wm_request  (required by VSH Menu for webMAN)  (required by VSH Menu for webMAN)

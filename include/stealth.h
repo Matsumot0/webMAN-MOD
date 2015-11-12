@@ -1,10 +1,19 @@
+#define SYSCALLS_UNAVAILABLE    0xFFFFFFFF80010003ULL
+
 u64 blocked_url[64][2]; u8 url_count = 0;
 
 #ifdef REMOVE_SYSCALLS
 
-u64 sc_backup[6];
-
 #ifdef PS3MAPI
+
+u64 sc_backup[13];
+
+static void backup_cfw_syscalls(void)
+{
+	for(u8 sc = 0; sc < 13; sc++)
+		sc_backup[sc] = peekq( SYSCALL_PTR(sc_disable[sc]) );
+}
+
 static void restore_cfw_syscalls(void)
 {
 	if(!syscalls_removed) return;
@@ -13,12 +22,8 @@ static void restore_cfw_syscalls(void)
 
 	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PDISABLE_SYSCALL8, 0); }
 
-	pokeq(SYSCALL_PTR( 6), sc_backup[0]);
-	pokeq(SYSCALL_PTR( 7), sc_backup[1]);
-	pokeq(SYSCALL_PTR(10), sc_backup[2]);
-	pokeq(SYSCALL_PTR(11), sc_backup[3]);
-	pokeq(SYSCALL_PTR(35), sc_backup[4]);
-	pokeq(SYSCALL_PTR( 9), sc_backup[5]);
+	for(u8 sc = 0; sc < 13; sc++)
+		pokeq( SYSCALL_PTR(sc_disable[sc]), sc_backup[sc] );
 
 	ps3mapi_key = 0;
 	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
@@ -27,7 +32,29 @@ static void restore_cfw_syscalls(void)
 }
 #endif
 
-static void remove_cfw_syscalls(void)
+static void remove_cfw_syscall8(void)
+{
+	if(!SYSCALL_TABLE) return;
+
+	#ifdef COBRA_ONLY
+	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
+	#endif
+
+	u64 sc_null = peekq(SYSCALL_TABLE), toc = peekq(TOC);
+
+	// disable syscall 8 only if syscalls were disabled
+	if(syscalls_removed || toc == SYSCALLS_UNAVAILABLE || toc == sc_null)
+	{
+		#ifdef COBRA_ONLY
+		{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PDISABLE_SYSCALL8, 0); }
+	    { system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, SC_COBRA_SYSCALL8); }
+		#endif
+
+		pokeq(SYSCALL_PTR( SC_COBRA_SYSCALL8 ), sc_null);
+	}
+}
+
+static void remove_cfw_syscalls(bool keep_ccapi)
 {
 	detect_firmware();
 
@@ -40,35 +67,20 @@ static void remove_cfw_syscalls(void)
 	// restore blocked servers
 	if(View_Find("game_plugin")==0) {for(u8 u = 0; u<url_count; u++) poke_lv1(blocked_url[u][0], blocked_url[u][1]); url_count = 0;}
 
+	u32 initial_sc = keep_ccapi ? 4 : 0;
+
 	#ifdef COBRA_ONLY
-  //{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 8); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 9); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 10); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 11); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 35); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 36); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 38); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 6); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, 7); }
-	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PDISABLE_SYSCALL8, 1); }//Partial disable syscall8 (Keep cobra/mamba+ps3mapi features only)
+	for(u8 sc = initial_sc; sc < 13; sc++)
+	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_DISABLE_SYSCALL, (u64)sc_disable[sc]); }
+	{ system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_PDISABLE_SYSCALL8, 1); } // Partial disable syscall8 (Keep cobra/mamba+ps3mapi features only)
 	#endif
 
-	pokeq(SYSCALL_PTR( 6), sc_null); // lv2 peek
-	pokeq(SYSCALL_PTR( 7), sc_null); // lv2 poke
-	pokeq(SYSCALL_PTR(10), sc_null); // lv2_lv1_call rebug
-	pokeq(SYSCALL_PTR(11), sc_null); // lv1 peek Hermes
-	pokeq(SYSCALL_PTR(35), sc_null); // Remapper PL3
-	pokeq(SYSCALL_PTR(36), sc_null); // Remapper
-	pokeq(SYSCALL_PTR(37), sc_null);
-	pokeq(SYSCALL_PTR(38), sc_null); // new sk1e syscall
-	#ifndef COBRA_ONLY
-	pokeq(SYSCALL_PTR( 8), sc_null); // lv1 peek / cobra syscall
-	#endif
-	pokeq(SYSCALL_PTR( 9), sc_null); // lv1 poke
+	for(u8 sc = initial_sc; sc < 14; sc++)
+		pokeq(SYSCALL_PTR( sc_disable[sc] ), sc_null);
 
 	u64 sc9  = peekq(SYSCALL_PTR( 9));
 
-	bool status = (peekq(0x8000000000003000ULL) == SYSCALLS_UNAVAILABLE || sc9 == sc_null);
+	bool status = (sc9 == SYSCALLS_UNAVAILABLE || sc9 == sc_null);
 
 	#ifdef COBRA_ONLY
 	if(status && !syscalls_removed)
@@ -81,7 +93,7 @@ static void remove_cfw_syscalls(void)
 	syscalls_removed = status;
 }
 
-static void disable_cfw_syscalls(void)
+static void disable_cfw_syscalls(bool keep_ccapi)
 {
 	if(syscalls_removed)
 	{
@@ -92,7 +104,7 @@ static void disable_cfw_syscalls(void)
 	else
 	{
 		show_msg((char*)STR_CFWSYSRIP);
-		remove_cfw_syscalls();
+		remove_cfw_syscalls(keep_ccapi);
 		delete_history(true);
 
 		if(syscalls_removed)

@@ -8,7 +8,6 @@ uint64_t psid_offset=0;
 uint64_t IDPS[2] = {0, 0};
 uint64_t PSID[2] = {0, 0};
 
-static void get_idps_psid(void);
 static void get_idps_psid(void)
 {
 	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
@@ -18,7 +17,7 @@ static void get_idps_psid(void)
 		{system_call_1(SC_GET_IDPS, (uint64_t) IDPS);}
 		{system_call_1(SC_GET_PSID, (uint64_t) PSID);}
 	}
-	else if(peekq(0x8000000000003000ULL)==SYSCALLS_UNAVAILABLE)
+	else if(peekq(TOC)==SYSCALLS_UNAVAILABLE)
 		return; // do not update IDPS/PSID if syscalls are removed
 	else if(idps_offset2 | psid_offset)
 	{
@@ -32,7 +31,6 @@ static void get_idps_psid(void)
 }
 
 #ifdef SPOOF_CONSOLEID
-static void spoof_idps_psid(void);
 static void spoof_idps_psid(void)
 {
 	{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }

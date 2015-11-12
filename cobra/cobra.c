@@ -105,7 +105,7 @@ typedef struct
 // storage.h inline functions merged
 static int sys_storage_ext_get_emu_state(sys_emu_state_t *state)
 {
-	system_call_2(8, SYSCALL8_OPCODE_GET_EMU_STATE, (uint64_t)(uint32_t)state);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_EMU_STATE, (uint64_t)(uint32_t)state);
 	return (int)p1;
 }
 
@@ -117,43 +117,43 @@ static int sys_ss_disc_auth(uint64_t func, uint64_t param)
 
 static int sys_storage_ext_mount_ps3_discfile(unsigned int filescount, char *files[])
 {
-	system_call_3(8, SYSCALL8_OPCODE_MOUNT_PS3_DISCFILE, filescount, (uint64_t)(uint32_t)files);
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_PS3_DISCFILE, filescount, (uint64_t)(uint32_t)files);
 	return (int)p1;
 }
 
 static int sys_storage_ext_mount_dvd_discfile(unsigned int filescount, char *files[])
 {
-	system_call_3(8, SYSCALL8_OPCODE_MOUNT_DVD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_DVD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
 	return (int)p1;
 }
 
 static int sys_storage_ext_mount_bd_discfile(unsigned int filescount, char *files[])
 {
-	system_call_3(8, SYSCALL8_OPCODE_MOUNT_BD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_BD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
 	return (int)p1;
 }
 
 static int sys_storage_ext_mount_psx_discfile(char *file, unsigned int trackscount, ScsiTrackDescriptor *tracks)
 {
-	system_call_4(8, SYSCALL8_OPCODE_MOUNT_PSX_DISCFILE, (uint64_t)(uint32_t)file, trackscount, (uint64_t)(uint32_t)tracks);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_PSX_DISCFILE, (uint64_t)(uint32_t)file, trackscount, (uint64_t)(uint32_t)tracks);
 	return (int)p1;
 }
 
 static int sys_storage_ext_mount_ps2_discfile(unsigned int filescount, char *files[], unsigned int trackscount, ScsiTrackDescriptor *tracks)
 {
-	system_call_5(8, SYSCALL8_OPCODE_MOUNT_PS2_DISCFILE, filescount, (uint64_t)(uint32_t)files, trackscount, (uint64_t)(uint32_t)tracks);
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_PS2_DISCFILE, filescount, (uint64_t)(uint32_t)files, trackscount, (uint64_t)(uint32_t)tracks);
 	return (int)p1;
 }
 
 static int sys_map_paths(char *paths[], char *new_paths[], unsigned int num)
 {
-	system_call_4(8, SYSCALL8_OPCODE_MAP_PATHS, (uint64_t)(uint32_t)paths, (uint64_t)(uint32_t)new_paths, num);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MAP_PATHS, (uint64_t)(uint32_t)paths, (uint64_t)(uint32_t)new_paths, num);
 	return (int)p1;
 }
 
 static int sys_storage_ext_mount_encrypted_image(char *image, char *mount_point, char *filesystem, uint64_t nonce)
 {
-	system_call_5(8, SYSCALL8_OPCODE_MOUNT_ENCRYPTED_IMAGE, (uint64_t)(uint32_t)image, (uint64_t)(uint32_t)mount_point, (uint64_t)(uint32_t)filesystem, nonce);
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_ENCRYPTED_IMAGE, (uint64_t)(uint32_t)image, (uint64_t)(uint32_t)mount_point, (uint64_t)(uint32_t)filesystem, nonce);
 	return (int)p1;
 }
 
@@ -598,26 +598,26 @@ static int sys_get_hw_config(uint8_t *ret, uint8_t *config)
 /*
 static int sys_get_version(uint32_t *version)
 {
-	system_call_2(8, SYSCALL8_OPCODE_GET_VERSION, (uint64_t)(uint32_t)version);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_VERSION, (uint64_t)(uint32_t)version);
 	return (int)p1;
 }
 
 static int sys_get_version2(uint16_t *version)
 {
-	system_call_2(8, SYSCALL8_OPCODE_GET_VERSION2, (uint64_t)(uint32_t)version);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_VERSION2, (uint64_t)(uint32_t)version);
 	return (int)p1;
 }
 */
 static int sys_read_cobra_config(CobraConfig *cfg)
 {
 	cfg->size = sizeof(CobraConfig);
-	system_call_2(8, SYSCALL8_OPCODE_READ_COBRA_CONFIG, (uint64_t)(uint32_t)cfg);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_READ_COBRA_CONFIG, (uint64_t)(uint32_t)cfg);
 	return (int)p1;
 }
 
 static int sys_write_cobra_config(CobraConfig *cfg)
 {
-	system_call_2(8, SYSCALL8_OPCODE_WRITE_COBRA_CONFIG, (uint64_t)(uint32_t)cfg);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_WRITE_COBRA_CONFIG, (uint64_t)(uint32_t)cfg);
 	return (int)p1;
 }
 
@@ -707,19 +707,19 @@ static int parse_param_sfo(char *file, const char *field, char *title_name)
 /*
 static int sys_permissions_get_access(void)
 {
-	system_call_1(8, SYSCALL8_OPCODE_GET_ACCESS);
+	system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_ACCESS);
 	return (int)p1;
 }
 
 static int sys_permissions_remove_access(void)
 {
-	system_call_1(8, SYSCALL8_OPCODE_REMOVE_ACCESS);
+	system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_REMOVE_ACCESS);
 	return (int)p1;
 }
 
 static int cobra_usb_command(uint8_t command, int requestType, uint32_t addr, void *buf, uint16_t size)
 {
-	system_call_6(8, SYSCALL8_OPCODE_COBRA_USB_COMMAND, command, requestType, addr, (uint64_t)(uint32_t)buf, size);
+	system_call_6(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_COBRA_USB_COMMAND, command, requestType, addr, (uint64_t)(uint32_t)buf, size);
 	return (int)p1;
 }
 
@@ -1546,7 +1546,7 @@ int cobra_set_psp_umd(char *path, char *umd_root, char *icon_save_path)
 	if (!path || !icon_save_path)
 		return EINVAL;
 
-	if (cellFsStat(PSPL_ICON, &stat) != 0)
+	if (cellFsStat(PSPL_ICON, &stat) != CELL_FS_SUCCEEDED)
 	{
 		return EABORT;
 	}
@@ -1610,7 +1610,7 @@ int cobra_set_psp_umd(char *path, char *umd_root, char *icon_save_path)
 		{
 			CellFsStat stat;
 
-			if (cellFsStat("/dev_bdvd", &stat) == 0)
+			if (cellFsStat("/dev_bdvd", &stat) == CELL_FS_SUCCEEDED)
 			{
 				break;
 			}
@@ -1645,7 +1645,7 @@ int cobra_set_psp_umd(char *path, char *umd_root, char *icon_save_path)
 		sys_map_path((char *)PSPL_ICON, icon_save_path);
 		snprintf(umd_file, sizeof(umd_file), "%s/PSP_GAME/SYSDIR/prometheus.prx", root);
 
-		if (cellFsStat(umd_file, &stat) != 0)
+		if (cellFsStat(umd_file, &stat) != CELL_FS_SUCCEEDED)
 		{
 			snprintf(umd_file, sizeof(umd_file), "%s/PSP_GAME/SYSDIR/EBOOT.BIN", root);
 
@@ -1810,12 +1810,12 @@ int cobra_set_psp_umd2(char *path, char *umd_root, char *icon_save_path, uint64_
 	if (!path || !icon_save_path)
 		return EINVAL;
 
-	if (cellFsStat(PSPL_ICON, &stat) != 0)
+	if (cellFsStat(PSPL_ICON, &stat) != CELL_FS_SUCCEEDED)
 	{
 		return EABORT;
 	}
 
-	if (cellFsStat(PSPL_LAMBDA, &stat) != 0)
+	if (cellFsStat(PSPL_LAMBDA, &stat) != CELL_FS_SUCCEEDED)
 	{
 		return ESYSVER;
 	}
@@ -1879,7 +1879,7 @@ int cobra_set_psp_umd2(char *path, char *umd_root, char *icon_save_path, uint64_
 		{
 			CellFsStat stat;
 
-			if (cellFsStat("/dev_bdvd", &stat) == 0)
+			if (cellFsStat("/dev_bdvd", &stat) == CELL_FS_SUCCEEDED)
 			{
 				break;
 			}
@@ -1914,7 +1914,7 @@ int cobra_set_psp_umd2(char *path, char *umd_root, char *icon_save_path, uint64_
 		sys_map_path((char *)PSPL_ICON, icon_save_path);
 		snprintf(umd_file, sizeof(umd_file), "%s/PSP_GAME/SYSDIR/EBOOT.OLD", root);
 
-		if (cellFsStat(umd_file, &stat) != 0)
+		if (cellFsStat(umd_file, &stat) != CELL_FS_SUCCEEDED)
 		{
 			snprintf(umd_file, sizeof(umd_file), "%s/PSP_GAME/SYSDIR/EBOOT.BIN", root);
 		}
@@ -2262,19 +2262,19 @@ int cobra_build_netiso_params(void *param_buf, char *server, uint16_t port, char
 
 int sys_get_version2(uint16_t *version)
 {
-	system_call_2(8, SYSCALL8_OPCODE_GET_VERSION2, (uint64_t)(uint32_t)version);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_VERSION2, (uint64_t)(uint32_t)version);
 	return (int)p1;
 }
 
 int cobra_load_vsh_plugin(unsigned int slot, char *path, void *arg, uint32_t arg_size)
 {
-	system_call_5(8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, slot, (uint64_t)(uint32_t)path, (uint64_t)(uint32_t)arg, arg_size);
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, slot, (uint64_t)(uint32_t)path, (uint64_t)(uint32_t)arg, arg_size);
 	return (int)p1;
 }
 
 int cobra_unload_vsh_plugin(unsigned int slot)
 {
-	system_call_2(8, SYSCALL8_OPCODE_UNLOAD_VSH_PLUGIN, slot);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_UNLOAD_VSH_PLUGIN, slot);
 	return (int)p1;
 }
 

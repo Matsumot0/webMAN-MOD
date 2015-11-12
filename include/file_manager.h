@@ -11,7 +11,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 
 	urlenc(tempstr, templn, 1); strncpy(templn, tempstr, MAX_LINE_LEN);
 
-	if(is_net) {strcpy(tempstr, name); htmlenc(name, tempstr, 0);} else strcpy(tempstr, name);
+	{strcpy(tempstr, name); htmlenc(name, tempstr, 0);}
 
 	flen=strlen(name);
 
@@ -32,14 +32,18 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 		else if(show_play && isDir("/dev_bdvd/AVCHD"))
 			sprintf(fsize, "<a href=\"play.ps3\">&lt;%s></a>", "AVCHD");
 #ifdef FIX_GAME
-		else if(flen == 9 && strstr(templn, "/dev_hdd0/game/"))
+		else if(flen == 9 && strstr(templn, HDD0_GAME_DIR))
 			sprintf(fsize, "<a href=\"/fixgame.ps3%s\">%s</a>", templn, HTML_DIR);
-#endif //#ifdef FIX_GAME
+#endif
+#ifdef COPY_PS3
+		else if(!is_net && ( (flen = 5 && (strcasestr(name, "VIDEO") || strcasestr(name, "music"))) || (flen = 6 && strcasestr(name, "covers")) || strstr(name, "savedata") || strstr(name, "exdata") || strstr(name, "home") ))
+			sprintf(fsize, "<a href=\"/copy.ps3%s\" title=\"copy to %s\">%s</a>", templn, strstr(templn, "/dev_hdd0") ? "/dev_usb000" : "/dev_hdd0", HTML_DIR);
+#endif
 		else
 		if(strlen(templn)<=11 && strstr(templn, "/dev_"))
 		{
 			uint64_t freeSize, devSize;
-			system_call_3(SC_FS_DISK_FREE, (uint64_t *)templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
+			system_call_3(SC_FS_DISK_FREE, (uint64_t)templn, (uint64_t)&devSize,  (uint64_t)&freeSize);
 
 			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'llu %s (%'llu %s)\">%'8llu %s</a>", templn, (unsigned long long)((devSize)>>20), STR_MEGABYTE, devSize, STR_BYTE, (unsigned long long)((freeSize)>>20), STR_MEGABYTE);
 		}
@@ -48,7 +52,7 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 			sprintf(fsize, "<a href=\"/mount%s%s\">%s</a>", strstr(name, "[PS2")?".ps2":".ps3", templn, HTML_DIR);
 #else
 			sprintf(fsize, "<a href=\"/mount.ps3%s\">%s</a>", templn, HTML_DIR);
-#endif //#ifdef PS2_DISC
+#endif
 	}
 
 
@@ -60,16 +64,22 @@ static void add_list_entry(char *tempstr, bool is_dir, char *ename, char *templn
 		else
 			sprintf(fsize, "<a href=\"/mount.ps3%s\" title=\"%'llu %s\">%'llu %s</a>", templn, sbytes, STR_BYTE, sz, sf);
 	}
-#endif //#ifdef COBRA_ONLY
+#endif
 
 
 #ifdef COPY_PS3
+	else if(!is_net && (
+			   !extcmp(name, ".pkg", 4) || !extcmp(name, ".edat", 5) || !extcmp(name, ".p3t", 4)
+			|| !extcmp(name, ".rco", 4) || !extcmp(name, ".qrc", 4)  || !memcmp(name, "coldboot", 8)
+			|| !memcmp(name, "webftp_server", 13) || !memcmp(name, "boot_plugins_", 13)
+			|| strcasestr(name, ".jpg") || strcasestr(name, ".png") || strstr(name, ".bmp")
+			|| strcasestr(name, ".mp4") || strcasestr(name, ".mkv") || strcasestr(name, ".avi")
+			|| strcasestr(name, ".mp3")
  #ifdef SWAP_KERNEL
-	else if(!is_net && ( !extcmp(name, ".pkg", 4) || !extcmp(name, ".edat", 5) || !extcmp(name, ".p3t", 4) || !memcmp(name, "webftp_server", 13) || !memcmp(name, "boot_plugins_", 13) || !memcmp(name, "lv2_kernel", 10) ))
- #else
-	else if(!is_net && ( !extcmp(name, ".pkg", 4) || !extcmp(name, ".edat", 5) || !extcmp(name, ".p3t", 4) || !memcmp(name, "webftp_server", 13) || !memcmp(name, "boot_plugins_", 13) ))
+			|| !memcmp(name, "lv2_kernel", 10)
  #endif
-		sprintf(fsize, "<a href=\"/copy.ps3%s\" title=\"%'llu %s\">%'llu %s</a>", templn, sbytes, STR_BYTE, sz, sf);
+			))
+    		sprintf(fsize, "<a href=\"/copy.ps3%s\" title=\"%'llu %s copy to %s\">%'llu %s</a>", templn, sbytes, STR_BYTE, strstr(templn, "/dev_hdd0") ? "/dev_usb000" : "/dev_hdd0", sz, sf);
 #endif //#ifdef COPY_PS3
 
 
@@ -178,17 +188,26 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 			swap[tlen]=0;
 
 			strcat(buffer, "<a class=\"f\" href=\"");
-			strcat(buffer, swap);
+			urlenc(fsize, swap, 0);
+			strcat(buffer, fsize);
 
+			htmlenc(fsize, templn, 1);
 			sprintf(swap, "\">%s</a>/", templn);
 			strcat(buffer, swap);
+
 			strcpy(templn, param+tlen);
 		}
 
-		if(!templn[1]) sprintf(swap, "/"); else sprintf(swap, "<a href=\"/mount.ps3%s\">%s</a>", param, templn); strcat(buffer, swap);
+		if(!param[1]) sprintf(swap, "/"); else {urlenc(line_entry[0].path, param, 0); htmlenc(line_entry[1].path, templn, 0); sprintf(swap, "<a href=\"/mount.ps3%s\">%s</a>", line_entry[0].path, line_entry[1].path);} strcat(buffer, swap);
 		////
 
-        strcat(buffer, ":</td><td width=90>&nbsp;</td><td></td></tr>");
+		if((param[7]=='v' || param[7]=='m') && View_Find("game_plugin")==0 && (isDir("/dev_bdvd/PS3_GAME") || file_exists("/dev_bdvd/SYSTEM.CNF") || isDir("/dev_bdvd/BDMV") || isDir("/dev_bdvd/VIDEO_TS") || isDir("/dev_bdvd/AVCHD")))
+			strcat(buffer, ":</td><td width=90><a href=\"/play.ps3\">&lt;Play>&nbsp;</a>");
+		else
+			strcat(buffer, ":</td><td width=90>&nbsp;");
+
+		strcat(buffer, "</td><td></td></tr>");
+
 		tlen=0;
 
  #ifdef COBRA_ONLY
@@ -207,7 +226,9 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 				{
 					strcpy(templn, param); if(templn[strlen(templn)-1]=='/') templn[strlen(templn)-1]=0;
 					if(strrchr(templn, '/')) templn[strrchr(templn, '/')-templn]=0; if(strlen(templn)<6 && strlen(param)<8) {templn[0]='/'; templn[1]=0;}
-					sprintf(tempstr, "!00000<tr><td><a class=\"f\" href=\"%s\">..</a></td><td> <a href=\"%s\">%s</a> &nbsp; </td><td>11-Nov-2006 11:11</td></tr>", templn, templn, HTML_DIR);
+
+					urlenc(swap, templn, 0);
+					sprintf(tempstr, "!00000<tr><td><a class=\"f\" href=\"%s\">..</a></td><td> <a href=\"%s\">%s</a> &nbsp; </td><td>11-Nov-2006 11:11</td></tr>", swap, swap, HTML_DIR);
 
 					if(strlen(tempstr)>MAX_LINE_LEN) return false; //ignore lines too long
 					strncpy(line_entry[idx].path, tempstr, LINELEN); idx++; dirs++;
@@ -369,6 +390,57 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 
 		if(strlen(param)>4)
 		{
+			///////////
+			bool show_icon = false;
+
+			if(is_net && strstr(param, "/GAMES/"))
+			{
+				char *p = strchr(param + 12, '/'); if(p) p[0]=0; sprintf(templn, "%s/PS3_GAME/ICON0.PNG", param); show_icon = true;
+			}
+
+			if(!show_icon)
+			{
+				sprintf(templn, "%s/ICON0.PNG", param); show_icon = file_exists(templn);                    // current folder
+				if(!show_icon) sprintf(templn, "%s/ICON2.PNG", param); show_icon = file_exists(templn);     // ps3_extra folder
+				if(!show_icon)
+				{
+					char *p = strchr(param + 18, '/'); if(p) p[0]=0;
+					sprintf(templn, "%s/PS3_GAME/ICON0.PNG", param); show_icon = file_exists(templn);       // dev_bdvd or jb folder
+					if(!show_icon) sprintf(templn, "%s/ICON0.PNG", param); show_icon = file_exists(templn); // game dir
+				}
+			}
+
+			unsigned int real_disctype, effective_disctype = 1, iso_disctype;
+			if(!show_icon && strstr(param, "/dev_bdvd"))
+			{
+#if COBRA_ONLY
+				cobra_get_disc_type(&real_disctype, &effective_disctype, &iso_disctype);
+				if(iso_disctype==DISC_TYPE_PSX_CD) sprintf(templn, "%s", wm_icons[6]); else
+				if(iso_disctype==DISC_TYPE_PS2_DVD || iso_disctype==DISC_TYPE_PS2_CD) sprintf(templn, "%s", wm_icons[7]); else
+				if(iso_disctype==DISC_TYPE_DVD) sprintf(templn, "%s", wm_icons[9]); else
+#endif
+				sprintf(templn, "%s", wm_icons[5]); show_icon = true;
+			}
+
+			if(show_icon)
+				{for(u16 m=idx;m<7;m++) {strcat(buffer, "<BR>");} urlenc(swap, templn, 0); sprintf(templn, "<img src=\"%s\" style=\"position:absolute;top:118px;right:10px;z-index:-1\" onerror=\"this.style.display='none';\">", swap); strcat(buffer, templn);}
+			///////////
+
+			memset(tempstr, 0, MAX_PATH_LEN);
+			if(effective_disctype != DISC_TYPE_NONE && !strcmp(param, "/dev_bdvd") && file_exists(WMTMP "/last_game.txt"))
+			{
+				int fd=0;
+
+				if(cellFsOpen(WMTMP "/last_game.txt", CELL_FS_O_RDONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+				{
+					cellFsRead(fd, (void *)tempstr, MAX_PATH_LEN, NULL);
+					cellFsClose(fd);
+
+					if(strlen(tempstr)>10) {urlenc(swap, tempstr, 0); htmlenc(templn, tempstr, 0); sprintf(tempstr, "<span style=\"position:absolute;right:8px\"><font size=2><a href=\"%s\">%s</a></span>", swap, templn);}
+				}
+			}
+
+			///////////
 			uint32_t blockSize;
 			uint64_t freeSize;
 			if(strchr(param+1, '/'))
@@ -386,14 +458,16 @@ static bool folder_listing(char *buffer, char *templn, char *param, int conn_s, 
 			}
 			strcat(buffer, templn);
 
-			sprintf(templn, "</b> &nbsp; <font color=\"#707070\">%'i Dir(s) %'d %s %'d %s</font><br>",
+			sprintf(templn, "</b> &nbsp; <font color=\"#707070\">%'i Dir(s) %'d %s %'d %s</font>%s",
 							(dirs-1), (idx-dirs), STR_FILES,
 							dir_size<(_1MB_)?(int)(dir_size>>10):(int)(dir_size>>20),
-							dir_size<(_1MB_)?STR_KILOBYTE:STR_MEGABYTE);
+							dir_size<(_1MB_)?STR_KILOBYTE:STR_MEGABYTE, tempstr);
 			strcat(buffer, templn);
+			///////////
 		}
 		else
-			strcat(buffer, "<hr>webMAN - Simple Web Server" EDITION "<br>");
+			strcat(buffer,  HTML_BLU_SEPARATOR
+							"webMAN - Simple Web Server" EDITION "<br>");
 	}
 	return true;
 }

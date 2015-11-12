@@ -6,6 +6,7 @@
 #define HTML_BUTTON				" <input type=\"button\" value=\""
 #define HTML_ONCLICK			"onclick=\"location.href="
 #define HTML_INPUT(n, v, m, s)	"<input name=\"" n "\" type=\"text\" value=\"" v "\" maxlength=\"" m "\" size=\"" s "\">"
+#define HTML_NUMBER(n, v, m, s, min, max)	"<input name=\"" n "\" type=\"number\" value=\"" v "\" maxlength=\"" m "\" size=\"" s "\" min=\"" min "\" max=\"" max "\">"
 
 #define _BR_					NULL
 
@@ -27,6 +28,11 @@
 
 #define HTML_BODY_END			"</font></body></html>" /* size: 21 */
 
+#define HTML_BLU_SEPARATOR		"<hr color=\"#0099FF\"/>"
+#define HTML_RED_SEPARATOR		"<hr color=\"#FF0000\"/>"
+
+#define HTML_REDIRECT_TO_URL	"<script>setTimeout(function(){window.location=\"%s\"},3000);</script>"
+
 static char h2a(char hex);
 static void urlenc(char *dst, char *src, u8 rel_mode);
 static void htmlenc(char *dst, char *src, u8 cpy2src);
@@ -41,6 +47,9 @@ static void prepare_header(char *header, char *param, u8 is_binary);
 static void get_value(char *text, char *url, u16 size);
 static int val(const char *c);
 
+int extcmp(const char *s1, const char *s2, size_t n);
+int extcasecmp(const char *s1, const char *s2, size_t n);
+char *strcasestr(const char *s1, const char *s2);
 
 static char h2a(char hex)
 {

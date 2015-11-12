@@ -49,15 +49,29 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 	if(View_Find("game_plugin"))
 	{
 #ifdef GET_KLICENSEE
-		sprintf(templn, " [<a href=\"/klic.ps3\">KLIC</a>]"); strcat(buffer, templn);
+		strcat(buffer, " [<a href=\"/klic.ps3\">KLIC</a>]");
+#endif
+#ifdef SYS_BGM
+		strcat(buffer, " [<a href=\"/sysbgm.ps3\">BGM</a>]");
 #endif
 #ifdef VIDEO_REC
-		sprintf(templn, " [<a href=\"/videorec.ps3\">REC</a>]<hr><H2><a href=\"%s", search_url); strcat(buffer, templn);
-#else
-		sprintf(templn, "<hr><H2><a href=\"%s", search_url); strcat(buffer, templn);
+		strcat(buffer, " [<a href=\"/videorec.ps3\">REC</a>]");
 #endif
+		sprintf(templn, "<hr><H2><a href=\"%s", search_url); strcat(buffer, templn);
+
 		get_game_info(); sprintf(templn, "%s\">%s %s</a></H2>", _game_Title, _game_TitleID, _game_Title); strcat(buffer, templn);
 	}
+
+#ifdef COPY_PS3
+	if(copy_in_progress)
+	{
+		sprintf(templn, "<hr><font size=2><a href=\"/copy.ps3$abort\">&#9746 %s</a> %s (%i %s)</font>", STR_COPYING, current_file, copied_count, STR_FILES); strcat(buffer, templn);
+	}
+	else if(fix_in_progress)
+	{
+		sprintf(templn, "<hr><font size=2><a href=\"/fixgame.ps3$abort\">&#9746 %s</a> %s</font>", STR_FIXING, current_file); strcat(buffer, templn);
+	}
+#endif
 
 	if(strstr(param, "?"))
 	{
@@ -114,11 +128,17 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 											"MEM: %'d KB<br>"
 											"HDD: %'d %s</a><hr>"
 											"<a class=\"s\" href=\"/cpursx.ps3?mode\">"
-											"FAN SPEED: %i%% (0x%X)</a><hr>",
+											"FAN SPEED: %i%% (0x%X)</a><br>",
 					t1, max_temp1, t2,
 					t1f, max_temp2, t2f,
 					(meminfo.avail>>10), (int)((blockSize*freeSize)>>20), STR_MBFREE,
 					(int)((int)fan_speed*100)/255, fan_speed); strcat(buffer, templn);
+
+	if( !max_temp )
+		sprintf( templn, "<input type=\"range\" value=\"%i\" min=\"%i\" max=\"95\" style=\"width:600px\" onchange=\"window.location='/cpursx.ps3?fan='+this.value\"><hr>", webman_config->manu, DEFAULT_MIN_FANSPEED);
+	else
+		sprintf( templn, "<hr>");
+	strcat(buffer, templn);
 
 	CellRtcTick pTick; cellRtcGetCurrentTick(&pTick); u32 dd, hh, mm, ss;
 
@@ -139,6 +159,20 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 	dd = (u32)(ss / 86400); ss = ss % 86400; hh = (u32)(ss / 3600); ss = ss % 3600; mm = (u32)(ss / 60); ss = ss % 60;
 	sprintf( templn, "<label title=\"Startup\">&#8986;</label> %id %02d:%02d:%02d", dd, hh, mm, ss); strcat(buffer, templn);
 	///////////////////////
+
+	if(file_exists("/dev_bdvd") && file_exists(WMTMP "/last_game.txt"))
+	{
+		int fd=0;
+
+		if(cellFsOpen(WMTMP "/last_game.txt", CELL_FS_O_RDONLY, &fd, NULL, 0) == CELL_FS_SUCCEEDED)
+		{
+			cellFsRead(fd, (void *)param, MAX_PATH_LEN, NULL);
+			cellFsClose(fd);
+
+			char path[MAX_PATH_LEN], url[MAX_PATH_LEN];
+			if(strlen(param)>10) {urlenc(url, param, 0); htmlenc(path, param, 0); sprintf( templn, "<hr><font size=\"3\"><a href=\"%s\">%s</a> -> <a href=\"%s\">%s</a></font>", View_Find("game_plugin") ? "/dev_bdvd" : "/play.ps3", "/dev_bdvd", url, path ); strcat(buffer, templn);}
+		}
+	}
 
 	// Get mac address [0xD-0x12]
 	u8 mac_address[0x13];
@@ -204,7 +238,8 @@ static void cpu_rsx_stats(char *buffer, char *templn, char *param)
 #endif
 	/////////////////////////////
 
-	strcat(buffer, "<hr>webMAN - Simple Web Server" EDITION "<br>");
+	strcat(buffer,  HTML_BLU_SEPARATOR
+					"webMAN - Simple Web Server" EDITION "<br>");
 
 	{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 }

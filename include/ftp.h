@@ -443,7 +443,20 @@ static void handleclient_ftp(u64 conn_s_ftp_p)
 						{
 							absPath(tempcwd, param, cwd);
 						}
+/*
+						ntfs_md *mounts;
+						int mountCount;
 
+						mountCount = ntfsMountAll(&mounts, NTFS_DEFAULT | NTFS_RECOVER | NTFS_READ_ONLY);
+						if (mountCount <= 0) continue;
+
+						DIR_ITER *pdir = ps3ntfs_diropen(isDir(tempcwd) ? tempcwd : cwd);
+						if(pdir!=NULL)
+						{
+							struct stat st; CellFsDirent entry;
+							while(ps3ntfs_dirnext(pdir, entry.d_name, &st) == 0)
+							{
+*/
 						if(cellFsOpendir( (isDir(tempcwd) ? tempcwd : cwd), &fd) == CELL_FS_SUCCEEDED)
 						{
 							ssend(conn_s_ftp, FTP_OK_150);

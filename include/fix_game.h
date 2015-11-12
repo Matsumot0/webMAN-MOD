@@ -9,14 +9,8 @@ enum FIX_GAME_MODES
 	FIX_GAME_DISABLED
 };
 
-#define READ_SFO_HEADER() \
-	if(!(mem[1]=='P' && mem[2]=='S' && mem[3]=='F')) return false; \
-	u16 pos, str, dat, indx=0; \
-	str=(mem[0x8]+(mem[0x9]<<8)); \
-	dat=pos=(mem[0xc]+(mem[0xd]<<8));
-
-#define READ_SFO_HEADER2() \
-	if(!(mem[1]=='P' && mem[2]=='S' && mem[3]=='F')) return; \
+#define READ_SFO_HEADER(ret) \
+	if(!(mem[1]=='P' && mem[2]=='S' && mem[3]=='F')) return ret; \
 	u16 pos, str, dat, indx=0; \
 	str=(mem[0x8]+(mem[0x9]<<8)); \
 	dat=pos=(mem[0xc]+(mem[0xd]<<8));
@@ -34,7 +28,7 @@ enum FIX_GAME_MODES
 
 static void parse_param_sfo(unsigned char *mem, char *titleID, char *title)
 {
-	READ_SFO_HEADER2()
+	READ_SFO_HEADER()
 
 	memset(titleID, 0, 10);
 	memset(title, 0, 64);
@@ -66,7 +60,7 @@ static void parse_param_sfo(unsigned char *mem, char *titleID, char *title)
 
 static bool fix_param_sfo(unsigned char *mem, char *titleID, u8 show_warning)
 {
-	READ_SFO_HEADER()
+	READ_SFO_HEADER(false)
 
 	memset(titleID, 0, 10);
 
@@ -125,7 +119,10 @@ static void getTitleID(char *filename, char *titleID, u8 show_warning)
 		cellFsClose(fs);
 
 		// get titleid
-		fix_param_sfo(mem, titleID, show_warning);
+		if(show_warning==2)
+			parse_param_sfo(mem, titleID, filename);   // get titleid & return title in the file name (used to backup games in _mount.h)
+		else
+			fix_param_sfo(mem, titleID, show_warning); // get titleid & show warning if game needs to fix PS3_SYSTEM_VER
 	}
 }
 #endif
@@ -133,7 +130,7 @@ static void getTitleID(char *filename, char *titleID, u8 show_warning)
 #ifdef FIX_GAME
 static bool fix_ps3_extra(unsigned char *mem)
 {
-	READ_SFO_HEADER()
+	READ_SFO_HEADER(false)
 
 	FOR_EACH_SFO_FIELD()
 	{
@@ -210,7 +207,7 @@ static void fix_game_folder(char *path)
 			}
 			else if(isDir(fix_game_path[plevel]) && (webman_config->fixgame!=FIX_GAME_QUICK)) fix_game_folder(fix_game_path[plevel]);
 
-			sys_timer_usleep(1);
+			sys_timer_usleep(1000);
 		}
 
 		cellFsClosedir(fd);
@@ -284,7 +281,7 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 
 					if(patch_update)
 					{
-						sprintf(update_path, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN", titleID); // has update on hdd0?
+						sprintf(update_path, "%s%s/USRDIR/EBOOT.BIN", HDD0_GAME_DIR, titleID); // has update on hdd0?
 						if(file_exists(update_path)) {fix_update=true; fix_ver=false;}
 					}
 
@@ -316,7 +313,7 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 
 				while(true)
 				{
-					sys_timer_usleep(1);
+					sys_timer_usleep(1000);
 					if(fix_aborted) goto exit_fix;
 
 					if(t==0) lba=getlba(chunk, msiz1, "EBOOT.BIN;1", 11, start);
@@ -360,13 +357,13 @@ void fix_iso(char *iso_file, uint64_t maxbytes, bool patch_update)
 			size-=msiz1;
 			if(chunk_size>size) chunk_size=(int) size;
 
-			sys_timer_usleep(1);
+			sys_timer_usleep(1000);
 		}
 exit_fix:
 		cellFsClose(fd);
 
 		// fix update folder
-		sprintf(update_path, "/dev_hdd0/game/%s/PARAM.SFO", titleID); int fs;
+		sprintf(update_path, "%s%s/PARAM.SFO", HDD0_GAME_DIR, titleID); int fs;
 		if(fix_update && cellFsOpen(update_path, CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 		{
 			char paramsfo[_4KB_]; unsigned char *mem = (u8*)paramsfo;
@@ -376,7 +373,7 @@ exit_fix:
 			cellFsRead(fs, (void *)&paramsfo, _4KB_, &msiz);
 			cellFsClose(fs);
 
-			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {savefile(update_path, paramsfo, msiz); sprintf(update_path, "/dev_hdd0/game/%s/USRDIR", titleID); fix_game_folder(update_path);}
+			if(fix_param_sfo(mem, titleID, 0) || webman_config->fixgame==FIX_GAME_FORCED) {savefile(update_path, paramsfo, msiz); sprintf(update_path, "%s%s/USRDIR", HDD0_GAME_DIR, titleID); fix_game_folder(update_path);}
 		}
 	}
 }
@@ -431,12 +428,12 @@ static void fix_game(char *game_path, char *titleID, uint8_t fix_type)
 					sprintf(filename, "%s %s", STR_FIXING, game_path);
 					show_msg(filename);
 
-					sprintf(filename, "/dev_hdd0/game/%s/USRDIR/EBOOT.BIN",	titleID); // has update	on hdd0?
+					sprintf(filename, "%s%s/USRDIR/EBOOT.BIN", HDD0_GAME_DIR, titleID); // has update	on hdd0?
 
 					if(file_exists(filename))
 					{
 						// fix PARAM.SFO on	hdd0
-						sprintf(filename, "/dev_hdd0/game/%s/PARAM.SFO", titleID);
+						sprintf(filename, "%s%s/PARAM.SFO", HDD0_GAME_DIR, titleID);
 
 						if(cellFsOpen(filename,	CELL_FS_O_RDONLY, &fs, NULL, 0)==CELL_FS_SUCCEEDED)
 						{
@@ -447,7 +444,7 @@ static void fix_game(char *game_path, char *titleID, uint8_t fix_type)
 
 						if((fix_type!=FIX_GAME_DISABLED) && (fix_param_sfo(mem, titleID, 0) || fix_type==FIX_GAME_FORCED)) savefile(filename, paramsfo,	msiz);
 
-						sprintf(filename, "/dev_hdd0/game/%s/USRDIR", titleID);	// fix update folder
+						sprintf(filename, "%s%s/USRDIR", HDD0_GAME_DIR, titleID);	// fix update folder
 					}
 					else
 						sprintf(filename, "%s/PS3_GAME/USRDIR",	game_path);	// fix bdvd	game

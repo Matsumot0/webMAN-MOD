@@ -75,19 +75,19 @@ static PSPKey psp_extra_keys[] =
 
 static int sys_psp_set_umdfile(char *file, char *id, int prometheus)
 {
-	system_call_4(8, SYSCALL8_OPCODE_SET_PSP_UMDFILE, (uint64_t)(uint32_t)file, (uint64_t)(uint32_t)id, prometheus);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_SET_PSP_UMDFILE, (uint64_t)(uint32_t)file, (uint64_t)(uint32_t)id, prometheus);
 	return (int)p1;
 }
 
 static int sys_psp_set_decrypt_options(int decrypt_patch, uint32_t tag, uint8_t *keys, uint8_t code, uint32_t tag2, uint8_t *keys2, uint8_t code2)
 {
-	system_call_8(8, SYSCALL8_OPCODE_SET_PSP_DECRYPT_OPTIONS, decrypt_patch, tag, (uint64_t)(uint32_t)keys, code, tag2, (uint64_t)(uint32_t)keys2, code2);
+	system_call_8(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_SET_PSP_DECRYPT_OPTIONS, decrypt_patch, tag, (uint64_t)(uint32_t)keys, code, tag2, (uint64_t)(uint32_t)keys2, code2);
 	return (int)p1;
 }
 
 static int sys_psp_change_emu_path(const char *path)
 {
-	system_call_2(8, SYSCALL8_OPCODE_PSP_CHANGE_EMU, (uint64_t)(uint32_t)path);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PSP_CHANGE_EMU, (uint64_t)(uint32_t)path);
 	return (int)p1;
 }
 

@@ -35,6 +35,25 @@ body {
 	/*background-size: 100% 100%;*/
 }
 
+#iwrap {
+  opacity:0.3;
+  background:#000;
+  width:230px;
+  height: 30px;
+  -moz-border-radius:7px;
+  -webkit-border-radius:7px;
+  border-radius:7px;
+  overflow:hidden;
+  -ms-zoom: 0.75;
+  -moz-transform: scale(0.75);
+  -moz-transform-origin: 0 0;
+  -o-transform: scale(0.75);
+  -o-transform-origin: 0 0;
+  -webkit-transform: scale(0.75);
+  -webkit-transform-origin: 0 0;
+  position:absolute;top:23px;right:70px;z-order:9999;
+}
+
 #nav {
 	position:absolute;
 	z-index:100;
@@ -241,7 +260,7 @@ a, a:hover, a:active, a:visited, a:focus {color: white; text-decoration: none; o
 var isPS3 = (navigator.userAgent.toLowerCase().indexOf('playstation 3') > -1);
 var isFireFox = (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
 var isMSIE = !isFireFox && (navigator.userAgent.toLowerCase().indexOf('trident') > -1);
-var nextEl, indexEl=0;
+var nextEl, indexEl=0, url = 'http://ps3.aldostools.org';
 
 (function(){
 var m = Math,
@@ -1895,32 +1914,65 @@ var SwipeView = (function (window, document) {
 	return SwipeView;
 })(window, document);
 
+function navigate()
+{
+	url=prompt('URL',url); if(url.length==0) return;
+
+	if(url.indexOf('http://')>-1 || url.indexOf('https://')>-1)
+		window.open('/browser.ps3?'+url, 'webMAN');
+	else if(url.indexOf('.com')>-1 || url.indexOf('.net')>-1 || url.indexOf('.org')>-1 || url.indexOf('.biz')>-1 || url.indexOf('.info')>-1)
+		window.open('/browser.ps3?http://'+url, 'webMAN');
+	else if(url=='.' || url=='aldostools')
+		window.open('/browser.ps3?http://ps3.aldostools.org', 'webMAN');
+	else if(url.substring(0, 1)=='/')
+		window.open('/browser.ps3'+url, 'webMAN');
+	else if(url=='psx-place')
+		window.open('/browser.ps3?http://www.psx-place.com', 'webMAN');
+	else if(url=='forum')
+		window.open('/browser.ps3?http://www.psx-place.com/forum', 'webMAN');
+	else if(url=='ps3devwiki')
+		window.open('/browser.ps3?http://www.ps3devwikicom', 'webMAN');
+	else if(url=='brewology')
+		window.open('/browser.ps3?http://store.brewology.com/whatsnew.php', 'webMAN');
+	else if(url=='imdb')
+		window.open('/browser.ps3?http://imdb.com', 'webMAN');
+	else if(url=='gmail')
+		window.open('/browser.ps3?http://gmail.com', 'webMAN');
+	else if(url=='psn')
+		window.open('/browser.ps3*psn:', 'webMAN');
+	else if(url=='reg')
+		window.open('/browser.ps3*regcam:reg?', 'webMAN');
+	else
+		window.open('/browser.ps3?http://google.com/search?q='+url, 'webMAN');
+	window.focus();
+}
 </script>
 
 <body ondragstart="return false" onselectstart="return false" bgcolor="#000000">
+<div id="iwrap"><iframe name="cpursx" src="/cpursx_ps3" width=220 height=30 scrolling="no" marginwidth="0" padding="0" style="position:relative;left:10px;border:0px;padding:0px;"></iframe></div>
 <div id="wrapper"></div>
 <div id="search" style="position:absolute;right:85px;top:18px;">
 	<a id="nav-search" href="javascript:void(0);" onclick="searchGame();"><img src="data:image/gif;base64,R0lGODlhIAAgAIMAACEcHEZCQmxnaKCdncC7v8rKytfU2OLn5+fr7+/v7+/z9/f39/f3//f//////wAAACH5BAMAAA8ALAAAAAAgACAAAAT/8D1SjL0461uInIgjjmRplohHHGfrkge1vHRbFEvONHV/58Acb7RIzHqOXzB4GAgCUMHg+FIuFwSoVisw0KzBwXYMLVRxy8J2YEAUxNqE66ZQBJ9QwzILne5MHXWCBloEVwtwAUtDSQQJggp8AnZXB1oHhw0dCZyPcJN1V1poV5udCZ+QoUWjhwumnXwBB4+qalCYh7Ccln2ndQl4k64dCMadiQOnB3gBBJBpBMbTCL1RA05jArXQr9LUxrdk2tyQxeDGBs1b6wIInYIdB/Pobk4CUm3t76fy8//10CUKIIBWJ3//EgacNnDbwRUJI9ILOJBfAoQSMwqMMu0ixIwgKycaI7CC2o2QKAHWw5gSJbUYBAy0nEnPgAoLNFPa/EChA8mfQIMK7enhQQQAOw==" style="border:none"></a>
 </div>
 <div id="menu-icon" style="position:absolute;right:20px;top:13px;"><a id="nav-menu" href="javascript:void(0)" onclick="showMenu();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAdCAQAAACKoB0PAAAAB3RJTUUH3wIUFTUMO2149AAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAAArSURBVHjaY/z/n4Fi8IqBiXJDQGBYGjMKRhhgHM1TtDZmFIwwMJqnaG4MAM5nCNRqWuBjAAAAAElFTkSuQmCC" border=0 style="position:relative;top:6px"></a></div>
-<div id="curpage" style="position:absolute;left:10px;top:10px;font-size:20px;"></div>
+<div id="curpage" style="position:absolute;left:10px;top:15px;font-size:20px;"></div>
 
 <div id="prev-page" style="position:absolute;left: 2%;top:40%;font-size:60px;z-index:9999;"><a id="nav-left"  href="javascript:void(0);" onclick="javascript:gallery.prev();this.style.color='white';" style="color:#404040;opacity:0.33;" onmousemove="this.style.color='#808080';this.style.opacity=1;" onmouseout="this.style.color='#404040';this.style.opacity=0.33;">&#9664;</div>
 <div id="next-page" style="position:absolute;right:2%;top:40%;font-size:60px;z-index:9999;"><a id="nav-right" href="javascript:void(0);" onclick="javascript:gallery.next();this.style.color='white';" style="color:#404040;opacity:0.33;" onmousemove="this.style.color='#808080';this.style.opacity=1;" onmouseout="this.style.color='#404040';this.style.opacity=0.33;">&#9654;</div>
 </div>
 
 <div id="menu" style="display:none;">
-	<div id="header"><a id="nav-close" href="javascript:void(0)" onclick="hideMenu();"><span style="position:absolute;left:10px">&#9664;</span> webMAN MOD 1.43.15</a></div>
+	<div id="header"><a id="nav-close" href="javascript:void(0)" onclick="hideMenu();"><span style="position:absolute;left:10px">&#9664;</span> webMAN MOD 1.43.16</a></div>
 	<div id="wrapper-menu">
 		<div id="scroller">
 			<ul id="thelist">
-				<li><a id="nav-menuItem1"  href="javascript:refreshScreen();">&#8635; REFRESH</a></li>
-				<li><a id="nav-menuItem2" onclick="showWait()" href="/play.ps3">&#9655; Start Game </a></li>
-				<li><a id="nav-menuItem3"  onclick="showWait()" href="/cpursx.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAMAAAAM7l6QAAAAB3RJTUUH3wIUFCsA51hhNwAAAAlwSFlzAAAewgAAHsIBbtB1PgAAAARnQU1BAACxjwv8YQUAAAAVUExURf///8zMzJmZmf///zMzMwAAAGZmZqUuTSIAAAABdFJOUwBA5thmAAAAbklEQVR42uWSOw7AMAhD4/C5/5EDtFkqM7QdOtSKGPLAEonHuCNIz0Qt5F2HmwNRmmEzqfo/POu02F/hr8zF9zT9cLeNKY/rTJOK1etdhCDIrEEZriE7e0ga0xihbCG4nEsKupke1Ckthzlb9kALuw4D9LKqcegAAAAASUVORK5CYII=" border=0 style="position:relative;top:6px"> CPU & RSX </a></li>
-				<li><a id="nav-menuItem4"  onclick="showWait()" href="/index.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAVCAQAAADyFTaQAAAAB3RJTUUH3wIUFQ4zsbm68QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAARnQU1BAACxjwv8YQUAAAEvSURBVHjaY2RgkJZhOcooxwAH//YzRj18wYAHMDEwMFciawEKOf4PY8ALGMXEOS8ziqIK/n/02+bZYzya5OYxJWIK/1vOdBOXlt/LGBX+M5AI/t8mQxM4IEgHLGhWf2Sc/+87YzqjEJT/7v9MJs7/iYz8KAGB7Lz/n/55Pz7CwCCrzTwFHBz3/rc9vgvk2zBtZeTDpWnJw1jsDpJfzBiDw0//juDyBSOKDIomxnfEBQSK8x5wMPzErkxCnuMBDptwgxcoCRgpyP+fY/gDoqVk2YrgYm8edjP8AjH+f2HkwabpJsNfsFAEQwHc9Qxyvx51Axm//m9mjMTpPAV5xkIUTxdIyKOrQdLEqCMlLCf5fyujJIomKfYuOUkpYUYdHKFHLCArwTLzMzI6kKblfyMAFnRYMZYg+WIAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; MY GAMES </a></li>
-				<li><a id="nav-menuItem5"  onclick="showWait()" href="/setup.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAB3RJTUUH3wIUFDgN+AZcGAAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACKUExURf///9be3oyUnEpSWiEhIf///97n5+/v9zlCUqWlpSEpKTk5Qs7W3nN7hNbW3jE5OSkpKSkpMSEhKdbe57W9xsbGzmNrc2trc1paY1JaWoSMlHuEjGtzc2Nra729xu/v7+/3/zlCSpScpVJaY62ttc7O1jExOTExMXuMnLW9vaWtrbXGzjlKUmNjawUgndwAAAABdFJOUwBA5thmAAAA1klEQVR42m2R6xqCIAyGMcEUEaXU1Eo7WWl6/7fXHOgT1X7At/fZgTFCZqvHMSW/NlA6WIClAg6fUp8RIl7M0CdNut6lYG7fKfrUPKNfliFu7jZ9NLpKyz/ppjUtb3b0TXc8FeidL5cziiuDnnWcoBNCxSZEmcQ1qUxqNWXOznFRe8hke+MciCxKrKIEYwIVLws5pea6Yr5TKHLzwK8xM4NTaxxuvner7Gi1RSwhOFkYTC/1mAEPhYgmGAkZ82D+cG8N57QGuNYes3YEe3D/7NJZrZzFeQM6ewy7ZXtahwAAAABJRU5ErkJggg==" border=0 style="position:relative;top:2px;left:5px">&nbsp; SETUP WEBMAN </a></li>
-				<li><a id="nav-menuItem6"  onclick="showWait()" href="/"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAQAAAA9vDUIAAAAB3RJTUUH3wIUFQQptjSrAQAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAADlSURBVHjaY2BgWOGi+p8fCdp92mPLgBOwMDDcN7zL8A9J6BBv4YIlVQwn0JVyMOi9V/sE1PCJ/x+a1GWl7BX8GGYzMeTMZUgBauBzwLT4IxBignsaIG0MtxmIBW+BmHER9xEWonUw2Pxh2f9guwjxGr6+YXki8oJ49QyvRJiESVDOwCDIwCROkgYxBqZbG0nR8OkkEz8p6hm+vGBSJEmDFAOT6BtSNMgzMN05RoqG29uYpBgYSdDA+5tJi4GNaOXMDAoMTBcPsBKtgZVBi4Hp3kcuEjTs28NS9evb2z1Epg/jt6YfAP77PxQ5JPzrAAAAAElFTkSuQmCC" border=0 style="position:relative;top:2px;left:5px">&nbsp; FILE MANAGER </a></li>
-				<li><a id="nav-menuItem7"  onclick="showWait()" href="/mount.ps3/unmount"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAUCAQAAAAjdQW7AAAAB3RJTUUH3wIUFQgPyIxh8AAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACPSURBVHjatdGxDYMwFITh3xQowcyAMgszZFhAGESVFbJCMgFd4keFsYVfityV/mSdbIhjWXwtitSMfHzHPLe4jUrdOd/TDK8YAioduKXpHFHp5E+iAX2SSvtwTGpAOKbS0h2/0mWptOPC4bHO6goazbduaQylXK/Kqr5WYrjTquSDp/HD1Sl+mfFP/Fbb1xfsHITyNa0xJgAAAABJRU5ErkJggg==" border=0 style="position:relative;top:2px;left:5px">&nbsp; UNMOUNT GAME </a></li>
+				<li><a id="nav-menuItem1" href="javascript:refreshScreen();">&#8635; REFRESH</a></li>
+				<li><a id="nav-menuItem2" onclick="showWait();" href="/play.ps3">&#9737; Play Disc</a></li>
+				<li><a id="nav-menuItem3" onclick="showWait()" href="/cpursx.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAMAAAAM7l6QAAAAB3RJTUUH3wIUFCsA51hhNwAAAAlwSFlzAAAewgAAHsIBbtB1PgAAAARnQU1BAACxjwv8YQUAAAAVUExURf///8zMzJmZmf///zMzMwAAAGZmZqUuTSIAAAABdFJOUwBA5thmAAAAbklEQVR42uWSOw7AMAhD4/C5/5EDtFkqM7QdOtSKGPLAEonHuCNIz0Qt5F2HmwNRmmEzqfo/POu02F/hr8zF9zT9cLeNKY/rTJOK1etdhCDIrEEZriE7e0ga0xihbCG4nEsKupke1Ckthzlb9kALuw4D9LKqcegAAAAASUVORK5CYII=" border=0 style="position:relative;top:6px"> CPU & RSX </a></li>
+				<li><a id="nav-menuItem4" onclick="showWait()" href="/index.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAVCAQAAADyFTaQAAAAB3RJTUUH3wIUFQ4zsbm68QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAARnQU1BAACxjwv8YQUAAAEvSURBVHjaY2RgkJZhOcooxwAH//YzRj18wYAHMDEwMFciawEKOf4PY8ALGMXEOS8ziqIK/n/02+bZYzya5OYxJWIK/1vOdBOXlt/LGBX+M5AI/t8mQxM4IEgHLGhWf2Sc/+87YzqjEJT/7v9MJs7/iYz8KAGB7Lz/n/55Pz7CwCCrzTwFHBz3/rc9vgvk2zBtZeTDpWnJw1jsDpJfzBiDw0//juDyBSOKDIomxnfEBQSK8x5wMPzErkxCnuMBDptwgxcoCRgpyP+fY/gDoqVk2YrgYm8edjP8AjH+f2HkwabpJsNfsFAEQwHc9Qxyvx51Axm//m9mjMTpPAV5xkIUTxdIyKOrQdLEqCMlLCf5fyujJIomKfYuOUkpYUYdHKFHLCArwTLzMzI6kKblfyMAFnRYMZYg+WIAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; MY GAMES </a></li>
+				<li><a id="nav-menuItem5" onclick="showWait()" href="/setup.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAB3RJTUUH3wIUFDgN+AZcGAAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACKUExURf///9be3oyUnEpSWiEhIf///97n5+/v9zlCUqWlpSEpKTk5Qs7W3nN7hNbW3jE5OSkpKSkpMSEhKdbe57W9xsbGzmNrc2trc1paY1JaWoSMlHuEjGtzc2Nra729xu/v7+/3/zlCSpScpVJaY62ttc7O1jExOTExMXuMnLW9vaWtrbXGzjlKUmNjawUgndwAAAABdFJOUwBA5thmAAAA1klEQVR42m2R6xqCIAyGMcEUEaXU1Eo7WWl6/7fXHOgT1X7At/fZgTFCZqvHMSW/NlA6WIClAg6fUp8RIl7M0CdNut6lYG7fKfrUPKNfliFu7jZ9NLpKyz/ppjUtb3b0TXc8FeidL5cziiuDnnWcoBNCxSZEmcQ1qUxqNWXOznFRe8hke+MciCxKrKIEYwIVLws5pea6Yr5TKHLzwK8xM4NTaxxuvner7Gi1RSwhOFkYTC/1mAEPhYgmGAkZ82D+cG8N57QGuNYes3YEe3D/7NJZrZzFeQM6ewy7ZXtahwAAAABJRU5ErkJggg==" border=0 style="position:relative;top:2px;left:5px">&nbsp; SETUP WEBMAN </a></li>
+				<li><a id="nav-menuItem6" onclick="showWait()" href="/"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAQAAAA9vDUIAAAAB3RJTUUH3wIUFQQptjSrAQAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAADlSURBVHjaY2BgWOGi+p8fCdp92mPLgBOwMDDcN7zL8A9J6BBv4YIlVQwn0JVyMOi9V/sE1PCJ/x+a1GWl7BX8GGYzMeTMZUgBauBzwLT4IxBignsaIG0MtxmIBW+BmHER9xEWonUw2Pxh2f9guwjxGr6+YXki8oJ49QyvRJiESVDOwCDIwCROkgYxBqZbG0nR8OkkEz8p6hm+vGBSJEmDFAOT6BtSNMgzMN05RoqG29uYpBgYSdDA+5tJi4GNaOXMDAoMTBcPsBKtgZVBi4Hp3kcuEjTs28NS9evb2z1Epg/jt6YfAP77PxQ5JPzrAAAAAElFTkSuQmCC" border=0 style="position:relative;top:2px;left:5px">&nbsp; FILE MANAGER </a></li>
+				<li><a id="nav-menuItem7" onclick="showWait()" href="/mount.ps3/unmount"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAUCAQAAAAjdQW7AAAAB3RJTUUH3wIUFQgPyIxh8AAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACPSURBVHjatdGxDYMwFITh3xQowcyAMgszZFhAGESVFbJCMgFd4keFsYVfityV/mSdbIhjWXwtitSMfHzHPLe4jUrdOd/TDK8YAioduKXpHFHp5E+iAX2SSvtwTGpAOKbS0h2/0mWptOPC4bHO6goazbduaQylXK/Kqr5WYrjTquSDp/HD1Sl+mfFP/Fbb1xfsHITyNa0xJgAAAABJRU5ErkJggg==" border=0 style="position:relative;top:2px;left:5px">&nbsp; UNMOUNT GAME </a></li>
 				<li><a id="nav-menuItem10" onclick="showWait()" href="/games.ps3?html">&#9654; ALL GAMES </a></li>
 				<li><a id="nav-menuItem11" onclick="showWait()" href="/games.ps3?ps3">&#9654; PS3 GAMES & ISO </a></li>
 				<li><a id="nav-menuItem12" onclick="showWait()" href="/games.ps3?games">&#9654; PS3 GAMES </a></li>
@@ -1934,13 +1986,14 @@ var SwipeView = (function (window, document) {
 				<li><a id="nav-menuItem20" onclick="showWait()" href="/games.ps3?usb">&#9654; Games on USB </a></li>
 				<li><a id="nav-menuItem21" onclick="showWait()" href="/games.ps3?ntfs">&#9654; Games on NTFS </a></li>
 				<li><a id="nav-menuItem22" onclick="showWait()" href="/games.ps3?net">&#9654; Games on NETSVR </a></li>
-				<li><a id="nav-menuItem30" onclick="showWait()" href="http://pad.aldostools.org">&#9655; webPAD / Movian Remote </a></li>
-				<li><a id="nav-menuItem31" onclick="showWait()" href="/home.ps3mapi">&#9762; PS3 Manager API </a></li>				
-				<li><a id="nav-menuItem32" onclick="showWait()" href="/videorec.ps3">&#9673; Record Video </a></li>
-				<li><a id="nav-menuItem33" onclick="showWait()" href="http://store.brewology.com/ahomebrew.php?brewid=257">&#9733; Update webMAN</a></li>
-				<li><a id="nav-menuItem34" onclick="showWait()" href="/refresh.ps3">&#8635; Refresh XML</a></li>
-				<li><a id="nav-menuItem35" onclick="showWait()" href="/extgd.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAVCAQAAADyFTaQAAAAB3RJTUUH3wIUFQ4zsbm68QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAARnQU1BAACxjwv8YQUAAAEvSURBVHjaY2RgkJZhOcooxwAH//YzRj18wYAHMDEwMFciawEKOf4PY8ALGMXEOS8ziqIK/n/02+bZYzya5OYxJWIK/1vOdBOXlt/LGBX+M5AI/t8mQxM4IEgHLGhWf2Sc/+87YzqjEJT/7v9MJs7/iYz8KAGB7Lz/n/55Pz7CwCCrzTwFHBz3/rc9vgvk2zBtZeTDpWnJw1jsDpJfzBiDw0//juDyBSOKDIomxnfEBQSK8x5wMPzErkxCnuMBDptwgxcoCRgpyP+fY/gDoqVk2YrgYm8edjP8AjH+f2HkwabpJsNfsFAEQwHc9Qxyvx51Axm//m9mjMTpPAV5xkIUTxdIyKOrQdLEqCMlLCf5fyujJIomKfYuOUkpYUYdHKFHLCArwTLzMzI6kKblfyMAFnRYMZYg+WIAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; TOGGLE gameDATA </a></li>
-				<li><a id="nav-menuItem36"  onclick="showWait()" href="/rebuild.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAB3RJTUUH3wIUFDgN+AZcGAAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACKUExURf///9be3oyUnEpSWiEhIf///97n5+/v9zlCUqWlpSEpKTk5Qs7W3nN7hNbW3jE5OSkpKSkpMSEhKdbe57W9xsbGzmNrc2trc1paY1JaWoSMlHuEjGtzc2Nra729xu/v7+/3/zlCSpScpVJaY62ttc7O1jExOTExMXuMnLW9vaWtrbXGzjlKUmNjawUgndwAAAABdFJOUwBA5thmAAAA1klEQVR42m2R6xqCIAyGMcEUEaXU1Eo7WWl6/7fXHOgT1X7At/fZgTFCZqvHMSW/NlA6WIClAg6fUp8RIl7M0CdNut6lYG7fKfrUPKNfliFu7jZ9NLpKyz/ppjUtb3b0TXc8FeidL5cziiuDnnWcoBNCxSZEmcQ1qUxqNWXOznFRe8hke+MciCxKrKIEYwIVLws5pea6Yr5TKHLzwK8xM4NTaxxuvner7Gi1RSwhOFkYTC/1mAEPhYgmGAkZ82D+cG8N57QGuNYes3YEe3D/7NJZrZzFeQM6ewy7ZXtahwAAAABJRU5ErkJggg==" border=0 style="position:relative;top:2px;left:5px">&nbsp; REBUILD DB </a></li>
+				<li><a id="nav-menuItem30" href="javascript:navigate();">&#127758; Browse on PS3</a></li>
+				<li><a id="nav-menuItem31" onclick="showWait()" href="http://pad.aldostools.org">&#9655; webPAD / Movian Remote </a></li>
+				<li><a id="nav-menuItem32" onclick="showWait()" href="/home.ps3mapi">&#9762; PS3 Manager API </a></li>				
+				<li><a id="nav-menuItem33" onclick="showWait()" href="/videorec.ps3">&#9673; Record Video </a></li>
+				<li><a id="nav-menuItem34" onclick="showWait()" href="http://store.brewology.com/ahomebrew.php?brewid=257">&#9733; Update webMAN</a></li>
+				<li><a id="nav-menuItem35" onclick="showWait()" href="/refresh.ps3">&#8635; Refresh XML</a></li>
+				<li><a id="nav-menuItem36" onclick="showWait()" href="/extgd.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAVCAQAAADyFTaQAAAAB3RJTUUH3wIUFQ4zsbm68QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAARnQU1BAACxjwv8YQUAAAEvSURBVHjaY2RgkJZhOcooxwAH//YzRj18wYAHMDEwMFciawEKOf4PY8ALGMXEOS8ziqIK/n/02+bZYzya5OYxJWIK/1vOdBOXlt/LGBX+M5AI/t8mQxM4IEgHLGhWf2Sc/+87YzqjEJT/7v9MJs7/iYz8KAGB7Lz/n/55Pz7CwCCrzTwFHBz3/rc9vgvk2zBtZeTDpWnJw1jsDpJfzBiDw0//juDyBSOKDIomxnfEBQSK8x5wMPzErkxCnuMBDptwgxcoCRgpyP+fY/gDoqVk2YrgYm8edjP8AjH+f2HkwabpJsNfsFAEQwHc9Qxyvx51Axm//m9mjMTpPAV5xkIUTxdIyKOrQdLEqCMlLCf5fyujJIomKfYuOUkpYUYdHKFHLCArwTLzMzI6kKblfyMAFnRYMZYg+WIAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; TOGGLE gameDATA </a></li>
+				<li><a id="nav-menuItem37" onclick="showWait()" href="/rebuild.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAAAB3RJTUUH3wIUFDgN+AZcGAAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAACKUExURf///9be3oyUnEpSWiEhIf///97n5+/v9zlCUqWlpSEpKTk5Qs7W3nN7hNbW3jE5OSkpKSkpMSEhKdbe57W9xsbGzmNrc2trc1paY1JaWoSMlHuEjGtzc2Nra729xu/v7+/3/zlCSpScpVJaY62ttc7O1jExOTExMXuMnLW9vaWtrbXGzjlKUmNjawUgndwAAAABdFJOUwBA5thmAAAA1klEQVR42m2R6xqCIAyGMcEUEaXU1Eo7WWl6/7fXHOgT1X7At/fZgTFCZqvHMSW/NlA6WIClAg6fUp8RIl7M0CdNut6lYG7fKfrUPKNfliFu7jZ9NLpKyz/ppjUtb3b0TXc8FeidL5cziiuDnnWcoBNCxSZEmcQ1qUxqNWXOznFRe8hke+MciCxKrKIEYwIVLws5pea6Yr5TKHLzwK8xM4NTaxxuvner7Gi1RSwhOFkYTC/1mAEPhYgmGAkZ82D+cG8N57QGuNYes3YEe3D/7NJZrZzFeQM6ewy7ZXtahwAAAABJRU5ErkJggg==" border=0 style="position:relative;top:2px;left:5px">&nbsp; REBUILD DB </a></li>
 				<li><a id="nav-menuItem40" onclick="showWait()" href="/restart.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAB3RJTUUH3wIUFRYWeKb27wAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAAEpSURBVHjapVNBasMwEFztioKhv+nZFPKBgt9QSHIL9Oof+B8puLdeC4HSc56RHwQKJfJWkmV3Za9DS6WLNTuj9a5mAZSFa2S/H9WYBnYFgIHu9qrA3oOVAZYHS6uJwG75YPe5RND38Ga3AqEVOWRiek6SXagBdonehhM5/w/ijh5k20ZJaRrTQBki+EIcY22ef5RQJWGqdHqS+AxPM7ge8yrFPWiwz6k343fL4Lor+t52R/hYYJV45+PhDc4QTRC378vSrc0PC+FPy/hyNlD0Bz4u0fjVnJLg6x/lh7ZWGrzU1miCm3oG11feWbNGMozuJFTMZ1vFTYO9B8/gxN40s7cfIHLiDinoJQ430yLkiOaCbERH0uU9f9Fspi/uMHyq1sDPQMezFvsGK+Z6KtcTlWoAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; RESTART PS3 </a></li>
 				<li><a id="nav-menuItem41" onclick="showWait()" href="/restart.ps3?quick"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAB3RJTUUH3wIUFRYWeKb27wAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAAEpSURBVHjapVNBasMwEFztioKhv+nZFPKBgt9QSHIL9Oof+B8puLdeC4HSc56RHwQKJfJWkmV3Za9DS6WLNTuj9a5mAZSFa2S/H9WYBnYFgIHu9qrA3oOVAZYHS6uJwG75YPe5RND38Ga3AqEVOWRiek6SXagBdonehhM5/w/ijh5k20ZJaRrTQBki+EIcY22ef5RQJWGqdHqS+AxPM7ge8yrFPWiwz6k343fL4Lor+t52R/hYYJV45+PhDc4QTRC378vSrc0PC+FPy/hyNlD0Bz4u0fjVnJLg6x/lh7ZWGrzU1miCm3oG11feWbNGMozuJFTMZ1vFTYO9B8/gxN40s7cfIHLiDinoJQ430yLkiOaCbERH0uU9f9Fspi/uMHyq1sDPQMezFvsGK+Z6KtcTlWoAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; QUICK RESTART </a></li>
 				<li><a id="nav-menuItem42" onclick="showWait()" href="/shutdown.ps3"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAXCAMAAAA4Nk+sAAAAB3RJTUUH3wIUFRMM+LP70AAAAAlwSFlzAAALEgAACxIB0t1+/AAAAARnQU1BAACxjwv8YQUAAAA2UExURf///9bW1s7OzomJiUJCQikpKSEhIWtrazExMTk5OXNzc1JSUrKyskpKSsbGxmNjY97e3lpaWl0eMI4AAAABdFJOUwBA5thmAAAAzklEQVR42mWR2xLDIAhEiWKza7w0//+zxaJt0vICc0ZgF0VWFNUm/6HA8YO2ganHLGecSUWqDqzpXLQCKFKrnlISUJ12kAyOg5XobwWg1vYeYv2tKq1V5KDqyD5bSiUtB3uc5YslK9kkkm6jukBphqNkw66S7O6LzNIXfub4XLjLbpLulg3sYzbClZoGRGlmMV9xNtzcerg+dvvRsn7uttl9bcawCSSW+RdI6+wbkVLSHGNWK8DZGnTwGdDvov3Dsd/ERut/JI03C77j8o0veQMHuhotxnAAAAAASUVORK5CYII=" border=0 style="position:relative;top:2px;left:5px">&nbsp; POWER OFF PS3 </a></li>
@@ -2021,7 +2074,7 @@ function keyDownEvent(e)
 
 	if(keyCode==37) gallery.prev(); // Right
 	if(keyCode==39) gallery.next(); // Left
-	if(keyCode==13) {var index = gallery.currentMasterPage - 1; if(index<0) index = slides.length - 1; showWait(); window.open('/mount.ps3'+slides[gallery.currentMasterPage-1].url, '_self');}
+	if(keyCode==13 && menu.style.display=='none') {var index = gallery.currentMasterPage - 1; if(index<0) index = slides.length - 1; showWait(); window.open('/mount.ps3'+slides[gallery.currentMasterPage-1].url, '_self');}
 	if(keyCode==27) hideMenu();
 	if(keyCode==113) showMenu();   //F2
 	if(keyCode==114) {e.preventDefault(); searchGame();} //F3
@@ -2208,5 +2261,6 @@ function animate()
 setTimeout(animate, 1500);
 
 </script>
+<iframe name="webMAN" width=0 hight=0 style="display:none"></iframe>
 </body>
 </html>

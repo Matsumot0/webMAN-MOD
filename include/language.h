@@ -74,7 +74,7 @@ static char STR_HOME[8] = "Home";
 #define STR_ANYUSB		"Wait for any USB device to be ready"
 #define STR_ADDUSB		"Wait additionally for each selected USB device to be ready"
 #define STR_SPOOFID		"Change idps and psid in lv2 memory at system startup"
-#define STR_DELCFWSYS	"Disable lv1&lv2 peek&poke syscalls (6,7,9,10,36) and delete history files at system startup"
+#define STR_DELCFWSYS	"Disable CFW syscalls and delete history files at system startup"
 #define STR_MEMUSAGE	"Plugin memory usage"
 #define STR_PLANG		"Plugin language"
 #define STR_PROFILE		"Profile"
@@ -242,7 +242,7 @@ static char STR_LANGAMES[100]		= "Scan for LAN games/videos";
 static char STR_ANYUSB[100]			= "Wait for any USB device to be ready";
 static char STR_ADDUSB[150]			= "Wait additionally for each selected USB device to be ready";
 static char STR_SPOOFID[150]		= "Change idps and psid in lv2 memory at system startup";
-static char STR_DELCFWSYS[200]		= "Disable lv1&lv2 peek&poke syscalls (6,7,9,10,11,36) and delete history files at system startup";
+static char STR_DELCFWSYS[200]		= "Disable CFW syscalls and delete history files at system startup";
 static char STR_MEMUSAGE[100]		= "Plugin memory usage";
 static char STR_PLANG[100]			= "Plugin language";
 static char STR_PROFILE[30]			= "Profile";

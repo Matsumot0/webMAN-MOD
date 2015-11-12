@@ -26,14 +26,14 @@
 #define PS3_BROWSER		1	// /browser.ps3 / open browser combos
 
 //// EXTRA FEATURES ////
-#define XMB_SCREENSHOT	1	// screenshot XMB using L2 + R2 + SELECT + START
+#define XMB_SCREENSHOT		1	// screenshot XMB using L2 + R2 + SELECT + START
 //#define AUTO_EJECT_DISC	1	// eject disc holding SELECT on mount
-//#define SWAP_KERNEL		1	// load custom lv2_kernel.self patching LV1 and soft rebooting (use /copy.ps3)
+#define SWAP_KERNEL			1	// load custom lv2_kernel.self patching LV1 and soft rebooting (use /copy.ps3)
 //#define WEB_CHAT			1	// /chat.ps3
 #define WM_CUSTOM_COMBO	"/dev_hdd0/tmp/wm_combo/wm_custom_"		// advanced custom combos
 
 //// TEST FEATURES ////
 //#define PS2_DISC		1	// uncomment to support /mount.ps2 (mount ps2 game folder as /dev_ps2disc)
 //#define NOSINGSTAR	1	// remove SingStar icon from XMB
-//#define SYS_BGM		1	// system background music (may freeze the system when enabled)
+#define SYS_BGM			1	// system background music (may freeze the system when enabled)
 //#define USE_DEBUG		1	// debug using telnet

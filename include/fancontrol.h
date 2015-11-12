@@ -17,6 +17,8 @@ static u32 max_temp=MY_TEMP;
 uint64_t get_fan_policy_offset=0;
 uint64_t set_fan_policy_offset=0;
 
+static u64 backup[3];
+
 static bool fan_ps2_mode=false; // temporary disable dynamic fan control
 
 static void get_temperature(u32 _dev, u32 *_temp);
@@ -30,14 +32,14 @@ static void get_temperature(u32 _dev, u32 *_temp)
 
 static int sys_sm_set_fan_policy(u8 arg0, u8 arg1, u8 arg2)
 {
-    system_call_3(SC_SET_FAN_POLICY, (u64) arg0, (u64) arg1, (u64) arg2);
-    return_to_user_prog(int);
+	system_call_3(SC_SET_FAN_POLICY, (u64) arg0, (u64) arg1, (u64) arg2);
+	return_to_user_prog(int);
 }
 
 static int sys_sm_get_fan_policy(u8 id, u8 *st, u8 *mode, u8 *speed, u8 *unknown)
 {
-    system_call_5(SC_GET_FAN_POLICY, (u64) id, (u64)(u32) st, (u64)(u32) mode, (u64)(u32) speed, (u64)(u32) unknown);
-    return_to_user_prog(int);
+	system_call_5(SC_GET_FAN_POLICY, (u64) id, (u64)(u32) st, (u64)(u32) mode, (u64)(u32) speed, (u64)(u32) unknown);
+	return_to_user_prog(int);
 }
 
 static void fan_control(u8 set_fanspeed, u8 initial)
@@ -51,18 +53,18 @@ static void fan_control(u8 set_fanspeed, u8 initial)
 			if(backup[0]==0)
 			{
 				backup[0]=1;
-				//backup[1]=peekq(syscall_base + (u64) (130 * 8));
-				//backup[2]=peekq(syscall_base + (u64) (138 * 8));
-				//backup[3]=peekq(syscall_base + (u64) (379 * 8));
+				//backup[3]=peekq(syscall_base + (u64) (130 * 8));
+				//backup[4]=peekq(syscall_base + (u64) (138 * 8));
+				//backup[5]=peekq(syscall_base + (u64) (379 * 8));
 
 				{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
-				backup[4]=peekq(set_fan_policy_offset);
-				backup[5]=peekq(get_fan_policy_offset);
+				backup[1]=peekq(set_fan_policy_offset);
+				backup[2]=peekq(get_fan_policy_offset);
 				lv2poke32(get_fan_policy_offset, 0x38600001); // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 				lv2poke32(set_fan_policy_offset, 0x38600001); // sys 389 set_fan_policy
 
-			    sys_sm_set_fan_policy(0, 2, 0x33);
+				sys_sm_set_fan_policy(0, 2, 0x33);
 
 				{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 		    }
@@ -94,9 +96,9 @@ static void restore_fan(u8 set_ps2_temp)
 {
 	if(backup[0]==1 && (get_fan_policy_offset>0))
 	{
-		//pokeq(backup[0] + (u64) (130 * 8), backup[1]);
-		//pokeq(backup[0] + (u64) (138 * 8), backup[2]);
-		//pokeq(backup[0] + (u64) (379 * 8), backup[3]);
+		//pokeq(backup[0] + (u64) (130 * 8), backup[3]);
+		//pokeq(backup[0] + (u64) (138 * 8), backup[4]);
+		//pokeq(backup[0] + (u64) (379 * 8), backup[5]);
 
 		if(set_ps2_temp)
 		{
@@ -108,8 +110,8 @@ static void restore_fan(u8 set_ps2_temp)
 
 		{ PS3MAPI_ENABLE_ACCESS_SYSCALL8 }
 
-		pokeq(set_fan_policy_offset, backup[4]);  // sys 389 set_fan_policy
-		pokeq(get_fan_policy_offset, backup[5]);  // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
+		pokeq(set_fan_policy_offset, backup[1]);  // sys 389 set_fan_policy
+		pokeq(get_fan_policy_offset, backup[2]);  // sys 409 get_fan_policy  4.55/4.60/4.65/4.70/4.75/4.76
 
 		{ PS3MAPI_DISABLE_ACCESS_SYSCALL8 }
 

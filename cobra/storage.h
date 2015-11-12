@@ -108,67 +108,67 @@ typedef struct
 
 static int sys_storage_ext_get_disc_type(unsigned int *real_disctype, unsigned int *effective_disctype, unsigned int *fake_disctype)
 {
-	system_call_4(8, SYSCALL8_OPCODE_GET_DISC_TYPE, (uint64_t)(uint32_t)real_disctype, (uint64_t)(uint32_t)effective_disctype, (uint64_t)(uint32_t)fake_disctype);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_DISC_TYPE, (uint64_t)(uint32_t)real_disctype, (uint64_t)(uint32_t)effective_disctype, (uint64_t)(uint32_t)fake_disctype);
 	return (int)p1;
 }
 
 /* static int sys_storage_ext_read_ps3_disc(void *buf, uint64_t start_sector, uint32_t count)
 {
-	system_call_4(8, SYSCALL8_OPCODE_READ_PS3_DISC, (uint64_t)(uint32_t)buf, start_sector, count);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_READ_PS3_DISC, (uint64_t)(uint32_t)buf, start_sector, count);
 	return (int)p1;
 } */
 
 static int sys_storage_ext_fake_storage_event(uint64_t event, uint64_t param, uint64_t device)
 {
-	system_call_4(8, SYSCALL8_OPCODE_FAKE_STORAGE_EVENT, event, param, device);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_FAKE_STORAGE_EVENT, event, param, device);
 	return (int)p1;
 }
 
 /* static int sys_storage_ext_get_emu_state(sys_emu_state_t *state)
 {
-	system_call_2(8, SYSCALL8_OPCODE_GET_EMU_STATE, (uint64_t)(uint32_t)state);
+	system_call_2(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_GET_EMU_STATE, (uint64_t)(uint32_t)state);
 	return (int)p1;
 } */
 
 /* static int sys_storage_ext_mount_ps3_discfile(unsigned int filescount, char *files[])
 {
-	system_call_3(8, SYSCALL8_OPCODE_MOUNT_PS3_DISCFILE, filescount, (uint64_t)(uint32_t)files);
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_PS3_DISCFILE, filescount, (uint64_t)(uint32_t)files);
 	return (int)p1;
 } */
 
 /* static int sys_storage_ext_mount_dvd_discfile(unsigned int filescount, char *files[])
 {
-	system_call_3(8, SYSCALL8_OPCODE_MOUNT_DVD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_DVD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
 	return (int)p1;
 } */
 
 /* static int sys_storage_ext_mount_bd_discfile(unsigned int filescount, char *files[])
 {
-	system_call_3(8, SYSCALL8_OPCODE_MOUNT_BD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_BD_DISCFILE, filescount, (uint64_t)(uint32_t)files);
 	return (int)p1;
 } */
 
 /* static int sys_storage_ext_mount_psx_discfile(char *file, unsigned int trackscount, ScsiTrackDescriptor *tracks)
 {
-	system_call_4(8, SYSCALL8_OPCODE_MOUNT_PSX_DISCFILE, (uint64_t)(uint32_t)file, trackscount, (uint64_t)(uint32_t)tracks);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_PSX_DISCFILE, (uint64_t)(uint32_t)file, trackscount, (uint64_t)(uint32_t)tracks);
 	return (int)p1;
 } */
 
 /* static int sys_storage_ext_mount_ps2_discfile(unsigned int filescount, char *files[], unsigned int trackscount, ScsiTrackDescriptor *tracks)
 {
-	system_call_5(8, SYSCALL8_OPCODE_MOUNT_PS2_DISCFILE, filescount, (uint64_t)(uint32_t)files, trackscount, (uint64_t)(uint32_t)tracks);
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_PS2_DISCFILE, filescount, (uint64_t)(uint32_t)files, trackscount, (uint64_t)(uint32_t)tracks);
 	return (int)p1;
 } */
 
 static int sys_storage_ext_umount_discfile(void)
 {
-	system_call_1(8, SYSCALL8_OPCODE_UMOUNT_DISCFILE);
+	system_call_1(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_UMOUNT_DISCFILE);
 	return (int)p1;
 }
 
 /* static int sys_storage_ext_mount_encrypted_image(char *image, char *mount_point, char *filesystem, uint64_t nonce)
 {
-	system_call_5(8, SYSCALL8_OPCODE_MOUNT_ENCRYPTED_IMAGE, (uint64_t)(uint32_t)image, (uint64_t)(uint32_t)mount_point, (uint64_t)(uint32_t)filesystem, nonce);
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MOUNT_ENCRYPTED_IMAGE, (uint64_t)(uint32_t)image, (uint64_t)(uint32_t)mount_point, (uint64_t)(uint32_t)filesystem, nonce);
 	return (int)p1;
 } */
 
@@ -288,14 +288,14 @@ static int sys_map_path(char *oldpath, char *newpath)
 #else
 	char *paths[1]={NULL}; char *new_paths[1]={NULL};
 	paths[0]=oldpath;new_paths[0]=newpath;
-	system_call_4(8, SYSCALL8_OPCODE_MAP_PATHS, (uint64_t)(uint32_t)paths, (uint64_t)(uint32_t)new_paths, 1);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MAP_PATHS, (uint64_t)(uint32_t)paths, (uint64_t)(uint32_t)new_paths, 1);
 #endif
 	return (int)p1;
 }
 
 /* static int sys_map_paths(char *paths[], char *new_paths[], unsigned int num)
 {
-	system_call_4(8, SYSCALL8_OPCODE_MAP_PATHS, (uint64_t)(uint32_t)paths, (uint64_t)(uint32_t)new_paths, num);
+	system_call_4(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_MAP_PATHS, (uint64_t)(uint32_t)paths, (uint64_t)(uint32_t)new_paths, num);
 	return (int)p1;
 } */
 
