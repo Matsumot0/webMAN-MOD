@@ -164,7 +164,6 @@ Buffer load_png(const char *file_path)
 	png_dec_info dec_ctx;          // decryption handles
 	void *buf_addr = NULL;         // buffer for decoded png data
 
-
 	// create png decoder
 	create_decoder(&dec_ctx);
 
@@ -191,5 +190,5 @@ Buffer load_png(const char *file_path)
 	tmp.w = png_w;
 	tmp.h = png_h;
 
-  return tmp;
+	return tmp;
 }

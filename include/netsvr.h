@@ -210,7 +210,7 @@ static int process_read_cd_2048_cmd(uint8_t *buf, uint32_t start_sector, uint32_
 
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.opcode = NETISO_CMD_READ_CD_2048_CRITICAL;
-    cmd.pad = CD_SECTOR_SIZE_2352;
+    //cmd.pad = CD_SECTOR_SIZE_2352;
 	cmd.start_sector = start_sector;
 	cmd.sector_count = sector_count;
 

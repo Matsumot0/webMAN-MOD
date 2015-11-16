@@ -17,8 +17,8 @@
 
 // canvas constants
 #define BASE          0xC0000000UL     // local memory base ea
-#define CANVAS_W      720       			 // canvas width in pixel
-#define CANVAS_H      400         	   // canvas height in pixel
+#define CANVAS_W      720              // canvas width in pixel
+#define CANVAS_H      400              // canvas height in pixel
 
 #define PNG_MAX       4                // additional png bitmaps
 
@@ -31,7 +31,7 @@ extern int32_t LINE_HEIGHT;
 
 // graphic buffers
 typedef struct _Buffer {
-	uint32_t *addr;				        // buffer address
+	uint32_t *addr;               // buffer address
 	int32_t  w;                   // buffer width
 	int32_t  h;                   // buffer height
 } Buffer;
@@ -67,8 +67,7 @@ typedef struct _DrawCtx {
 	uint32_t fg_color;            // foreground color
 } DrawCtx;
 
-
-
+DrawCtx ctx;                                 // drawing context
 
 void font_finalize(void);
 void init_graphic(void);

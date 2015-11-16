@@ -226,6 +226,7 @@ static u32 BUFFER_SIZE_ALL	= ( 896*KB);
 ////////////
 
 #define MODE		0777
+#define DMODE		(CELL_FS_S_IFDIR | MODE)
 
 #define LINELEN			512 // file listing
 #define MAX_LINE_LEN	640 // html games
@@ -673,7 +674,7 @@ static void handleclient(u64 conn_s_p)
 
 		init_running = 1;
 
-		cellFsMkdir((char*)WMTMP, MODE);
+		cellFsMkdir((char*)WMTMP, DMODE);
 
 		check_cover_folders(param);
 
@@ -798,7 +799,7 @@ again3:
 #endif
 		retries++;
 		sys_timer_sleep(1);
-		if(retries<5) goto again3;
+		if(retries<5 && working) goto again3;
 		init_running = 0;
 		sclose(&conn_s);
 		loading_html--;
@@ -1098,7 +1099,7 @@ again3:
 					if(View_Find("game_plugin") == 0) http_response(conn_s, header, param, 200, (char*)"/KLIC: Waiting for game...");
 
 					// wait until game start
-					while((klic_polling == 2) && View_Find("game_plugin") == 0) {sys_timer_usleep(500000);}
+					while((klic_polling == 2) && View_Find("game_plugin") == 0 && working) {sys_timer_usleep(500000);}
 				}
 
 				char kl[0x120], prev[0x200], buffer[0x200]; memset(kl, 0, 120);
@@ -1142,7 +1143,7 @@ again3:
 
 					if(klic_polling_status==0)
 					{
-						while((klic_polling>0) && View_Find("game_plugin"))
+						while((klic_polling>0) && View_Find("game_plugin")!=0 && working)
 						{
 							hex_dump(kl, (int)KLICENSEE_OFFSET, KLICENSEE_SIZE);
 							sprintf(buffer, "%s %s %s %s\r\n", kl, (char*)(KLIC_CONTENT_ID_OFFSET), header, (char*)(KLIC_PATH_OFFSET));
@@ -1194,23 +1195,23 @@ again3:
 					if(param[10]=='/') {sprintf(param, "%s", param+10); cellFsRmdir((char*)param); for(u16 i = strlen(param); i > 0; i--) if(param[i]=='/') {param[i]=0; break;}}
 					else {delete_history(true); sprintf(param, "/dev_hdd0");}
 				}
-				else if(param[10]=='/') {sprintf(param, "%s", param+10); cellFsMkdir((char*)param, MODE);}
+				else if(param[10]=='/') {sprintf(param, "%s", param+10); cellFsMkdir((char*)param, DMODE);}
 				else
 				{
 					sprintf(param, "/dev_hdd0");
 
-					cellFsMkdir((char*)"/dev_hdd0/packages", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/GAMES", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/GAMES " AUTOPLAY_TAG, MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PS3ISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PS3ISO " AUTOPLAY_TAG, MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PSXISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PSXISO " AUTOPLAY_TAG, MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PS2ISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PS2ISO " AUTOPLAY_TAG, MODE);
-					cellFsMkdir((char*)"/dev_hdd0/PSPISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/DVDISO", MODE);
-					cellFsMkdir((char*)"/dev_hdd0/BDISO", MODE);
+					cellFsMkdir((char*)"/dev_hdd0/packages", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/GAMES", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/GAMES " AUTOPLAY_TAG, DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS3ISO", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS3ISO " AUTOPLAY_TAG, DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PSXISO", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PSXISO " AUTOPLAY_TAG, DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS2ISO", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PS2ISO " AUTOPLAY_TAG, DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/PSPISO", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/DVDISO", DMODE);
+					cellFsMkdir((char*)"/dev_hdd0/BDISO", DMODE);
 				}
 			}
  #ifdef COPY_PS3
@@ -2226,11 +2227,12 @@ int wwwd_start(uint64_t arg)
 
 static void wwwd_stop_thread(uint64_t arg)
 {
+	working = 0;
+
 	while(init_running) sys_timer_usleep(500000); //Prevent unload too fast
 
 	restore_fan(1); //restore & set static fan speed for ps2
 
-	working = 0;
 	sys_timer_usleep(500000);
 
 	uint64_t exit_code;
@@ -2276,6 +2278,8 @@ static void stop_prx_module(void)
 	remove_cfw_syscall8(); // remove cobra if syscalls were disabled
 #endif
 
+	working = 0;
+
 	sys_prx_id_t prx = prx_get_module_id_by_address(stop_prx_module);
 	int *result = NULL;
 
@@ -2288,7 +2292,6 @@ static void unload_prx_module(void)
 	sys_prx_id_t prx = prx_get_module_id_by_address(unload_prx_module);
 
 	{system_call_3(SC_UNLOAD_PRX_MODULE, (u64)prx, 0, NULL);}
-
 }
 
 int wwwd_stop(void)

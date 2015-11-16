@@ -7,21 +7,16 @@
 //#include "include/network.h"	// debug
 
 
-
 // display values
 static uint32_t unk1 = 0, offset = 0, pitch = 0;
 static uint32_t h = 0, w = 0, canvas_x = 0, canvas_y = 0;
 
-static DrawCtx ctx;                                 // drawing context
 static Bitmap *bitmap = NULL;                       // font glyph cache
 
 static const CellFontLibrary* font_lib_ptr = NULL;  // font library pointer
 static uint32_t vsh_fonts[16] = {};                 // addresses of the 16 system font slots
 
 int32_t LINE_HEIGHT = 0;
-
-
-
 
 /***********************************************************************
 * get font object
@@ -353,7 +348,11 @@ void init_graphic()
 int32_t load_png_bitmap(int32_t idx, const char *path)
 {
 	if(idx > PNG_MAX) return -1;
+
+	mem_free(ctx.png[idx].w * ctx.png[idx].h * 4);
+
 	ctx.png[idx] = load_png(path);
+
 	return 0;
 }
 

@@ -775,7 +775,7 @@ continue_reading_folder_xml:
 						XML_PAIR("title","%s")
 						XML_PAIR("info","%s") "%s"
 						XML_PAIR("module_action","http://%s/mount_ps3/unmount") "%s",
-						wm_icons[11], STR_EJECTDISC, STR_UNMOUNTGAME, WEB_LINK_PAIR, local_ip, "</Table>"); strcpy(myxml, templn);
+						wm_icons[11], STR_EJECTDISC, STR_UNMOUNTGAME, WEB_LINK_PAIR, local_ip, "</Table>"); strcat(myxml, templn);
 	}
 
 	if( !(webman_config->nogrp))

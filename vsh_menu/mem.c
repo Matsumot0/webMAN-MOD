@@ -47,6 +47,11 @@ void *mem_alloc(uint32_t size)
 	return (void*)add;
 }
 
-
-
-
+/***********************************************************************
+*
+***********************************************************************/
+int32_t mem_free(uint32_t size)
+{
+	if(prx_heap>=size) prx_heap -= size; else return (-1);
+	return(0);
+}

@@ -175,8 +175,10 @@ static int folder_copy(char *path1, char *path2)
 	char source[MAX_PATH_LEN];
 	char target[MAX_PATH_LEN];
 
-	cellFsMkdir((char*)path2, MODE);
+	cellFsMkdir((char*)path2, DMODE);
 	copy_aborted=false;
+
+	cellFsChmod(path1, DMODE);
 
 	if(cellFsOpendir(path1, &fd) == CELL_FS_SUCCEEDED)
 	{
@@ -316,7 +318,7 @@ static void import_edats(char *path1, char *path2)
 	char source[MAX_PATH_LEN];
 	char target[MAX_PATH_LEN];
 
-	cellFsMkdir((char*)path2, MODE);
+	cellFsMkdir((char*)path2, DMODE);
 	if(cellFsStat(path2, &buf)!=CELL_FS_SUCCEEDED) return;
 
 	copy_aborted=false;
